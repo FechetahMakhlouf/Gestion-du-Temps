@@ -136,34 +136,52 @@ body {
 }
 
 .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-}
-
-.form-label {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    position: relative;
+    margin-top: 0.5rem;
 }
 
 .form-input {
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 0.7rem 1rem;
+    padding: 1.4rem 1rem 0.5rem 1rem;
+    /* plus de padding en haut */
     font-size: 0.9rem;
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
     outline: none;
     transition: var(--transition);
+    width: 100%;
 }
 
 .form-input:focus {
     border-color: var(--gold);
     background: var(--surface3);
+}
+
+.form-label {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.form-input:focus+.form-label,
+.form-input:not(:placeholder-shown)+.form-label {
+    top: 0.55rem;
+    transform: translateY(0);
+    font-size: 0.68rem;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 500;
 }
 
 .btn-primary {
