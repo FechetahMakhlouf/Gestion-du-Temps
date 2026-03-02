@@ -205,3 +205,487 @@ async function renderSubjectsPanel() {
         </div>
     `).join('');
 }
+
+// Palette
+async function renderPalette() {
+    const subjects = await apiCall('/api/subjects');
+    const el = document.getElementById('palette-chips');
+    const cellChips = document.getElementById('cell-modal-chips');
+    if (!subjects.length) {
+        el.innerHTML = `<span style="font-size:0.78rem;color:var(--text-muted)">Aucune matière — allez dans "Mes Matières" pour en ajouter</span>`;
+        if (cellChips) cellChips.innerHTML = '';
+        return;
+    }
+    const chipHtml = (forModal) => subjects.map(s => `
+        <div class="subject-chip ${!forModal && s.id === selectedSubjectId ? 'selected' : ''}"
+             style="background:${hexAlpha(s.color, 0.18)};color:${s.color};border-left-color:${s.color}"
+             draggable="true"
+             ondragstart="onChipDragStart(event,'${s.id}')"
+             onclick="${forModal ? `assignFromModal('${s.id}')` : `selectSubject('${s.id}', this)`}">
+            ${s.name}
+        </div>
+    `).join('');
+    el.innerHTML = chipHtml(false);
+    if (cellChips) cellChips.innerHTML = chipHtml(true);
+}
+
+function selectSubject(id, el) {
+    if (selectedSubjectId === id) {
+        selectedSubjectId = null;
+        document.querySelectorAll('.subject-chip').forEach(c => c.classList.remove('selected'));
+    } else {
+        selectedSubjectId = id;
+        document.querySelectorAll('#palette-chips .subject-chip').forEach(c => c.classList.remove('selected'));
+        el && el.classList.add('selected');
+    }
+}
+
+function setMode(mode) {
+    interactionMode = mode;
+    document.getElementById('mode-click').classList.toggle('active', mode === 'click');
+    document.getElementById('mode-drag').classList.toggle('active', mode === 'drag');
+}
+
+// Schedule Grid
+const ALL_DAYS_MAP = { 'Dim': 0, 'Lun': 1, 'Mar': 2, 'Mer': 3, 'Jeu': 4, 'Ven': 5, 'Sam': 6 };
+
+function getWeekDays() {
+    const days = window.currentActiveDays || ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    const today = new Date();
+    today.setDate(today.getDate() + currentWeekOffset * 7);
+    const dayOfWeek = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
+
+    return days.map(dayAbbr => {
+        const dayIdx = ALL_DAYS_MAP[dayAbbr] || 1;
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + (dayIdx - 1));
+        return { abbr: dayAbbr, date: d, dateStr: d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) };
+    });
+}
+
+async function renderScheduleGrid() {
+    const timeslots = await apiCall('/api/timeslots');
+    const weekDays = getWeekDays();
+    const subjects = await apiCall('/api/subjects');
+    const sched = await apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`);
+
+    if (weekDays.length) {
+        const first = weekDays[0].dateStr;
+        const last = weekDays[weekDays.length - 1].dateStr;
+        document.getElementById('week-label').textContent = `${first} – ${last}`;
+    }
+
+    const dayCount = weekDays.length;
+    const grid = document.getElementById('schedule-grid');
+    grid.style.gridTemplateColumns = `80px repeat(${dayCount}, 1fr)`;
+
+    let html = '';
+
+    // Header row
+    html += `<div class="grid-header-cell grid-time-col" style="background:var(--surface2)"></div>`;
+    const todayStr = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+    weekDays.forEach(d => {
+        const isToday = d.dateStr === todayStr;
+        html += `<div class="grid-header-cell ${isToday ? 'today' : ''}">
+            <div class="day-abbr">${d.abbr}</div>
+            <div class="day-date">${d.date.getDate()}</div>
+        </div>`;
+    });
+
+    // Rows
+    timeslots.forEach(ts => {
+        html += `<div class="time-cell grid-time-col">
+            <span class="time-label">${ts.start}<br>–${ts.end}</span>
+        </div>`;
+        weekDays.forEach(d => {
+            const key = `${currentWeekOffset}_${d.abbr}_${ts.id}`;
+            const subjId = sched[key];
+            const subj = subjId ? subjects.find(s => s.id === subjId) : null;
+
+            if (subj) {
+                html += `<div class="slot-cell"
+                    ondragover="onDragOver(event)"
+                    ondragleave="onDragLeave(event)"
+                    ondrop="onDrop(event,'${d.abbr}','${ts.id}')"
+                    onclick="handleCellClick('${d.abbr}','${ts.id}')">
+                    <div class="slot-event"
+                         style="background:${hexAlpha(subj.color, 0.2)};border-left-color:${subj.color};color:${subj.color}"
+                         draggable="true"
+                         ondragstart="onEventDragStart(event,'${d.abbr}','${ts.id}','${subj.id}')">
+                        <span class="slot-event-name">${subj.name}</span>
+                        <span class="slot-event-type">${subj.type}</span>
+                        <button class="delete-event-btn" onclick="event.stopPropagation();removeEvent('${d.abbr}','${ts.id}')">✕</button>
+                    </div>
+                </div>`;
+            } else {
+                html += `<div class="slot-cell"
+                    ondragover="onDragOver(event)"
+                    ondragleave="onDragLeave(event)"
+                    ondrop="onDrop(event,'${d.abbr}','${ts.id}')"
+                    onclick="handleCellClick('${d.abbr}','${ts.id}')"></div>`;
+            }
+        });
+    });
+
+    if (!timeslots.length) {
+        grid.innerHTML = `<div style="grid-column:1/-1;padding:3rem;text-align:center;color:var(--text-muted);font-size:0.85rem;">Aucun créneau horaire défini — allez dans "Créneaux Horaires"</div>`;
+        return;
+    }
+
+    grid.innerHTML = html;
+    checkConflicts();
+}
+
+async function handleCellClick(day, tsId) {
+    if (interactionMode === 'drag') return;
+    if (selectedSubjectId) {
+        assignSubject(day, tsId, selectedSubjectId);
+    } else {
+        const ts = await apiCall('/api/timeslots').then(ts => ts.find(t => t.id === tsId));
+        document.getElementById('cell-modal-day').value = day;
+        document.getElementById('cell-modal-slot').value = tsId;
+        document.getElementById('cell-modal-title').textContent = `${day} · ${ts ? ts.start + '–' + ts.end : ''}`;
+        renderPalette();
+        document.getElementById('cell-modal').classList.add('open');
+    }
+}
+
+async function assignFromModal(subjId) {
+    const day = document.getElementById('cell-modal-day').value;
+    const tsId = document.getElementById('cell-modal-slot').value;
+    await assignSubject(day, tsId, subjId);
+    closeModal('cell-modal');
+}
+
+async function removeCellEvent() {
+    const day = document.getElementById('cell-modal-day').value;
+    const tsId = document.getElementById('cell-modal-slot').value;
+    await removeEvent(day, tsId);
+    closeModal('cell-modal');
+}
+
+async function assignSubject(day, tsId, subjId) {
+    try {
+        await apiCall('/api/schedule/assign', {
+            method: 'POST',
+            body: JSON.stringify({ weekOffset: currentWeekOffset, day, timeslotId: tsId, subjectId: subjId })
+        });
+        await renderScheduleGrid();
+    } catch (e) {
+        toast(e.message, 'error');
+    }
+}
+
+async function removeEvent(day, tsId) {
+    try {
+        await apiCall('/api/schedule/remove', {
+            method: 'POST',
+            body: JSON.stringify({ weekOffset: currentWeekOffset, day, timeslotId: tsId })
+        });
+        await renderScheduleGrid();
+    } catch (e) {
+        toast(e.message, 'error');
+    }
+}
+
+// Drag & Drop
+let dragSubjId = null;
+let dragFromDay = null, dragFromTs = null;
+
+function onChipDragStart(e, subjId) {
+    dragSubjId = subjId;
+    dragFromDay = null;
+    e.dataTransfer.effectAllowed = 'copy';
+}
+
+function onEventDragStart(e, day, tsId, subjId) {
+    dragSubjId = subjId;
+    dragFromDay = day;
+    dragFromTs = tsId;
+    e.dataTransfer.effectAllowed = 'move';
+    e.stopPropagation();
+}
+
+function onDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('drag-over');
+}
+
+function onDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+}
+
+async function onDrop(e, day, tsId) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    if (!dragSubjId) return;
+    if (dragFromDay) {
+        await removeEvent(dragFromDay, dragFromTs);
+    }
+    await assignSubject(day, tsId, dragSubjId);
+    dragSubjId = null; dragFromDay = null; dragFromTs = null;
+}
+
+function changeWeek(delta) {
+    currentWeekOffset += delta;
+    renderScheduleGrid();
+}
+
+function goToday() {
+    currentWeekOffset = 0;
+    renderScheduleGrid();
+}
+
+async function clearAllSchedule() {
+    if (!confirm('Vider tout l\'emploi du temps de cette semaine ?')) return;
+    const sched = await apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`);
+    for (let key in sched) {
+        const parts = key.split('_');
+        if (parts.length === 3) {
+            await apiCall('/api/schedule/remove', {
+                method: 'POST',
+                body: JSON.stringify({ weekOffset: currentWeekOffset, day: parts[1], timeslotId: parts[2] })
+            });
+        }
+    }
+    await renderScheduleGrid();
+    toast('Emploi du temps vidé', 'info');
+}
+
+function checkConflicts() {
+    document.getElementById('conflict-badge').style.display = 'none';
+}
+
+// Timeslots
+function openTimeslotModal() {
+    document.getElementById('ts-msg').innerHTML = '';
+    document.getElementById('timeslot-modal').classList.add('open');
+}
+
+async function saveTimeslot() {
+    const start = document.getElementById('ts-start').value;
+    const end = document.getElementById('ts-end').value;
+    const msgEl = document.getElementById('ts-msg');
+    if (!start || !end) { showMsg(msgEl, 'Remplissez les deux champs.', 'error'); return; }
+    if (start >= end) { showMsg(msgEl, 'L\'heure de fin doit être après le début.', 'error'); return; }
+    try {
+        await apiCall('/api/timeslots', {
+            method: 'POST',
+            body: JSON.stringify({ start, end })
+        });
+        closeModal('timeslot-modal');
+        await renderTimeslots();
+        await renderScheduleGrid();
+        toast('Créneau ajouté ✓', 'success');
+    } catch (e) {
+        showMsg(msgEl, e.message, 'error');
+    }
+}
+
+async function deleteTimeslot(id) {
+    try {
+        await apiCall(`/api/timeslots/${id}`, { method: 'DELETE' });
+        await renderTimeslots();
+        await renderScheduleGrid();
+        toast('Créneau supprimé', 'info');
+    } catch (e) {
+        toast(e.message, 'error');
+    }
+}
+
+async function renderTimeslots() {
+    const ts = await apiCall('/api/timeslots');
+    const el = document.getElementById('timeslots-list');
+    if (!ts.length) {
+        el.innerHTML = `<div class="empty-state"><div class="empty-title">Aucun créneau</div></div>`;
+        return;
+    }
+    el.innerHTML = ts.map(t => `
+        <div class="timeslot-row">
+            <span class="timeslot-time">${t.start} → ${t.end}</span>
+            <span class="meta-badge">${durationStr(t.start, t.end)}</span>
+            <button class="icon-btn danger" onclick="deleteTimeslot('${t.id}')">🗑</button>
+        </div>
+    `).join('');
+}
+
+function durationStr(start, end) {
+    const [sh, sm] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+    const mins = (eh * 60 + em) - (sh * 60 + sm);
+    return mins >= 60 ? `${Math.floor(mins / 60)}h${mins % 60 ? (mins % 60) + 'm' : ''}` : `${mins}min`;
+}
+
+// Days configuration
+async function renderDaysCheckboxes() {
+    const allDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    const active = await apiCall('/api/days');
+    window.currentActiveDays = active;
+    const el = document.getElementById('days-checkboxes');
+    el.innerHTML = allDays.map(d => `
+        <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.82rem;padding:0.4rem 0.8rem;background:var(--surface);border:1px solid ${active.includes(d) ? 'var(--gold)' : 'var(--border)'};border-radius:6px;color:${active.includes(d) ? 'var(--gold-light)' : 'var(--text-muted)'}">
+            <input type="checkbox" ${active.includes(d) ? 'checked' : ''} onchange="toggleDay('${d}',this)" style="accent-color:var(--gold)">
+            ${d}
+        </label>
+    `).join('');
+}
+
+async function toggleDay(day, cb) {
+    let active = await apiCall('/api/days');
+    if (cb.checked) {
+        if (!active.includes(day)) active.push(day);
+    } else {
+        active = active.filter(d => d !== day);
+    }
+    const order = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    active.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    await apiCall('/api/days', {
+        method: 'PUT',
+        body: JSON.stringify(active)
+    });
+    await renderDaysCheckboxes();
+    await renderScheduleGrid();
+}
+
+// Auto-generate – corrected versions
+
+async function renderAutogenGrid() {
+    const subjects = await apiCall('/api/subjects');
+    const config = await apiCall('/api/autogen');
+    const grid = document.getElementById('autogen-grid');
+    if (!subjects.length) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-title">Aucune matière définie</div></div>`;
+        return;
+    }
+
+    grid.innerHTML = subjects.map(s => {
+        const hours = config[s.id] || 0;
+        return `
+            <div class="autogen-row" style="border-left:3px solid ${s.color}">
+                <span style="flex:1; font-size:0.85rem; font-weight:600; color:${s.color}">${s.name}</span>
+                <span style="font-size:0.72rem; color:var(--text-muted)">h/sem</span>
+                <input class="form-input" type="number" min="0" max="40" step="0.5"
+                       value="${hours}"
+                       data-subj-id="${s.id}">
+            </div>
+        `;
+    }).join('');
+
+}
+
+async function autoGenerate() {
+    const rows = document.querySelectorAll('#autogen-grid .autogen-row');
+    const newConfig = {};
+
+    rows.forEach(row => {
+        const input = row.querySelector('input[data-subj-id]');
+        if (!input) return;
+        const subjId = input.dataset.subjId;
+        const hours = parseFloat(input.value) || 0;
+        if (hours > 0) {
+            newConfig[subjId] = hours;
+        }
+    });
+
+    await apiCall('/api/autogen', {
+        method: 'PUT',
+        body: JSON.stringify(newConfig)
+    });
+
+    const result = await apiCall('/api/autogen/generate?weekOffset=' + currentWeekOffset, {
+        method: 'POST'
+    });
+
+    document.getElementById('autogen-result').textContent =
+        `✓ Planning généré : ${result.assigned} créneaux assignés.`;
+    toast('Planning généré ✓', 'success');
+    showPanel('schedule');
+    await renderScheduleGrid();
+}
+
+
+// Export
+async function exportSchedule() {
+    const win = window.open('', '_blank');
+    const subjects = await apiCall('/api/subjects');
+    const sched = await apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`);
+    const timeslots = await apiCall('/api/timeslots');
+    const days = await apiCall('/api/days');
+    const user = await apiCall('/api/auth/me');
+
+    let rows = '';
+    timeslots.sort((a, b) => a.start.localeCompare(b.start)).forEach(ts => {
+        let cells = `<td style="font-family:monospace;font-size:12px;padding:8px;background:#0f1520;color:#637080;white-space:nowrap;">${ts.start}–${ts.end}</td>`;
+        days.forEach(d => {
+            const key = `${currentWeekOffset}_${d}_${ts.id}`;
+            const subjId = sched[key];
+            const subj = subjId ? subjects.find(s => s.id === subjId) : null;
+            if (subj) {
+                cells += `<td style="padding:8px;background:${hexAlpha(subj.color, 0.3)};color:${subj.color};font-weight:600;font-size:13px;border-left:3px solid ${subj.color}">${subj.name}<br><span style="font-size:10px;opacity:0.7">${subj.type}</span></td>`;
+            } else {
+                cells += `<td style="padding:8px;background:#0f1520;"></td>`;
+            }
+        });
+        rows += `<tr>${cells}</tr>`;
+    });
+
+    win.document.write(`<!DOCTYPE html><html><head><title>Emploi du Temps — ${user.name}</title></head>
+        <body style="background:#080c12;color:#e8f0f8;font-family:sans-serif;padding:2rem">
+        <h2 style="color:#e8b84b;font-family:serif">جدول — ${user.name}</h2>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #1e2d45">
+            <tr style="background:#161e2e"><th style="padding:10px;color:#637080"></th>
+            ${days.map(d => `<th style="padding:10px;color:#e8b84b;font-size:14px">${d}</th>`).join('')}
+            </tr>${rows}
+        </table></body></html>`);
+    win.document.close();
+}
+
+// Utils
+function hexAlpha(hex, alpha) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+}
+
+function toast(msg, type = 'info') {
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.textContent = msg;
+    document.getElementById('toasts').appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+}
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+        if (e.target === overlay) overlay.classList.remove('open');
+    });
+});
+
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const user = await apiCall('/api/auth/me');
+        if (user) {
+            await startApp();
+        } else {
+            document.getElementById('auth-page').style.display = 'flex';
+        }
+    } catch (e) {
+        document.getElementById('auth-page').style.display = 'flex';
+    }
+});
+
+async function renderAll() {
+    await renderSubjectsPanel();
+    await renderPalette();
+    await renderScheduleGrid();
+    await renderTimeslots();
+    await renderDaysCheckboxes();
+    await renderAutogenGrid();
+}
