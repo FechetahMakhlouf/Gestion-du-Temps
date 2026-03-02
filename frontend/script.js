@@ -1,3 +1,8 @@
+let currentWeekOffset = 0;
+let selectedSubjectId = null;
+let interactionMode = 'click';
+let currentActiveDays = [];
+
 // Auth
 function switchAuthTab(tab) {
     document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register')));
