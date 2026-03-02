@@ -381,3 +381,317 @@ body {
     color: var(--text-muted);
     margin-top: 0.2rem;
 }
+
+/* SCHEDULE GRID */
+.schedule-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.week-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.week-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 0.4rem 0.7rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.week-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold-light);
+}
+
+.week-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    min-width: 140px;
+    text-align: center;
+}
+
+.schedule-grid-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: auto;
+}
+
+.schedule-grid {
+    display: grid;
+    min-width: 700px;
+}
+
+.grid-header-row {
+    display: contents;
+}
+
+.grid-time-col {
+    position: sticky;
+    left: 0;
+    background: var(--surface);
+    z-index: 10;
+}
+
+.grid-header-cell {
+    background: var(--surface2);
+    padding: 0.8rem 0.5rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.grid-header-cell .day-abbr {
+    color: var(--gold-light);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.grid-header-cell .day-date {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+}
+
+.grid-header-cell.today {
+    background: var(--gold-dim);
+}
+
+.grid-header-cell.today .day-abbr {
+    color: var(--gold-light);
+}
+
+.time-cell {
+    background: var(--surface2);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 0 0.6rem;
+    display: flex;
+    align-items: flex-start;
+    padding-top: 0.4rem;
+    min-height: 60px;
+}
+
+.time-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-dim);
+}
+
+.slot-cell {
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    min-height: 60px;
+    position: relative;
+    transition: background var(--transition);
+    cursor: pointer;
+}
+
+.slot-cell:hover {
+    background: rgba(201, 151, 42, 0.04);
+}
+
+.slot-cell.drag-over {
+    background: rgba(201, 151, 42, 0.1);
+    outline: 2px dashed var(--gold);
+    outline-offset: -2px;
+}
+
+.slot-event {
+    position: absolute;
+    inset: 2px;
+    border-radius: 6px;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: grab;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    border-left: 3px solid;
+    z-index: 2;
+}
+
+.slot-event:active {
+    cursor: grabbing;
+}
+
+.slot-event-name {
+    font-size: 0.73rem;
+    line-height: 1.2;
+}
+
+.slot-event-type {
+    font-size: 0.6rem;
+    opacity: 0.75;
+    font-weight: 400;
+}
+
+.slot-event .delete-event-btn {
+    position: absolute;
+    top: 2px;
+    right: 3px;
+    background: rgba(0, 0, 0, 0.4);
+    border: none;
+    color: #fff;
+    font-size: 0.6rem;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.slot-event:hover .delete-event-btn {
+    display: flex;
+}
+
+/* SUBJECT PALETTE */
+.subject-palette {
+    margin-bottom: 1.5rem;
+}
+
+.palette-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 0.7rem;
+}
+
+.palette-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.subject-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: grab;
+    user-select: none;
+    transition: var(--transition);
+    border-left: 3px solid;
+}
+
+.subject-chip:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+}
+
+.subject-chip.selected {
+    outline: 2px solid white;
+    outline-offset: 1px;
+}
+
+.subject-chip:active {
+    cursor: grabbing;
+}
+
+/* SUBJECTS PANEL */
+.subjects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.subject-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem;
+    border-left: 4px solid;
+    position: relative;
+    transition: var(--transition);
+}
+
+.subject-card:hover {
+    border-color: var(--border2);
+}
+
+.subject-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.subject-card-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    flex: 1;
+}
+
+.subject-card-actions {
+    display: flex;
+    gap: 0.3rem;
+}
+
+.icon-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 5px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: var(--transition);
+}
+
+.icon-btn:hover {
+    color: var(--gold-light);
+    border-color: var(--gold);
+}
+
+.icon-btn.danger:hover {
+    color: var(--red-light);
+    border-color: var(--red);
+}
+
+.subject-card-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.meta-badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    border: 1px solid var(--border);
+}

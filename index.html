@@ -88,6 +88,93 @@
                     </button>
                 </div>
             </nav>
+            <!-- Main content -->
+            <main class="main-content">
+                <!-- SCHEDULE PANEL -->
+                <div class="panel active" id="panel-schedule">
+                    <div class="panel-header">
+                        <div>
+                            <div class="panel-title">Emploi du Temps</div>
+                            <div class="panel-sub">Cliquez sur une case ou glissez une matière pour l'assigner</div>
+                        </div>
+                        <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
+                            <div id="conflict-badge" class="conflict-badge">⚠ Conflits détectés</div>
+                            <button class="btn-secondary" onclick="clearAllSchedule()"
+                                style="font-size:0.8rem;padding:0.45rem 0.9rem;">🗑 Vider</button>
+                            <button class="btn-primary" onclick="exportSchedule()"
+                                style="font-size:0.8rem;padding:0.5rem 1rem;">⬇ Exporter</button>
+                        </div>
+                    </div>
+                    <div class="subject-palette">
+                        <div class="palette-label">Matières — glissez ou cliquez pour sélectionner</div>
+                        <div class="palette-chips" id="palette-chips"></div>
+                    </div>
+                    <div class="select-mode-btns">
+                        <button class="mode-btn active" id="mode-click" onclick="setMode('click')">🖱 Mode Clic</button>
+                        <button class="mode-btn" id="mode-drag" onclick="setMode('drag')">✋ Mode Drag & Drop</button>
+                    </div>
+                    <div class="schedule-controls">
+                        <div class="week-nav">
+                            <button class="week-btn" onclick="changeWeek(-1)">←</button>
+                            <div class="week-label" id="week-label">—</div>
+                            <button class="week-btn" onclick="changeWeek(1)">→</button>
+                        </div>
+                        <button class="btn-secondary" onclick="goToday()"
+                            style="font-size:0.78rem;padding:0.4rem 0.8rem;">Aujourd'hui</button>
+                    </div>
+                    <div class="schedule-grid-wrap">
+                        <div class="schedule-grid" id="schedule-grid"></div>
+                    </div>
+                </div>
+
+                <!-- SUBJECTS PANEL -->
+                <div class="panel" id="panel-subjects">
+                    <div class="panel-header">
+                        <div>
+                            <div class="panel-title">Mes Matières</div>
+                            <div class="panel-sub">Gérez vos matières, couleurs et types</div>
+                        </div>
+                        <button class="btn-primary" onclick="openSubjectModal()">+ Ajouter une matière</button>
+                    </div>
+                    <div class="stats-row" id="subj-stats"></div>
+                    <div class="subjects-grid" id="subjects-grid"></div>
+                </div>
+
+                <!-- TIMESLOTS PANEL -->
+                <div class="panel" id="panel-timeslots">
+                    <div class="panel-header">
+                        <div>
+                            <div class="panel-title">Créneaux Horaires</div>
+                            <div class="panel-sub">Définissez les plages horaires de votre emploi du temps</div>
+                        </div>
+                        <button class="btn-primary" onclick="openTimeslotModal()">+ Ajouter un créneau</button>
+                    </div>
+                    <div class="section-label">Créneaux actifs</div>
+                    <div class="timeslots-list" id="timeslots-list"></div>
+                    <div style="margin-top:1.5rem">
+                        <div class="section-label">Jours affichés</div>
+                        <div id="days-checkboxes" style="display:flex;gap:0.6rem;flex-wrap:wrap;"></div>
+                    </div>
+                </div>
+
+                <!-- AUTO-GEN PANEL -->
+                <div class="panel" id="panel-autogen">
+                    <div class="panel-header">
+                        <div>
+                            <div class="panel-title">Génération Automatique</div>
+                            <div class="panel-sub">Définissez les heures hebdomadaires par matière et générez votre
+                                planning</div>
+                        </div>
+                    </div>
+                    <div class="section-label">Heures souhaitées par semaine par matière</div>
+                    <div class="autogen-grid" id="autogen-grid"></div>
+                    <div style="margin-top:1.5rem;display:flex;gap:0.8rem;flex-wrap:wrap;">
+                        <button class="btn-primary" onclick="autoGenerate()">⚡ Générer automatiquement</button>
+                        <button class="btn-secondary" onclick="clearAllSchedule()">🗑 Vider l'emploi du temps</button>
+                    </div>
+                    <div id="autogen-result" style="margin-top:1rem;font-size:0.82rem;color:var(--text-muted);"></div>
+                </div>
+            </main>
         </div>
     </div>
     <script src="frontend/script.js"></script>
