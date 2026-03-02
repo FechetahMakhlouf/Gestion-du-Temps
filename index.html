@@ -177,6 +177,80 @@
             </main>
         </div>
     </div>
+    <!-- MODALS -->
+    <!-- Subject Modal -->
+    <div class="modal-overlay" id="subject-modal">
+        <div class="modal">
+            <div class="modal-title" id="subject-modal-title">Ajouter une matière</div>
+            <div class="auth-form">
+                <input type="hidden" id="subj-edit-id">
+                <div class="form-group">
+                    <label class="form-label">Nom de la matière</label>
+                    <input class="form-input" id="subj-name" placeholder="Ex: Mathématiques">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select class="form-input" id="subj-type">
+                        <option value="Cours">Cours</option>
+                        <option value="TD">TD (Travaux Dirigés)</option>
+                        <option value="TP">TP (Travaux Pratiques)</option>
+                        <option value="Séminaire">Séminaire</option>
+                        <option value="Projet">Projet</option>
+                        <option value="Perso">Personnel</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Couleur</label>
+                    <div class="color-picker-grid" id="color-grid"></div>
+                </div>
+                <div id="subj-msg"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('subject-modal')">Annuler</button>
+                <button class="btn-primary" onclick="saveSubject()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeslot Modal -->
+    <div class="modal-overlay" id="timeslot-modal">
+        <div class="modal">
+            <div class="modal-title">Ajouter un créneau horaire</div>
+            <div class="auth-form">
+                <div class="form-group">
+                    <label class="form-label">Heure de début</label>
+                    <input class="form-input" id="ts-start" type="time" value="08:00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Heure de fin</label>
+                    <input class="form-input" id="ts-end" type="time" value="10:00">
+                </div>
+                <div id="ts-msg"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('timeslot-modal')">Annuler</button>
+                <button class="btn-primary" onclick="saveTimeslot()">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cell click modal: pick subject -->
+    <div class="modal-overlay" id="cell-modal">
+        <div class="modal">
+            <div class="modal-title" id="cell-modal-title">Assigner une matière</div>
+            <input type="hidden" id="cell-modal-day">
+            <input type="hidden" id="cell-modal-slot">
+            <div class="palette-chips" id="cell-modal-chips" style="gap:0.5rem;flex-wrap:wrap;display:flex;"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('cell-modal')">Annuler</button>
+                <button class="btn-danger" onclick="removeCellEvent()">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toasts"></div>
+
     <script src="frontend/script.js"></script>
 </body>
 
