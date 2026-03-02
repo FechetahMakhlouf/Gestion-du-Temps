@@ -1,1 +1,1 @@
-window.API_BASE = 'http://localhost:5000'; 
+window.API_BASE = 'https://jadwal-backend-n52u.onrender.com'; 
