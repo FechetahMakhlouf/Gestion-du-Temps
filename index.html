@@ -58,6 +58,38 @@
             </div>
         </div>
     </div>
+    <!-- APP PAGE -->
+    <div id="app-page">
+        <button class="mobile-nav-toggle" onclick="toggleSidebar()">☰</button>
+        <div class="app-layout">
+            <!-- Sidebar -->
+            <nav class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-logo">جدول Jadwal</div>
+                    <div class="sidebar-user" id="sidebar-username">—</div>
+                </div>
+                <div class="sidebar-nav">
+                    <button class="nav-item active" onclick="showPanel('schedule')">
+                        <span class="nav-icon">📅</span> Mon Emploi du Temps
+                    </button>
+                    <button class="nav-item" onclick="showPanel('subjects')">
+                        <span class="nav-icon">📚</span> Mes Matières
+                    </button>
+                    <button class="nav-item" onclick="showPanel('timeslots')">
+                        <span class="nav-icon">🕐</span> Créneaux Horaires
+                    </button>
+                    <button class="nav-item" onclick="showPanel('autogen')">
+                        <span class="nav-icon">⚡</span> Génération Auto
+                    </button>
+                </div>
+                <div class="sidebar-footer">
+                    <button class="nav-item" onclick="doLogout()">
+                        <span class="nav-icon">🚪</span> Déconnexion
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </div>
     <script src="frontend/script.js"></script>
 </body>
 
