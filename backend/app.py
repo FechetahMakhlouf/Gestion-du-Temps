@@ -17,7 +17,7 @@ def create_app():
     app.config.from_object(Config)
 
     frontend_origin = os.environ.get(
-        'FRONTEND_ORIGIN', 'https://fechetahmakhlouf.github.io/Gestion-du-Temps/')
+        'FRONTEND_ORIGIN', 'https://fechetahmakhlouf.github.io/')
     CORS(app, supports_credentials=True, origins=[
         frontend_origin,
         "http://localhost:5500",
