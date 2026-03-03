@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jadwal</title>
+    <link rel="shortcut icon" href="frontend/img/favicon.png" type="image/x-icon">
     <link
         href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet">
@@ -15,48 +16,81 @@
 
     <!-- AUTH PAGE -->
     <div id="auth-page">
-        <div class="auth-box">
-            <div class="auth-logo">
-                <div class="logo-title">جدول</div>
-                <div class="logo-sub">Jadwal</div>
-                <div class="gold-line"></div>
-            </div>
-            <div class="auth-card">
-                <div class="auth-tabs">
-                    <button class="auth-tab active" onclick="switchAuthTab('login')">Connexion</button>
-                    <button class="auth-tab" onclick="switchAuthTab('register')">Inscription</button>
+        <div class="auth-layout">
+            <!-- Left decorative panel -->
+            <div class="auth-deco">
+                <div class="auth-deco-logo">
+                    <div class="logo-title">جدول</div>
+                    <div class="logo-sub">Jadwal</div>
+                    <div class="gold-line"></div>
                 </div>
-
-                <div id="login-form" class="auth-form">
-                    <div class="form-group">
-                        <input class="form-input" id="login-email" type="email" placeholder=" ">
-                        <label class="form-label" for="login-email">Email</label>
+                <p class="auth-deco-tagline">
+                    Organisez votre temps,<br>
+                    <span>maîtrisez votre semaine.</span>
+                </p>
+                <div class="auth-deco-features">
+                    <div class="auth-deco-feature">
+                        <div class="auth-deco-feature-dot"></div>Emploi du temps interactif
                     </div>
-                    <div class="form-group">
-                        <input class="form-input" id="login-password" type="password" placeholder=" ">
-                        <label class="form-label" for="login-password">Mot de passe</label>
+                    <div class="auth-deco-feature">
+                        <div class="auth-deco-feature-dot"></div>Génération automatique
                     </div>
-                    <button class="btn-primary" onclick="doLogin()">Se connecter →</button>
-                </div>
-
-                <div id="register-form" class="auth-form" style="display:none">
-                    <div class="form-group">
-                        <input class="form-input" id="reg-name" type="text" placeholder=" ">
-                        <label class="form-label" for="reg-name">Nom complet</label>
+                    <div class="auth-deco-feature">
+                        <div class="auth-deco-feature-dot"></div>Détection de conflits
                     </div>
-                    <div class="form-group">
-                        <input class="form-input" id="reg-email" type="email" placeholder=" ">
-                        <label class="form-label" for="reg-email">Email</label>
+                    <div class="auth-deco-feature">
+                        <div class="auth-deco-feature-dot"></div>Export &amp; partage facile
                     </div>
-                    <div class="form-group">
-                        <input class="form-input" id="reg-password" type="password" placeholder=" ">
-                        <label class="form-label" for="reg-password">Mot de passe</label>
-                    </div>
-                    <div id="reg-msg"></div>
-                    <button class="btn-primary" onclick="doRegister()">Créer mon compte →</button>
                 </div>
             </div>
-        </div>
+            <!-- Right form panel -->
+            <div class="auth-box">
+                <div class="auth-card">
+                    <div class="auth-card-heading">
+                        <h2>Bienvenue</h2>
+                        <p>Connectez-vous ou créez votre compte</p>
+                    </div>
+                    <div class="auth-tabs">
+                        <button class="auth-tab active" onclick="switchAuthTab('login')">Connexion</button>
+                        <button class="auth-tab" onclick="switchAuthTab('register')">Inscription</button>
+                    </div>
+
+                    <div id="login-form" class="auth-form">
+                        <div class="form-group">
+                            <input class="form-input" id="login-email" type="email" placeholder=" ">
+                            <label class="form-label" for="login-email">Email</label>
+                        </div>
+                        <div class="form-group">
+                            <input class="form-input" id="login-password" type="password" placeholder=" ">
+                            <label class="form-label" for="login-password">Mot de passe</label>
+                        </div>
+                        <div id="login-msg"></div>
+                        <button class="btn-primary" onclick="doLogin()">Se connecter →</button>
+                    </div>
+
+                    <div id="register-form" class="auth-form" style="display:none">
+                        <div class="form-group">
+                            <input class="form-input" id="reg-name" type="text" placeholder=" ">
+                            <label class="form-label" for="reg-name">Nom complet</label>
+                        </div>
+                        <div class="form-group">
+                            <input class="form-input" id="reg-email" type="email" placeholder=" ">
+                            <label class="form-label" for="reg-email">Email</label>
+                        </div>
+                        <div class="form-group">
+                            <input class="form-input" id="reg-password" type="password" placeholder=" ">
+                            <label class="form-label" for="reg-password">Mot de passe</label>
+                        </div>
+                        <div class="form-group">
+                            <input class="form-input" id="reg-confirm-password" type="password" placeholder=" ">
+                            <label class="form-label" for="reg-confirm-password">Confirmer le mot de passe</label>
+                        </div>
+                        <div id="reg-msg"></div>
+                        <button class="btn-primary" onclick="doRegister()">Créer mon compte →</button>
+                    </div>
+                </div>
+            </div><!-- /.auth-box -->
+        </div><!-- /.auth-layout -->
     </div>
     <!-- APP PAGE -->
     <div id="app-page">

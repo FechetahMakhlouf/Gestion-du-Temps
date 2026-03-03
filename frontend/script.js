@@ -24,7 +24,14 @@ async function doLogin() {
             body: JSON.stringify({ email, password: pwd })
         });
         showMsg(msgEl, 'Connexion réussie', 'success');
-        setTimeout(startApp, 500);
+        setTimeout(() => {
+            msgEl.innerHTML = '';
+        }, 2000);
+        setTimeout(() => {
+            startApp();
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-password').value = '';
+        }, 500);
     } catch (e) {
         showMsg(msgEl, e.message, 'error');
     }
@@ -34,21 +41,49 @@ async function doRegister() {
     const name = document.getElementById('reg-name').value.trim();
     const email = document.getElementById('reg-email').value.trim().toLowerCase();
     const pwd = document.getElementById('reg-password').value;
+    const confirmPwd = document.getElementById('reg-confirm-password').value;
     const msgEl = document.getElementById('reg-msg');
-    if (!name || !email || !pwd) { showMsg(msgEl, 'Remplissez tous les champs.', 'error'); return; }
-    if (pwd.length < 6) { showMsg(msgEl, 'Mot de passe trop court (min 6 chars).', 'error'); return; }
+
+    if (!name || !email || !pwd || !confirmPwd) {
+        showMsg(msgEl, 'Remplissez tous les champs.', 'error');
+        return;
+    }
+    if (pwd.length < 6) {
+        showMsg(msgEl, 'Mot de passe trop court (min 6 caractères).', 'error');
+        return;
+    }
+    if (pwd !== confirmPwd) {
+        showMsg(msgEl, 'Les mots de passe ne correspondent pas.', 'error');
+        return;
+    }
+
     try {
-        const data = await apiCall('/api/auth/register', {
+        await apiCall('/api/auth/register', {
             method: 'POST',
             body: JSON.stringify({ name, email, password: pwd })
         });
-        showMsg(msgEl, 'Compte créé ! Connexion...', 'success');
-        setTimeout(startApp, 800);
+
+        showMsg(msgEl, 'Compte créé avec succès ! Vous pouvez maintenant vous connecter.', 'success');
+
+        setTimeout(() => {
+            msgEl.innerHTML = '';
+        }, 2000);
+
+        document.getElementById('reg-name').value = '';
+        document.getElementById('reg-email').value = '';
+        document.getElementById('reg-password').value = '';
+        document.getElementById('reg-confirm-password').value = '';
+
+        setTimeout(() => {
+            switchAuthTab('login');
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-password').value = '';
+            document.getElementById('login-msg').innerHTML = '';
+        }, 1500);
     } catch (e) {
         showMsg(msgEl, e.message, 'error');
     }
 }
-
 async function doLogout() {
     await apiCall('/api/auth/logout', { method: 'POST' }).catch(() => { });
     document.getElementById('auth-page').style.display = 'flex';

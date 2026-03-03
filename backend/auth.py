@@ -30,7 +30,6 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    login_user(user)
     return json_response({'email': user.email, 'name': user.name}, message='Registered', status=201)
 
 
