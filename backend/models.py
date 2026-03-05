@@ -12,7 +12,7 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(80), nullable=False)
     password = db.Column(db.String(200), nullable=False)
     active_days = db.Column(
-        db.JSON, default=['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'])
+        db.JSON, default=['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'])
 
     subjects = db.relationship(
         'Subject', backref='user', lazy=True, cascade='all, delete-orphan')

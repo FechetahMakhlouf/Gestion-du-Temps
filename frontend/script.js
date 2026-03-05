@@ -414,20 +414,20 @@ function setMode(mode) {
    SCHEDULE GRID — Day-Card Timeline Layout
 ══════════════════════════════════════════════ */
 
-const ALL_DAYS_MAP = { 'Dim': 0, 'Lun': 1, 'Mar': 2, 'Mer': 3, 'Jeu': 4, 'Ven': 5, 'Sam': 6 };
+const ALL_DAYS_MAP = { 'Dim': 1, 'Lun': 2, 'Mar': 3, 'Mer': 4, 'Jeu': 5, 'Ven': 6, 'Sam': 7 };
 
 function getWeekDays() {
-    const days = window.currentActiveDays || ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    const days = window.currentActiveDays || ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
     const today = new Date();
     today.setDate(today.getDate() + currentWeekOffset * 7);
     const dayOfWeek = today.getDay();
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
+    const sunday = new Date(today);
+    sunday.setDate(today.getDate() - dayOfWeek);
 
     return days.map(dayAbbr => {
         const dayIdx = ALL_DAYS_MAP[dayAbbr] || 1;
-        const d = new Date(monday);
-        d.setDate(monday.getDate() + (dayIdx - 1));
+        const d = new Date(sunday);
+        d.setDate(sunday.getDate() + (dayIdx - 1));
         return { abbr: dayAbbr, date: d, dateStr: d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) };
     });
 }
@@ -435,12 +435,6 @@ function getWeekDays() {
 function renderScheduleLegend(subjects) {
     const el = document.getElementById('schedule-legend');
     if (!subjects.length) { el.innerHTML = ''; return; }
-    el.innerHTML = subjects.map(s => `
-        <div class="legend-item">
-            <div class="legend-dot" style="background:${s.color}"></div>
-            ${s.name}
-        </div>
-    `).join('');
 }
 
 async function renderScheduleGrid() {
@@ -734,7 +728,7 @@ function checkConflicts() {
 
 function openTimeslotModal() {
     document.getElementById('ts-msg').innerHTML = '';
-    const activeDays = window.currentActiveDays || ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    const activeDays = window.currentActiveDays || ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
     document.querySelectorAll('#ts-days-picker input[type=checkbox]').forEach(cb => {
         cb.checked = activeDays.includes(cb.value);
     });
@@ -839,7 +833,7 @@ function durationStr(start, end) {
 ══════════════════════════════════════════════ */
 
 async function renderDaysCheckboxes() {
-    const allDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    const allDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
     const active = await apiCall('/api/days');
     window.currentActiveDays = active;
     const el = document.getElementById('days-checkboxes');
@@ -858,7 +852,7 @@ async function toggleDay(day, cb) {
     } else {
         active = active.filter(d => d !== day);
     }
-    const order = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    const order = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
     active.sort((a, b) => order.indexOf(a) - order.indexOf(b));
     await apiCall('/api/days', { method: 'PUT', body: JSON.stringify(active) });
     await Promise.all([renderDaysCheckboxes(), renderScheduleGrid()]);
