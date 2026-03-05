@@ -4,6 +4,7 @@ from flask_mail import Mail, Message
 from models import db, User, PasswordResetToken
 from utils import json_response
 import base64
+import threading
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 mail = Mail()
@@ -104,7 +105,15 @@ def forgot_password():
             </div>
             """
         )
-        mail.send(msg)
+        # Send in background thread so it doesn't block the worker
+        app_ctx = current_app._get_current_object()
+
+        def send_async(app, message):
+            with app.app_context():
+                mail.send(message)
+        t = threading.Thread(target=send_async, args=(app_ctx, msg))
+        t.daemon = True
+        t.start()
     except Exception as e:
         current_app.logger.error(f"Mail error: {e}")
         return json_response(message='Erreur envoi email. Vérifiez la configuration SMTP.', status=500)

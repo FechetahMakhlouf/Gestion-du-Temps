@@ -15,6 +15,10 @@ class Config:
     SQLALCHEMY_DATABASE_URI = db_url or 'sqlite:///' + \
         os.path.join(basedir, 'instance', 'jadwal.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,       # test connection before use
+        'pool_recycle': 280,         # recycle connections every ~4.5 min
+    }
 
     # Flask-Mail (Gmail SMTP)
     MAIL_SERVER = 'smtp.gmail.com'
