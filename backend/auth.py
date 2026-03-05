@@ -71,9 +71,8 @@ def forgot_password():
         return json_response(message='Email requis', status=400)
 
     user = User.query.filter_by(email=email).first()
-    # Always return success to avoid user enumeration
     if not user:
-        return json_response(message='Si cet email existe, un lien a été envoyé.')
+        return json_response(message='un lien a été envoyé.')
 
     reset = PasswordResetToken.generate_for(user)
     db.session.add(reset)

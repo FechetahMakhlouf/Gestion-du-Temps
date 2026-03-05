@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Jadwal — Gérez votre emploi du temps hebdomadaire">
     <title>Jadwal</title>
     <link rel="shortcut icon" href="frontend/img/favicon.png" type="image/x-icon">
     <link
@@ -14,11 +15,19 @@
 
 <body>
 
+    <!-- APP LOADING OVERLAY -->
+    <div id="app-loader" class="app-loader" aria-label="Chargement…" role="status">
+        <div class="app-loader-inner">
+            <div class="loader-logo">جدول</div>
+            <div class="loader-spinner"></div>
+        </div>
+    </div>
+
     <!-- AUTH PAGE -->
-    <div id="auth-page">
+    <div id="auth-page" style="display:none">
         <div class="auth-layout">
             <!-- Left decorative panel -->
-            <div class="auth-deco">
+            <div class="auth-deco" aria-hidden="true">
                 <div class="auth-deco-logo">
                     <div class="logo-title">Jadwal</div>
                     <div class="gold-line"></div>
@@ -51,111 +60,213 @@
                         <h2>Bienvenue</h2>
                         <p>Connectez-vous ou créez votre compte</p>
                     </div>
-                    <div class="auth-tabs">
-                        <button class="auth-tab active" onclick="switchAuthTab('login')">Connexion</button>
-                        <button class="auth-tab" onclick="switchAuthTab('register')">Inscription</button>
+                    <div class="auth-tabs" role="tablist">
+                        <button class="auth-tab active" role="tab" aria-selected="true"
+                            onclick="switchAuthTab('login')">Connexion</button>
+                        <button class="auth-tab" role="tab" aria-selected="false"
+                            onclick="switchAuthTab('register')">Inscription</button>
                     </div>
 
-                    <div id="login-form" class="auth-form">
+                    <!-- LOGIN FORM -->
+                    <div id="login-form" class="auth-form" role="tabpanel">
                         <div class="form-group">
-                            <input class="form-input" id="login-email" type="email" placeholder=" ">
+                            <input class="form-input" id="login-email" type="email" placeholder=" " autocomplete="email"
+                                onkeydown="if(event.key==='Enter')document.getElementById('login-password').focus()">
                             <label class="form-label" for="login-email">Email</label>
                         </div>
-                        <div class="form-group">
-                            <input class="form-input" id="login-password" type="password" placeholder=" ">
+                        <div class="form-group input-icon-wrap">
+                            <input class="form-input" id="login-password" type="password" placeholder=" "
+                                autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
                             <label class="form-label" for="login-password">Mot de passe</label>
+                            <button type="button" class="pwd-toggle" aria-label="Afficher/masquer le mot de passe"
+                                onclick="togglePwd('login-password', this)">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
                         </div>
-                        <div id="login-msg"></div>
-                        <button class="btn-primary" onclick="doLogin()">Se connecter →</button>
+                        <div id="login-msg" role="alert" aria-live="polite"></div>
+                        <button class="btn-primary" id="login-submit" onclick="doLogin()">Se connecter →</button>
                         <div style="text-align:center;margin-top:0.8rem;">
                             <a href="#" class="forgot-link" onclick="showForgotForm(event)">Mot de passe oublié ?</a>
                         </div>
                     </div>
 
-                    <div id="register-form" class="auth-form" style="display:none">
+                    <!-- REGISTER FORM -->
+                    <div id="register-form" class="auth-form" style="display:none" role="tabpanel">
                         <div class="form-group">
-                            <input class="form-input" id="reg-name" type="text" placeholder=" ">
+                            <input class="form-input" id="reg-name" type="text" placeholder=" " autocomplete="name"
+                                onkeydown="if(event.key==='Enter')document.getElementById('reg-email').focus()">
                             <label class="form-label" for="reg-name">Nom complet</label>
                         </div>
                         <div class="form-group">
-                            <input class="form-input" id="reg-email" type="email" placeholder=" ">
+                            <input class="form-input" id="reg-email" type="email" placeholder=" " autocomplete="email"
+                                onkeydown="if(event.key==='Enter')document.getElementById('reg-password').focus()">
                             <label class="form-label" for="reg-email">Email</label>
                         </div>
-                        <div class="form-group">
-                            <input class="form-input" id="reg-password" type="password" placeholder=" ">
+                        <div class="form-group input-icon-wrap">
+                            <input class="form-input" id="reg-password" type="password" placeholder=" "
+                                autocomplete="new-password"
+                                onkeydown="if(event.key==='Enter')document.getElementById('reg-confirm-password').focus()">
                             <label class="form-label" for="reg-password">Mot de passe</label>
+                            <button type="button" class="pwd-toggle" aria-label="Afficher/masquer le mot de passe"
+                                onclick="togglePwd('reg-password', this)">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
                         </div>
-                        <div class="form-group">
-                            <input class="form-input" id="reg-confirm-password" type="password" placeholder=" ">
+                        <div class="form-group input-icon-wrap">
+                            <input class="form-input" id="reg-confirm-password" type="password" placeholder=" "
+                                autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
                             <label class="form-label" for="reg-confirm-password">Confirmer le mot de passe</label>
+                            <button type="button" class="pwd-toggle" aria-label="Afficher/masquer le mot de passe"
+                                onclick="togglePwd('reg-confirm-password', this)">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
                         </div>
-                        <div id="reg-msg"></div>
-                        <button class="btn-primary" onclick="doRegister()">Créer mon compte →</button>
+                        <div id="reg-msg" role="alert" aria-live="polite"></div>
+                        <button class="btn-primary" id="reg-submit" onclick="doRegister()">Créer mon compte →</button>
                     </div>
+
                     <!-- FORGOT PASSWORD FORM -->
-                    <div id="forgot-form" class="auth-form" style="display:none">
+                    <div id="forgot-form" class="auth-form" style="display:none" role="tabpanel">
                         <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:0.5rem;">
                             Entrez votre email. Nous vous enverrons un lien pour réinitialiser votre mot de passe.
                         </p>
                         <div class="form-group">
-                            <input class="form-input" id="forgot-email" type="email" placeholder=" ">
+                            <input class="form-input" id="forgot-email" type="email" placeholder=" "
+                                autocomplete="email" onkeydown="if(event.key==='Enter')doForgotPassword()">
                             <label class="form-label" for="forgot-email">Email</label>
                         </div>
-                        <div id="forgot-msg"></div>
-                        <button class="btn-primary" onclick="doForgotPassword()">Envoyer le lien →</button>
+                        <div id="forgot-msg" role="alert" aria-live="polite"></div>
+                        <button class="btn-primary" id="forgot-submit" onclick="doForgotPassword()">Envoyer le lien
+                            →</button>
                         <div style="text-align:center;margin-top:0.8rem;">
                             <a href="#" class="forgot-link" onclick="showLoginForm(event)">← Retour à la connexion</a>
                         </div>
                     </div>
 
                     <!-- RESET PASSWORD FORM -->
-                    <div id="reset-form" class="auth-form" style="display:none">
+                    <div id="reset-form" class="auth-form" style="display:none" role="tabpanel">
                         <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:0.5rem;">
                             Choisissez un nouveau mot de passe (minimum 6 caractères).
                         </p>
                         <input type="hidden" id="reset-token">
-                        <div class="form-group">
-                            <input class="form-input" id="reset-password" type="password" placeholder=" ">
+                        <div class="form-group input-icon-wrap">
+                            <input class="form-input" id="reset-password" type="password" placeholder=" "
+                                autocomplete="new-password"
+                                onkeydown="if(event.key==='Enter')document.getElementById('reset-confirm').focus()">
                             <label class="form-label" for="reset-password">Nouveau mot de passe</label>
+                            <button type="button" class="pwd-toggle" aria-label="Afficher/masquer le mot de passe"
+                                onclick="togglePwd('reset-password', this)">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
                         </div>
-                        <div class="form-group">
-                            <input class="form-input" id="reset-confirm" type="password" placeholder=" ">
+                        <div class="form-group input-icon-wrap">
+                            <input class="form-input" id="reset-confirm" type="password" placeholder=" "
+                                autocomplete="new-password" onkeydown="if(event.key==='Enter')doResetPassword()">
                             <label class="form-label" for="reset-confirm">Confirmer le mot de passe</label>
+                            <button type="button" class="pwd-toggle" aria-label="Afficher/masquer le mot de passe"
+                                onclick="togglePwd('reset-confirm', this)">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
                         </div>
-                        <div id="reset-msg"></div>
-                        <button class="btn-primary" onclick="doResetPassword()">Enregistrer le mot de passe →</button>
+                        <div id="reset-msg" role="alert" aria-live="polite"></div>
+                        <button class="btn-primary" id="reset-submit" onclick="doResetPassword()">Enregistrer le mot de
+                            passe →</button>
                     </div>
                 </div>
             </div><!-- /.auth-box -->
         </div><!-- /.auth-layout -->
     </div>
+
     <!-- APP PAGE -->
-    <div id="app-page">
-        <button class="mobile-nav-toggle" onclick="toggleSidebar()">☰</button>
+    <div id="app-page" style="display:none">
+        <button class="mobile-nav-toggle" aria-label="Ouvrir le menu" onclick="toggleSidebar()">☰</button>
         <div class="app-layout">
             <!-- Sidebar -->
-            <nav class="sidebar" id="sidebar">
+            <nav class="sidebar" id="sidebar" aria-label="Navigation principale">
                 <div class="sidebar-header">
-                    <div class="sidebar-logo">جدول Jadwal</div>
-                    <div class="sidebar-user" id="sidebar-username">—</div>
+                    <div class="sidebar-logo" aria-label="Jadwal">جدول</div>
+                    <div class="sidebar-user-row">
+                        <div class="sidebar-avatar" id="sidebar-avatar" aria-hidden="true">?</div>
+                        <div class="sidebar-user-info">
+                            <div class="sidebar-username" id="sidebar-username">—</div>
+                            <div class="sidebar-date" id="sidebar-date"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="sidebar-nav">
-                    <button class="nav-item active" onclick="showPanel('schedule')">
-                        <span class="nav-icon">📅</span> Mon Emploi du Temps
+                    <button class="nav-item active" onclick="showPanel('schedule')" aria-label="Mon Emploi du Temps">
+                        <span class="nav-icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                        </span> Mon Emploi du Temps
                     </button>
-                    <button class="nav-item" onclick="showPanel('subjects')">
-                        <span class="nav-icon">📚</span> Mes Matières
+                    <button class="nav-item" onclick="showPanel('tasks')" aria-label="Mes Tâches">
+                        <span class="nav-icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                            </svg>
+                        </span> Mes Tâches
                     </button>
-                    <button class="nav-item" onclick="showPanel('timeslots')">
-                        <span class="nav-icon">🕐</span> Créneaux Horaires
+                    <button class="nav-item" onclick="showPanel('timeslots')" aria-label="Créneaux Horaires">
+                        <span class="nav-icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                        </span> Créneaux Horaires
                     </button>
-                    <button class="nav-item" onclick="showPanel('autogen')">
-                        <span class="nav-icon">⚡</span> Génération Auto
+                    <button class="nav-item" onclick="showPanel('autogen')" aria-label="Génération Auto">
+                        <span class="nav-icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                            </svg>
+                        </span> Génération Auto
                     </button>
                 </div>
                 <div class="sidebar-footer">
-                    <button class="nav-item" onclick="doLogout()">
-                        <span class="nav-icon">🚪</span> Déconnexion
+                    <button class="nav-item" onclick="confirmLogout()" aria-label="Se déconnecter">
+                        <span class="nav-icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                <polyline points="16 17 21 12 16 7" />
+                                <line x1="21" y1="12" x2="9" y2="12" />
+                            </svg>
+                        </span> Déconnexion
                     </button>
                 </div>
             </nav>
@@ -166,49 +277,59 @@
                     <div class="panel-header">
                         <div>
                             <div class="panel-title">Emploi du Temps</div>
-                            <div class="panel-sub">Cliquez sur une case ou glissez une matière pour l'assigner</div>
+                            <div class="panel-sub">Cliquez sur une case ou glissez une tâche pour l'assigner</div>
                         </div>
                         <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
-                            <div id="conflict-badge" class="conflict-badge">⚠ Conflits détectés</div>
+                            <div id="conflict-badge" class="conflict-badge" role="alert">⚠ Conflits détectés</div>
                             <button class="btn-secondary" onclick="clearAllSchedule()"
-                                style="font-size:0.8rem;padding:0.45rem 0.9rem;">🗑 Vider</button>
+                                aria-label="Vider l'emploi du temps" style="font-size:0.8rem;padding:0.45rem 0.9rem;">🗑
+                                Vider</button>
                             <button class="btn-primary" onclick="exportSchedule()"
-                                style="font-size:0.8rem;padding:0.5rem 1rem;">⬇ Exporter</button>
+                                aria-label="Exporter l'emploi du temps" style="font-size:0.8rem;padding:0.5rem 1rem;">⬇
+                                Exporter</button>
                         </div>
                     </div>
                     <div class="subject-palette">
-                        <div class="palette-label">Matières — glissez ou cliquez pour sélectionner</div>
+                        <div class="palette-label">Tâches — glissez ou cliquez pour sélectionner</div>
                         <div class="palette-chips" id="palette-chips"></div>
                     </div>
-                    <div class="select-mode-btns">
+                    <div class="select-mode-btns" role="group" aria-label="Mode d'interaction">
                         <button class="mode-btn active" id="mode-click" onclick="setMode('click')">🖱 Mode Clic</button>
-                        <button class="mode-btn" id="mode-drag" onclick="setMode('drag')">✋ Mode Drag & Drop</button>
+                        <button class="mode-btn" id="mode-drag" onclick="setMode('drag')">✋ Mode Drag &amp;
+                            Drop</button>
                     </div>
                     <div class="schedule-controls">
-                        <div class="week-nav">
-                            <button class="week-btn" onclick="changeWeek(-1)">←</button>
-                            <div class="week-label" id="week-label">—</div>
-                            <button class="week-btn" onclick="changeWeek(1)">→</button>
+                        <div class="week-nav" role="group" aria-label="Navigation semaine">
+                            <button class="week-btn" onclick="changeWeek(-1)" aria-label="Semaine précédente">←</button>
+                            <div class="week-label" id="week-label" aria-live="polite">—</div>
+                            <button class="week-btn" onclick="changeWeek(1)" aria-label="Semaine suivante">→</button>
                         </div>
                         <button class="btn-secondary" onclick="goToday()"
                             style="font-size:0.78rem;padding:0.4rem 0.8rem;">Aujourd'hui</button>
                     </div>
+                    <!-- Week fill progress -->
+                    <div class="week-fill-bar" id="week-fill-bar" style="display:none" aria-hidden="true">
+                        <div class="fill-track">
+                            <div class="fill-track-inner" id="fill-track-inner"></div>
+                        </div>
+                        <span class="fill-label" id="fill-label">0 / 0 créneaux assignés</span>
+                    </div>
                     <!-- Dynamic legend -->
-                    <div id="schedule-legend" class="schedule-legend"></div>
+                    <div id="schedule-legend" class="schedule-legend" aria-label="Légende"></div>
                     <!-- Day-card timeline grid -->
                     <div id="schedule-grid"></div>
                 </div>
 
                 <!-- SUBJECTS PANEL -->
-                <div class="panel" id="panel-subjects">
+                <div class="panel" id="panel-tasks">
                     <div class="panel-header">
                         <div>
-                            <div class="panel-title">Mes Matières</div>
-                            <div class="panel-sub">Gérez vos matières, couleurs et types</div>
+                            <div class="panel-title">Mes Tâches</div>
+                            <div class="panel-sub">Gérez vos tâches, couleurs et types</div>
                         </div>
-                        <button class="btn-primary" onclick="openSubjectModal()">+ Ajouter une matière</button>
+                        <button class="btn-primary" onclick="openSubjectModal()">+ Ajouter une tâche</button>
                     </div>
-                    <div class="stats-row" id="subj-stats"></div>
+                    <div class="stats-row" id="subj-stats" aria-label="Statistiques"></div>
                     <div class="subjects-grid" id="subjects-grid"></div>
                 </div>
 
@@ -221,6 +342,7 @@
                         </div>
                         <button class="btn-primary" onclick="openTimeslotModal()">+ Ajouter un créneau</button>
                     </div>
+                    <div id="timeslots-summary" class="timeslots-summary" aria-live="polite"></div>
                     <div class="section-label">Créneaux actifs</div>
                     <div class="timeslots-list" id="timeslots-list"></div>
                     <div style="margin-top:1.5rem">
@@ -234,82 +356,88 @@
                     <div class="panel-header">
                         <div>
                             <div class="panel-title">Génération Automatique</div>
-                            <div class="panel-sub">Définissez les heures hebdomadaires par matière et générez votre
+                            <div class="panel-sub">Définissez les heures hebdomadaires par tâche et générez votre
                                 planning</div>
                         </div>
                     </div>
-                    <div class="section-label">Heures souhaitées par semaine par matière</div>
+                    <div class="section-label">Heures souhaitées par semaine par tâche</div>
                     <div class="autogen-grid" id="autogen-grid"></div>
+                    <div id="autogen-total-display" class="autogen-total-display" aria-live="polite"></div>
                     <div style="margin-top:1.5rem;display:flex;gap:0.8rem;flex-wrap:wrap;">
-                        <button class="btn-primary" onclick="autoGenerate()">⚡ Générer automatiquement</button>
+                        <button class="btn-primary" id="autogen-submit" onclick="autoGenerate()">⚡ Générer
+                            automatiquement</button>
                         <button class="btn-secondary" onclick="clearAllSchedule()">🗑 Vider l'emploi du temps</button>
                     </div>
-                    <div id="autogen-result" style="margin-top:1rem;font-size:0.82rem;color:var(--text-muted);"></div>
+                    <div id="autogen-result" aria-live="polite"
+                        style="margin-top:1rem;font-size:0.82rem;color:var(--text-muted);"></div>
                 </div>
             </main>
         </div>
     </div>
+
     <!-- MODALS -->
     <!-- Subject Modal -->
-    <div class="modal-overlay" id="subject-modal">
+    <div class="modal-overlay" id="subject-modal" role="dialog" aria-modal="true" aria-labelledby="subject-modal-title">
         <div class="modal">
-            <div class="modal-title" id="subject-modal-title">Ajouter une matière</div>
+            <div class="modal-title" id="subject-modal-title">Ajouter une tâche</div>
             <div class="auth-form">
                 <input type="hidden" id="subj-edit-id">
                 <div class="form-group">
-                    <label class="form-label">Nom de la matière</label>
-                    <input class="form-input" id="subj-name" placeholder="Ex: Mathématiques">
+                    <label class="form-label" for="subj-name">Nom de la tâche</label>
+                    <input class="form-input" id="subj-name" placeholder=""
+                        onkeydown="if(event.key==='Enter')saveSubject()">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Type</label>
+                    <label class="form-label" for="subj-type">Type</label>
                     <select class="form-input" id="subj-type">
-                        <option value="Cours">Cours</option>
-                        <option value="TD">TD (Travaux Dirigés)</option>
-                        <option value="TP">TP (Travaux Pratiques)</option>
-                        <option value="Séminaire">Séminaire</option>
-                        <option value="Projet">Projet</option>
-                        <option value="Perso">Personnel</option>
+                        <option value="Urgent">Urgent</option>
+                        <option value="Important">Important</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Personnel">Personnel</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Couleur</label>
-                    <div class="color-picker-grid" id="color-grid"></div>
+                    <div class="color-picker-grid" id="color-grid" role="listbox" aria-label="Choisir une couleur">
+                    </div>
                 </div>
-                <div id="subj-msg"></div>
+                <div id="subj-msg" role="alert" aria-live="polite"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeModal('subject-modal')">Annuler</button>
-                <button class="btn-primary" onclick="saveSubject()">Enregistrer</button>
+                <button class="btn-primary" id="subj-save" onclick="saveSubject()">Enregistrer</button>
             </div>
         </div>
     </div>
 
     <!-- Timeslot Modal -->
-    <div class="modal-overlay" id="timeslot-modal">
+    <div class="modal-overlay" id="timeslot-modal" role="dialog" aria-modal="true"
+        aria-label="Ajouter un créneau horaire">
         <div class="modal">
             <div class="modal-title">Ajouter un créneau horaire</div>
             <div class="auth-form">
                 <div class="form-group">
-                    <label class="form-label">Heure de début</label>
-                    <input class="form-input" id="ts-start" type="time" value="08:00">
+                    <label class="form-label" for="ts-start">Heure de début</label>
+                    <input class="form-input" id="ts-start" type="time" value="08:00"
+                        onkeydown="if(event.key==='Enter')document.getElementById('ts-end').focus()">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Heure de fin</label>
-                    <input class="form-input" id="ts-end" type="time" value="10:00">
+                    <label class="form-label" for="ts-end">Heure de fin</label>
+                    <input class="form-input" id="ts-end" type="time" value="10:00"
+                        onkeydown="if(event.key==='Enter')saveTimeslot()">
                 </div>
-                <div id="ts-msg"></div>
+                <div id="ts-msg" role="alert" aria-live="polite"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeModal('timeslot-modal')">Annuler</button>
-                <button class="btn-primary" onclick="saveTimeslot()">Ajouter</button>
+                <button class="btn-primary" id="ts-save" onclick="saveTimeslot()">Ajouter</button>
             </div>
         </div>
     </div>
 
     <!-- Cell click modal: pick subject -->
-    <div class="modal-overlay" id="cell-modal">
+    <div class="modal-overlay" id="cell-modal" role="dialog" aria-modal="true" aria-labelledby="cell-modal-title">
         <div class="modal">
-            <div class="modal-title" id="cell-modal-title">Assigner une matière</div>
+            <div class="modal-title" id="cell-modal-title">Assigner une tâche</div>
             <input type="hidden" id="cell-modal-day">
             <input type="hidden" id="cell-modal-slot">
             <div class="palette-chips" id="cell-modal-chips" style="gap:0.5rem;flex-wrap:wrap;display:flex;"></div>
@@ -320,8 +448,25 @@
         </div>
     </div>
 
+    <!-- Logout Confirmation Modal -->
+    <div class="modal-overlay" id="logout-modal" role="dialog" aria-modal="true"
+        aria-label="Confirmation de déconnexion">
+        <div class="modal" style="max-width:360px;text-align:center;">
+            <div style="font-size:2rem;margin-bottom:0.75rem;" aria-hidden="true">👋</div>
+            <div class="modal-title" style="margin-bottom:0.5rem;">Déconnexion</div>
+            <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:1.5rem;">
+                Êtes-vous sûr de vouloir vous déconnecter ?
+            </p>
+            <div class="modal-footer" style="justify-content:center;gap:0.8rem;">
+                <button class="btn-secondary" onclick="closeModal('logout-modal')">Annuler</button>
+                <button class="btn-danger" onclick="doLogout()">Se déconnecter</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast container -->
-    <div class="toast-container" id="toasts"></div>
+    <div class="toast-container" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
     <script src="frontend/config.js"></script>
     <script src="frontend/script.js"></script>
 </body>
