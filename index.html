@@ -425,6 +425,18 @@
                     <input class="form-input" id="ts-end" type="time" value="10:00"
                         onkeydown="if(event.key==='Enter')saveTimeslot()">
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Jours actifs</label>
+                    <div class="ts-days-picker" id="ts-days-picker">
+                        <label class="ts-day-chip"><input type="checkbox" value="Lun"><span>Lun</span></label>
+                        <label class="ts-day-chip"><input type="checkbox" value="Mar"><span>Mar</span></label>
+                        <label class="ts-day-chip"><input type="checkbox" value="Mer"><span>Mer</span></label>
+                        <label class="ts-day-chip"><input type="checkbox" value="Jeu"><span>Jeu</span></label>
+                        <label class="ts-day-chip"><input type="checkbox" value="Ven"><span>Ven</span></label>
+                        <label class="ts-day-chip"><input type="checkbox" value="Sam"><span>Sam</span></label>
+                        <label class="ts-day-chip"><input type="checkbox" value="Dim"><span>Dim</span></label>
+                    </div>
+                </div>
                 <div id="ts-msg" role="alert" aria-live="polite"></div>
             </div>
             <div class="modal-footer">

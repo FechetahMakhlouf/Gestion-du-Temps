@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 from flask_login import current_user, login_required
-from models import db, ScheduleEntry, Subject
+from models import db, ScheduleEntry, Subject, Timeslot
 from utils import json_response
 
 schedule_bp = Blueprint('schedule', __name__, url_prefix='/api/schedule')
@@ -12,7 +12,6 @@ def get_schedule():
     week_offset = request.args.get('weekOffset', 0, type=int)
     entries = ScheduleEntry.query.filter_by(
         user_id=current_user.id, week_offset=week_offset).all()
-    # return as dict keyed by "weekOffset_day_timeslotId" -> subjectId (like frontend)
     sched = {}
     for e in entries:
         key = f"{week_offset}_{e.day}_{e.timeslot_id}"
@@ -33,6 +32,11 @@ def assign():
         id=subject_id, user_id=current_user.id).first()
     if not subject:
         return json_response(message='Subject not found', status=404)
+
+    ts = Timeslot.query.filter_by(
+        id=timeslot_id, user_id=current_user.id).first()
+    if ts and ts.days and day not in ts.days:
+        return json_response(message='Ce créneau n\'est pas actif ce jour-là', status=400)
 
     existing = ScheduleEntry.query.filter_by(
         user_id=current_user.id,

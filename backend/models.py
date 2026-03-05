@@ -37,6 +37,7 @@ class Timeslot(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     start = db.Column(db.String(5), nullable=False)
     end = db.Column(db.String(5), nullable=False)
+    days = db.Column(db.JSON, nullable=False, default=list)
 
 
 class ScheduleEntry(db.Model):

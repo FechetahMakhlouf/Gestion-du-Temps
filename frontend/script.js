@@ -457,7 +457,10 @@ async function renderScheduleGrid() {
     }
 
     // Fill progress bar
-    const totalSlots = weekDays.length * timeslots.length;
+    // Total slots = sum of timeslots active per day
+    const totalSlots = weekDays.reduce((acc, dayObj) => {
+        return acc + timeslots.filter(ts => !ts.days || ts.days.length === 0 || ts.days.includes(dayObj.abbr)).length;
+    }, 0);
     const assignedSlots = Object.keys(sched).length;
     const fillBarEl = document.getElementById('week-fill-bar');
     const fillTrack = document.getElementById('fill-track-inner');
@@ -494,10 +497,11 @@ async function renderScheduleGrid() {
         const dayAbbr = dayObj.abbr;
         const isToday = dayObj.dateStr === todayStr;
 
-        // Count filled slots for this day
-        const dayFilled = timeslots.filter(ts => sched[`${currentWeekOffset}_${dayAbbr}_${ts.id}`]).length;
-        const dayTotal = timeslots.length;
-        const dayDone = timeslots.filter(ts => {
+        // Count filled slots for this day (only timeslots active on this day)
+        const dayTimeslots = timeslots.filter(ts => !ts.days || ts.days.length === 0 || ts.days.includes(dayAbbr));
+        const dayFilled = dayTimeslots.filter(ts => sched[`${currentWeekOffset}_${dayAbbr}_${ts.id}`]).length;
+        const dayTotal = dayTimeslots.length;
+        const dayDone = dayTimeslots.filter(ts => {
             const doneKey = `done_${currentWeekOffset}_${dayAbbr}_${ts.id}`;
             return localStorage.getItem(doneKey) === '1';
         }).length;
@@ -514,7 +518,7 @@ async function renderScheduleGrid() {
             </div>
             <div class="timeline">`;
 
-        timeslots.forEach(ts => {
+        timeslots.filter(ts => !ts.days || ts.days.length === 0 || ts.days.includes(dayAbbr)).forEach(ts => {
             const key = `${currentWeekOffset}_${dayAbbr}_${ts.id}`;
             const subjId = sched[key];
             const subj = subjId ? subjects.find(s => s.id === subjId) : null;
@@ -733,6 +737,10 @@ function checkConflicts() {
 
 function openTimeslotModal() {
     document.getElementById('ts-msg').innerHTML = '';
+    const activeDays = window.currentActiveDays || ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    document.querySelectorAll('#ts-days-picker input[type=checkbox]').forEach(cb => {
+        cb.checked = activeDays.includes(cb.value);
+    });
     document.getElementById('timeslot-modal').classList.add('open');
     requestAnimationFrame(() => document.getElementById('ts-start').focus());
 }
@@ -744,11 +752,15 @@ async function saveTimeslot() {
     if (!start || !end) { showMsg(msgEl, 'Remplissez les deux champs.', 'error'); return; }
     if (start >= end) { showMsg(msgEl, 'L\'heure de fin doit être après le début.', 'error'); return; }
 
+    const days = Array.from(document.querySelectorAll('#ts-days-picker input[type=checkbox]:checked'))
+        .map(cb => cb.value);
+    if (!days.length) { showMsg(msgEl, 'Sélectionnez au moins un jour.', 'error'); return; }
+
     setLoading('ts-save', true);
     try {
         await apiCall('/api/timeslots', {
             method: 'POST',
-            body: JSON.stringify({ start, end })
+            body: JSON.stringify({ start, end, days })
         });
         closeModal('timeslot-modal');
         await Promise.all([renderTimeslots(), renderScheduleGrid()]);
@@ -781,36 +793,41 @@ async function renderTimeslots() {
         return;
     }
 
-    // Compute total daily and weekly hours
-    const totalMinsPerDay = ts.reduce((acc, t) => {
+    const fmtH = m => m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? (m % 60) + 'min' : ''}` : `${m}min`;
+    const weeklyMins = ts.reduce((acc, t) => {
         const [sh, sm] = t.start.split(':').map(Number);
         const [eh, em] = t.end.split(':').map(Number);
-        return acc + (eh * 60 + em) - (sh * 60 + sm);
+        const dur = (eh * 60 + em) - (sh * 60 + sm);
+        return acc + dur * (t.days ? t.days.length : 0);
     }, 0);
-    const activeDays = window.currentActiveDays?.length || 5;
-    const weeklyMins = totalMinsPerDay * activeDays;
-    const fmtH = m => m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? (m % 60) + 'min' : ''}` : `${m}min`;
+    const totalCells = ts.reduce((acc, t) => acc + (t.days ? t.days.length : 0), 0);
+    const uniqueDays = [...new Set(ts.flatMap(t => t.days || []))].length;
 
     if (summaryEl) {
         summaryEl.innerHTML = `
             <div class="ts-summary-grid">
-                <div class="ts-stat"><span class="ts-stat-num">${ts.length}</span><span class="ts-stat-label">Créneaux / jour</span></div>
-                <div class="ts-stat"><span class="ts-stat-num">${fmtH(totalMinsPerDay)}</span><span class="ts-stat-label">Heures / jour</span></div>
+                <div class="ts-stat"><span class="ts-stat-num">${ts.length}</span><span class="ts-stat-label">Créneaux définis</span></div>
+                <div class="ts-stat"><span class="ts-stat-num">${totalCells}</span><span class="ts-stat-label">Cellules / semaine</span></div>
                 <div class="ts-stat"><span class="ts-stat-num">${fmtH(weeklyMins)}</span><span class="ts-stat-label">Heures / semaine</span></div>
-                <div class="ts-stat"><span class="ts-stat-num">${activeDays}</span><span class="ts-stat-label">Jours actifs</span></div>
+                <div class="ts-stat"><span class="ts-stat-num">${uniqueDays}</span><span class="ts-stat-label">Jours couverts</span></div>
             </div>`;
     }
 
-    el.innerHTML = ts.map((t, i) => `
+    el.innerHTML = ts.map((t, i) => {
+        const dayTags = (t.days || []).map(d =>
+            `<span class="ts-day-tag">${d}</span>`
+        ).join('');
+        return `
         <div class="timeslot-row">
             <span class="timeslot-index">${i + 1}</span>
             <span class="timeslot-time">${t.start} → ${t.end}</span>
             <span class="meta-badge">${durationStr(t.start, t.end)}</span>
+            <div class="ts-day-tags">${dayTags}</div>
             <button class="icon-btn danger" onclick="deleteTimeslot('${t.id}')" aria-label="Supprimer le créneau ${t.start}–${t.end}" style="margin-left:auto">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
             </button>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 }
 
 function durationStr(start, end) {
@@ -880,7 +897,6 @@ async function renderAutogenGrid() {
         apiCall('/api/timeslots')
     ]);
 
-    // Store daily available hours for the total counter
     window._timeslotsHoursPerDay = timeslots.reduce((acc, t) => {
         const [sh, sm] = t.start.split(':').map(Number);
         const [eh, em] = t.end.split(':').map(Number);

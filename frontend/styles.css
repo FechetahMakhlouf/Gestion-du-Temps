@@ -2004,3 +2004,60 @@ select.form-input option {
     font-size: 0.7rem;
     color: var(--text-muted);
 }
+
+/* ── Timeslot day picker ─────────────────────────── */
+.ts-days-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.25rem;
+}
+
+.ts-day-chip {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    cursor: pointer;
+}
+
+.ts-day-chip input[type=checkbox] {
+    display: none;
+}
+
+.ts-day-chip span {
+    display: inline-block;
+    padding: 0.3rem 0.65rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border: 1.5px solid var(--border);
+    color: var(--text-muted);
+    background: var(--surface);
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    user-select: none;
+}
+
+.ts-day-chip input[type=checkbox]:checked+span {
+    background: var(--gold);
+    color: #1a1200;
+    border-color: var(--gold);
+}
+
+/* ── Day tags in timeslot list rows ─────────────── */
+.ts-day-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-left: 0.25rem;
+}
+
+.ts-day-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--gold) 18%, transparent);
+    color: var(--gold);
+    border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
+    letter-spacing: 0.02em;
+}

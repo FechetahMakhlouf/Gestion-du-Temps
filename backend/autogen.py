@@ -43,17 +43,20 @@ def generate():
     subjects = Subject.query.filter_by(user_id=current_user.id).all()
     timeslots = Timeslot.query.filter_by(
         user_id=current_user.id).order_by(Timeslot.start).all()
-    days = current_user.active_days
     configs = {c.subject_id: c.hours for c in AutogenConfig.query.filter_by(
         user_id=current_user.id).all()}
 
-    if not subjects or not timeslots or not days:
-        return json_response(message='Missing subjects, timeslots or days', status=400)
+    if not subjects or not timeslots:
+        return json_response(message='Missing subjects or timeslots', status=400)
 
     cells = []
     for ts in timeslots:
-        for day in days:
+        ts_days = ts.days or []
+        for day in ts_days:
             cells.append({'day': day, 'timeslot_id': ts.id})
+
+    if not cells:
+        return json_response(message='Aucun créneau avec des jours configurés', status=400)
 
     occupied_keys = set()
     existing = ScheduleEntry.query.filter_by(
