@@ -709,6 +709,16 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 });
 
 window.addEventListener('DOMContentLoaded', async () => {
+    // Check for password reset token in URL
+    const params = new URLSearchParams(window.location.search);
+    const resetToken = params.get('reset_token');
+    if (resetToken) {
+        // Clean URL without reloading
+        window.history.replaceState({}, '', window.location.pathname);
+        showResetForm(resetToken);
+        return;
+    }
+
     try {
         const user = await apiCall('/api/auth/me');
         if (user) {
@@ -720,6 +730,84 @@ window.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('auth-page').style.display = 'flex';
     }
 });
+
+// ── Forgot / Reset password ──────────────────────────────────────────────────
+
+function showForgotForm(e) {
+    if (e) e.preventDefault();
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('register-form').style.display = 'none';
+    document.getElementById('reset-form').style.display = 'none';
+    document.getElementById('forgot-form').style.display = 'flex';
+    document.querySelector('.auth-tabs').style.display = 'none';
+    document.querySelector('.auth-card-heading h2').textContent = 'Mot de passe oublié';
+    document.querySelector('.auth-card-heading p').textContent = 'Nous vous enverrons un lien de réinitialisation';
+    document.getElementById('forgot-email').value = '';
+    document.getElementById('forgot-msg').innerHTML = '';
+}
+
+function showLoginForm(e) {
+    if (e) e.preventDefault();
+    document.getElementById('forgot-form').style.display = 'none';
+    document.getElementById('reset-form').style.display = 'none';
+    document.getElementById('register-form').style.display = 'none';
+    document.getElementById('login-form').style.display = 'flex';
+    document.querySelector('.auth-tabs').style.display = 'flex';
+    document.querySelector('.auth-card-heading h2').textContent = 'Bienvenue';
+    document.querySelector('.auth-card-heading p').textContent = 'Connectez-vous ou créez votre compte';
+    document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+}
+
+function showResetForm(token) {
+    document.getElementById('auth-page').style.display = 'flex';
+    document.getElementById('app-page').style.display = 'none';
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('register-form').style.display = 'none';
+    document.getElementById('forgot-form').style.display = 'none';
+    document.getElementById('reset-form').style.display = 'flex';
+    document.querySelector('.auth-tabs').style.display = 'none';
+    document.querySelector('.auth-card-heading h2').textContent = 'Nouveau mot de passe';
+    document.querySelector('.auth-card-heading p').textContent = 'Choisissez un nouveau mot de passe sécurisé';
+    document.getElementById('reset-token').value = token;
+    document.getElementById('reset-password').value = '';
+    document.getElementById('reset-confirm').value = '';
+    document.getElementById('reset-msg').innerHTML = '';
+}
+
+async function doForgotPassword() {
+    const email = document.getElementById('forgot-email').value.trim().toLowerCase();
+    const msgEl = document.getElementById('forgot-msg');
+    if (!email) { showMsg(msgEl, 'Entrez votre adresse email.', 'error'); return; }
+    try {
+        const res = await apiCall('/api/auth/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify({ email })
+        });
+        showMsg(msgEl, res.message || 'Si cet email existe, un lien a été envoyé.', 'success');
+    } catch (e) {
+        showMsg(msgEl, e.message, 'error');
+    }
+}
+
+async function doResetPassword() {
+    const token = document.getElementById('reset-token').value;
+    const pwd = document.getElementById('reset-password').value;
+    const confirm = document.getElementById('reset-confirm').value;
+    const msgEl = document.getElementById('reset-msg');
+    if (!pwd || !confirm) { showMsg(msgEl, 'Remplissez tous les champs.', 'error'); return; }
+    if (pwd.length < 6) { showMsg(msgEl, 'Minimum 6 caractères.', 'error'); return; }
+    if (pwd !== confirm) { showMsg(msgEl, 'Les mots de passe ne correspondent pas.', 'error'); return; }
+    try {
+        const res = await apiCall('/api/auth/reset-password', {
+            method: 'POST',
+            body: JSON.stringify({ token, password: pwd })
+        });
+        showMsg(msgEl, res.message || 'Mot de passe mis à jour !', 'success');
+        setTimeout(() => showLoginForm(null), 2000);
+    } catch (e) {
+        showMsg(msgEl, e.message, 'error');
+    }
+}
 
 async function renderAll() {
     await renderSubjectsPanel();

@@ -1,9 +1,10 @@
 from flask import Flask, send_from_directory
 from flask_login import LoginManager
 from flask_cors import CORS
+from flask_mail import Mail
 from models import db, User
 from config import Config
-from auth import auth_bp
+from auth import auth_bp, mail
 from subjects import subjects_bp
 from timeslots import timeslots_bp
 from days import days_bp
@@ -35,6 +36,7 @@ def create_app():
         pass
 
     db.init_app(app)
+    mail.init_app(app)
 
     login_manager = LoginManager()
     login_manager.init_app(app)

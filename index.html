@@ -20,8 +20,7 @@
             <!-- Left decorative panel -->
             <div class="auth-deco">
                 <div class="auth-deco-logo">
-                    <div class="logo-title">جدول</div>
-                    <div class="logo-sub">Jadwal</div>
+                    <div class="logo-title">Jadwal</div>
                     <div class="gold-line"></div>
                 </div>
                 <p class="auth-deco-tagline">
@@ -46,6 +45,8 @@
             <!-- Right form panel -->
             <div class="auth-box">
                 <div class="auth-card">
+                    <div class="logo-title">جدول</div>
+                    <div class="gold-line"></div>
                     <div class="auth-card-heading">
                         <h2>Bienvenue</h2>
                         <p>Connectez-vous ou créez votre compte</p>
@@ -66,6 +67,9 @@
                         </div>
                         <div id="login-msg"></div>
                         <button class="btn-primary" onclick="doLogin()">Se connecter →</button>
+                        <div style="text-align:center;margin-top:0.8rem;">
+                            <a href="#" class="forgot-link" onclick="showForgotForm(event)">Mot de passe oublié ?</a>
+                        </div>
                     </div>
 
                     <div id="register-form" class="auth-form" style="display:none">
@@ -87,6 +91,39 @@
                         </div>
                         <div id="reg-msg"></div>
                         <button class="btn-primary" onclick="doRegister()">Créer mon compte →</button>
+                    </div>
+                    <!-- FORGOT PASSWORD FORM -->
+                    <div id="forgot-form" class="auth-form" style="display:none">
+                        <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:0.5rem;">
+                            Entrez votre email. Nous vous enverrons un lien pour réinitialiser votre mot de passe.
+                        </p>
+                        <div class="form-group">
+                            <input class="form-input" id="forgot-email" type="email" placeholder=" ">
+                            <label class="form-label" for="forgot-email">Email</label>
+                        </div>
+                        <div id="forgot-msg"></div>
+                        <button class="btn-primary" onclick="doForgotPassword()">Envoyer le lien →</button>
+                        <div style="text-align:center;margin-top:0.8rem;">
+                            <a href="#" class="forgot-link" onclick="showLoginForm(event)">← Retour à la connexion</a>
+                        </div>
+                    </div>
+
+                    <!-- RESET PASSWORD FORM -->
+                    <div id="reset-form" class="auth-form" style="display:none">
+                        <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:0.5rem;">
+                            Choisissez un nouveau mot de passe (minimum 6 caractères).
+                        </p>
+                        <input type="hidden" id="reset-token">
+                        <div class="form-group">
+                            <input class="form-input" id="reset-password" type="password" placeholder=" ">
+                            <label class="form-label" for="reset-password">Nouveau mot de passe</label>
+                        </div>
+                        <div class="form-group">
+                            <input class="form-input" id="reset-confirm" type="password" placeholder=" ">
+                            <label class="form-label" for="reset-confirm">Confirmer le mot de passe</label>
+                        </div>
+                        <div id="reset-msg"></div>
+                        <button class="btn-primary" onclick="doResetPassword()">Enregistrer le mot de passe →</button>
                     </div>
                 </div>
             </div><!-- /.auth-box -->

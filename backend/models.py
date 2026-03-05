@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, timedelta
+import secrets
 
 db = SQLAlchemy()
 
@@ -61,3 +62,26 @@ class AutogenConfig(db.Model):
 
     __table_args__ = (db.UniqueConstraint(
         'user_id', 'subject_id', name='unique_user_subject'),)
+
+
+class PasswordResetToken(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    token = db.Column(db.String(100), unique=True, nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    used = db.Column(db.Boolean, default=False)
+
+    @staticmethod
+    def generate_for(user):
+        # Delete any old tokens for this user
+        PasswordResetToken.query.filter_by(user_id=user.id).delete()
+        token = secrets.token_urlsafe(48)
+        reset = PasswordResetToken(
+            user_id=user.id,
+            token=token,
+            expires_at=datetime.utcnow() + timedelta(hours=1)
+        )
+        return reset
+
+    def is_valid(self):
+        return not self.used and datetime.utcnow() < self.expires_at
