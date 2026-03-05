@@ -1220,3 +1220,292 @@ select.form-input option {
 .forgot-link:hover {
     color: var(--gold-light);
 }
+
+/* ═══════════════════════════════════════════════════
+   DAY-CARD TIMELINE SCHEDULE (emp-style)
+═══════════════════════════════════════════════════ */
+
+/* Legend */
+.schedule-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.73rem;
+    color: var(--text-muted);
+    background: var(--surface);
+    padding: 0.28rem 0.65rem;
+    border-radius: 0.4rem;
+    border: 1px solid var(--border);
+}
+
+.legend-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+/* Days grid */
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.25rem;
+}
+
+/* Day card */
+.day-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.day-card-today {
+    border-color: rgba(201, 151, 42, 0.4);
+    box-shadow: 0 0 0 1px rgba(201, 151, 42, 0.12), 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.day-header {
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    gap: 0.5rem;
+}
+
+.day-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.day-date-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    background: var(--surface2);
+    color: var(--text-muted);
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.3rem;
+    border: 1px solid var(--border);
+}
+
+.day-card-today .day-date-badge {
+    background: var(--gold-dim);
+    color: var(--gold-light);
+    border-color: rgba(201, 151, 42, 0.3);
+}
+
+.day-tags {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.day-tag {
+    font-size: 0.6rem;
+    padding: 0.12rem 0.45rem;
+    border-radius: 0.3rem;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+}
+
+.tag-today {
+    background: rgba(201, 151, 42, 0.15);
+    color: var(--gold-light);
+    border: 1px solid rgba(201, 151, 42, 0.3);
+}
+
+.reset-day-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 0.35rem;
+    width: 24px;
+    height: 24px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: var(--transition);
+    padding: 0;
+}
+
+.reset-day-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold-light);
+}
+
+/* Timeline */
+.timeline {
+    padding: 0.65rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+/* Block */
+.block {
+    display: grid;
+    grid-template-columns: 76px 1fr;
+    gap: 0.45rem;
+    align-items: start;
+}
+
+.block-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    padding-top: 0.5rem;
+    line-height: 1.35;
+    text-align: right;
+    padding-right: 0.5rem;
+    border-right: 2px solid var(--border);
+    flex-shrink: 0;
+}
+
+/* Block content — assigned subject */
+.block-content {
+    border-radius: 0.45rem;
+    padding: 0.42rem 0.6rem;
+    font-size: 0.77rem;
+    line-height: 1.4;
+    font-weight: 500;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.4rem;
+    transition: filter 0.15s;
+}
+
+.block-content-inner {
+    flex: 1;
+    min-width: 0;
+}
+
+.block-content .sub {
+    font-size: 0.64rem;
+    font-weight: 400;
+    opacity: 0.7;
+    display: block;
+    margin-top: 0.1rem;
+}
+
+/* Empty slot */
+.block-empty {
+    background: rgba(30, 45, 69, 0.35) !important;
+    border: 1.5px dashed var(--border2) !important;
+    cursor: pointer;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.block-empty:hover {
+    background: rgba(201, 151, 42, 0.06) !important;
+    border-color: rgba(201, 151, 42, 0.3) !important;
+}
+
+.block-empty.drag-over {
+    background: rgba(201, 151, 42, 0.1) !important;
+    border-color: var(--gold) !important;
+}
+
+.empty-slot-hint {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+}
+
+/* Done button */
+.done-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border2);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.18s ease;
+    padding: 0;
+    line-height: 1;
+}
+
+.done-btn:hover {
+    border-color: var(--green);
+    color: var(--green-light);
+    transform: scale(1.1);
+}
+
+.done-btn.done {
+    background: rgba(46, 164, 79, 0.2);
+    border-color: var(--green);
+    color: var(--green-light);
+}
+
+/* Delete inline */
+.delete-event-btn-inline {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(218, 54, 51, 0.15);
+    color: var(--red-light);
+    cursor: pointer;
+    font-size: 0.55rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+    padding: 0;
+    line-height: 1;
+}
+
+.block-content:hover .delete-event-btn-inline {
+    opacity: 1;
+}
+
+/* Completed state */
+.block.completed .block-content-inner {
+    opacity: 0.45;
+    text-decoration: line-through;
+    text-decoration-color: rgba(46, 164, 79, 0.5);
+}
+
+.block.completed .block-time {
+    opacity: 0.35;
+}
+
+/* Block action buttons container */
+.block-actions {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}

@@ -286,7 +286,7 @@ function setMode(mode) {
     document.getElementById('mode-drag').classList.toggle('active', mode === 'drag');
 }
 
-// Schedule Grid
+// Schedule Grid — Day-Card Timeline Layout
 const ALL_DAYS_MAP = { 'Dim': 0, 'Lun': 1, 'Mar': 2, 'Mer': 3, 'Jeu': 4, 'Ven': 5, 'Sam': 6 };
 
 function getWeekDays() {
@@ -305,6 +305,17 @@ function getWeekDays() {
     });
 }
 
+function renderScheduleLegend(subjects) {
+    const el = document.getElementById('schedule-legend');
+    if (!subjects.length) { el.innerHTML = ''; return; }
+    el.innerHTML = subjects.map(s => `
+        <div class="legend-item">
+            <div class="legend-dot" style="background:${s.color}"></div>
+            ${s.name}
+        </div>
+    `).join('');
+}
+
 async function renderScheduleGrid() {
     const timeslots = await apiCall('/api/timeslots');
     const weekDays = getWeekDays();
@@ -317,65 +328,118 @@ async function renderScheduleGrid() {
         document.getElementById('week-label').textContent = `${first} – ${last}`;
     }
 
-    const dayCount = weekDays.length;
+    renderScheduleLegend(subjects);
+
     const grid = document.getElementById('schedule-grid');
-    grid.style.gridTemplateColumns = `80px repeat(${dayCount}, 1fr)`;
-
-    let html = '';
-
-    // Header row
-    html += `<div class="grid-header-cell grid-time-col" style="background:var(--surface2)"></div>`;
-    const todayStr = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-    weekDays.forEach(d => {
-        const isToday = d.dateStr === todayStr;
-        html += `<div class="grid-header-cell ${isToday ? 'today' : ''}">
-            <div class="day-abbr">${d.abbr}</div>
-            <div class="day-date">${d.date.getDate()}</div>
-        </div>`;
-    });
-
-    // Rows
-    timeslots.forEach(ts => {
-        html += `<div class="time-cell grid-time-col">
-            <span class="time-label">${ts.start}<br>–${ts.end}</span>
-        </div>`;
-        weekDays.forEach(d => {
-            const key = `${currentWeekOffset}_${d.abbr}_${ts.id}`;
-            const subjId = sched[key];
-            const subj = subjId ? subjects.find(s => s.id === subjId) : null;
-
-            if (subj) {
-                html += `<div class="slot-cell"
-                    ondragover="onDragOver(event)"
-                    ondragleave="onDragLeave(event)"
-                    ondrop="onDrop(event,'${d.abbr}','${ts.id}')"
-                    onclick="handleCellClick('${d.abbr}','${ts.id}')">
-                    <div class="slot-event"
-                         style="background:${hexAlpha(subj.color, 0.2)};border-left-color:${subj.color};color:${subj.color}"
-                         draggable="true"
-                         ondragstart="onEventDragStart(event,'${d.abbr}','${ts.id}','${subj.id}')">
-                        <span class="slot-event-name">${subj.name}</span>
-                        <span class="slot-event-type">${subj.type}</span>
-                        <button class="delete-event-btn" onclick="event.stopPropagation();removeEvent('${d.abbr}','${ts.id}')">✕</button>
-                    </div>
-                </div>`;
-            } else {
-                html += `<div class="slot-cell"
-                    ondragover="onDragOver(event)"
-                    ondragleave="onDragLeave(event)"
-                    ondrop="onDrop(event,'${d.abbr}','${ts.id}')"
-                    onclick="handleCellClick('${d.abbr}','${ts.id}')"></div>`;
-            }
-        });
-    });
 
     if (!timeslots.length) {
-        grid.innerHTML = `<div style="grid-column:1/-1;padding:3rem;text-align:center;color:var(--text-muted);font-size:0.85rem;">Aucun créneau horaire défini — allez dans "Créneaux Horaires"</div>`;
+        grid.innerHTML = `<div class="empty-state">
+            <div class="empty-icon">🕐</div>
+            <div class="empty-title">Aucun créneau horaire</div>
+            <div class="empty-sub">Allez dans "Créneaux Horaires" pour en ajouter</div>
+        </div>`;
+        checkConflicts();
         return;
     }
 
+    const todayStr = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+
+    let html = '<div class="days-grid">';
+
+    weekDays.forEach(dayObj => {
+        const dayAbbr = dayObj.abbr;
+        const isToday = dayObj.dateStr === todayStr;
+
+        html += `<div class="day-card ${isToday ? 'day-card-today' : ''}">
+            <div class="day-header">
+                <span class="day-name">${dayAbbr} <span class="day-date-badge">${dayObj.date.getDate()}</span></span>
+                <div class="day-tags">
+                    ${isToday ? '<span class="day-tag tag-today">Aujourd\'hui</span>' : ''}
+                    <button class="reset-day-btn" title="Réinitialiser" onclick="resetDayDone('${dayAbbr}')">↺</button>
+                </div>
+            </div>
+            <div class="timeline">`;
+
+        timeslots.forEach(ts => {
+            const key = `${currentWeekOffset}_${dayAbbr}_${ts.id}`;
+            const subjId = sched[key];
+            const subj = subjId ? subjects.find(s => s.id === subjId) : null;
+            const doneKey = `done_${currentWeekOffset}_${dayAbbr}_${ts.id}`;
+            const isDone = localStorage.getItem(doneKey) === '1';
+            const blockId = `blk_${currentWeekOffset}_${dayAbbr}_${ts.id}`;
+
+            html += `<div class="block ${isDone ? 'completed' : ''}" id="${blockId}">
+                <div class="block-time">${ts.start}<br>→ ${ts.end}</div>`;
+
+            if (subj) {
+                html += `<div class="block-content"
+                    style="background:${hexAlpha(subj.color, 0.18)};border-left:3px solid ${subj.color};color:${subj.color}"
+                    ondragover="onDragOver(event)"
+                    ondragleave="onDragLeave(event)"
+                    ondrop="onDrop(event,'${dayAbbr}','${ts.id}')"
+                    onclick="handleCellClick('${dayAbbr}','${ts.id}')">
+                    <div class="block-content-inner">
+                        <span>${subj.name}</span>
+                        <span class="sub">${subj.type}</span>
+                    </div>
+                    <div class="block-actions">
+                        <button class="done-btn ${isDone ? 'done' : ''}"
+                            onclick="event.stopPropagation();toggleDoneBlock('${currentWeekOffset}','${dayAbbr}','${ts.id}')"
+                            title="Marquer comme fait">${isDone ? '✓' : '○'}</button>
+                        <button class="delete-event-btn-inline"
+                            onclick="event.stopPropagation();removeEvent('${dayAbbr}','${ts.id}')"
+                            title="Supprimer">✕</button>
+                    </div>
+                </div>`;
+            } else {
+                html += `<div class="block-content block-empty"
+                    ondragover="event.preventDefault();this.classList.add('drag-over')"
+                    ondragleave="this.classList.remove('drag-over')"
+                    ondrop="this.classList.remove('drag-over');onDrop(event,'${dayAbbr}','${ts.id}')"
+                    onclick="handleCellClick('${dayAbbr}','${ts.id}')">
+                    <span class="empty-slot-hint">+ Assigner</span>
+                </div>`;
+            }
+
+            html += `</div>`; // .block
+        });
+
+        html += `</div></div>`; // .timeline .day-card
+    });
+
+    html += '</div>'; // .days-grid
     grid.innerHTML = html;
     checkConflicts();
+}
+
+function toggleDoneBlock(weekOffset, day, tsId) {
+    const doneKey = `done_${weekOffset}_${day}_${tsId}`;
+    const blockId = `blk_${weekOffset}_${day}_${tsId}`;
+    const block = document.getElementById(blockId);
+    if (!block) return;
+    const btn = block.querySelector('.done-btn');
+    const isDone = localStorage.getItem(doneKey) === '1';
+    if (isDone) {
+        localStorage.removeItem(doneKey);
+        block.classList.remove('completed');
+        if (btn) { btn.classList.remove('done'); btn.textContent = '○'; }
+    } else {
+        localStorage.setItem(doneKey, '1');
+        block.classList.add('completed');
+        if (btn) { btn.classList.add('done'); btn.textContent = '✓'; }
+    }
+}
+
+function resetDayDone(dayAbbr) {
+    // Remove all done states for this day in current week
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(`done_${currentWeekOffset}_${dayAbbr}_`)) keysToRemove.push(k);
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+    // Re-render to refresh UI
+    renderScheduleGrid();
 }
 
 async function handleCellClick(day, tsId) {
@@ -451,6 +515,7 @@ function onEventDragStart(e, day, tsId, subjId) {
 function onDragOver(e) {
     e.preventDefault();
     e.currentTarget.classList.add('drag-over');
+    e.dataTransfer.dropEffect = 'copy';
 }
 
 function onDragLeave(e) {
