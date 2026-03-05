@@ -354,7 +354,7 @@ async function renderSubjectsPanel() {
                 </div>
             </div>
             <div class="subject-card-meta">
-                <span class="meta-badge">${s.type}</span>
+                ${s.type ? `<span class="meta-subtitle" style="color:${s.color};opacity:0.85">📝 ${s.type}</span>` : ''}
                 <span class="meta-badge">${cnt} créneau${cnt !== 1 ? 'x' : ''}</span>
             </div>
             ${cnt > 0 ? `<div class="subject-usage-bar" aria-label="${pct}% d'utilisation"><div class="subject-usage-fill" style="width:${pct}%;background:${s.color}"></div></div>` : ''}
@@ -385,7 +385,8 @@ async function renderPalette() {
              ondragstart="onChipDragStart(event,'${s.id}')"
              onkeydown="if(event.key==='Enter'||event.key===' ')${forModal ? `assignFromModal('${s.id}')` : `selectSubject('${s.id}', this)`}"
              onclick="${forModal ? `assignFromModal('${s.id}')` : `selectSubject('${s.id}', this)`}">
-            ${s.name}
+            <span class="chip-name">${s.name}</span>
+            ${s.type ? `<span class="chip-subtitle" style="color:${s.color}">${s.type}</span>` : ''}
         </div>
     `).join('');
     el.innerHTML = chipHtml(false);
@@ -538,17 +539,13 @@ async function renderScheduleGrid() {
                     onclick="handleCellClick('${dayAbbr}','${ts.id}')">
                     <div class="block-content-inner">
                         <span>${subj.name}</span>
-                        <span class="sub">${subj.type}</span>
+                        ${subj.type ? `<span class="block-subtitle" style="color:${subj.color}">${subj.type}</span>` : ''}
                     </div>
                     <div class="block-actions">
                         <button class="done-btn ${isDone ? 'done' : ''}"
                             onclick="event.stopPropagation();toggleDoneBlock('${currentWeekOffset}','${dayAbbr}','${ts.id}')"
                             aria-label="${isDone ? 'Marquer comme non fait' : 'Marquer comme fait'}"
                             title="Marquer comme fait">${isDone ? '✓' : '○'}</button>
-                        <button class="delete-event-btn-inline"
-                            onclick="event.stopPropagation();removeEvent('${dayAbbr}','${ts.id}')"
-                            aria-label="Supprimer l'événement"
-                            title="Supprimer">✕</button>
                     </div>
                 </div>`;
             } else {

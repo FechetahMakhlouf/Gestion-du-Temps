@@ -795,8 +795,9 @@ body {
 
 .subject-chip {
     display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
     padding: 0.35rem 0.8rem;
     border-radius: 6px;
     font-size: 0.78rem;
@@ -805,6 +806,18 @@ body {
     user-select: none;
     transition: var(--transition);
     border-left: 3px solid;
+}
+
+.chip-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.chip-subtitle {
+    font-size: 0.64rem;
+    font-weight: 400;
+    opacity: 0.8;
+    line-height: 1.2;
 }
 
 .subject-chip:hover {
@@ -1422,6 +1435,21 @@ select.form-input option {
     opacity: 0.7;
     display: block;
     margin-top: 0.1rem;
+}
+
+.block-subtitle {
+    font-size: 0.68rem;
+    font-weight: 500;
+    opacity: 0.82;
+    display: block;
+    margin-top: 0.18rem;
+    letter-spacing: 0.01em;
+}
+
+.meta-subtitle {
+    font-size: 0.75rem;
+    font-weight: 500;
+    opacity: 0.9;
 }
 
 /* Empty slot */
