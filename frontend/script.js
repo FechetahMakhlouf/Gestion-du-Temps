@@ -975,33 +975,165 @@ async function exportSchedule() {
         apiCall('/api/auth/me')
     ]);
 
+    const sortedSlots = timeslots.slice().sort((a, b) => a.start.localeCompare(b.start));
+
+    // Build HTML table rows
     let rows = '';
-    timeslots.sort((a, b) => a.start.localeCompare(b.start)).forEach(ts => {
-        let cells = `<td style="font-family:monospace;font-size:12px;padding:8px;background:#0f1520;color:#637080;white-space:nowrap;">${ts.start}–${ts.end}</td>`;
+    sortedSlots.forEach(ts => {
+        let cells = `<td style="font-family:monospace;font-size:12px;padding:8px 12px;background:#0f1520;color:#637080;white-space:nowrap;border:1px solid #1e2d45">${ts.start}–${ts.end}</td>`;
         days.forEach(d => {
             const key = `${currentWeekOffset}_${d}_${ts.id}`;
             const subjId = sched[key];
             const subj = subjId ? subjects.find(s => s.id === subjId) : null;
             if (subj) {
-                cells += `<td style="padding:8px;background:${hexAlpha(subj.color, 0.3)};color:${subj.color};font-weight:600;font-size:13px;border-left:3px solid ${subj.color}">${subj.name}<br><span style="font-size:10px;opacity:0.7">${subj.type}</span></td>`;
+                cells += `<td style="padding:8px 12px;background:${hexAlpha(subj.color, 0.25)};color:${subj.color};font-weight:600;font-size:13px;border-left:3px solid ${subj.color};border:1px solid #1e2d45">${subj.name}<br><span style="font-size:10px;opacity:0.7;font-weight:400">${subj.type}</span></td>`;
             } else {
-                cells += `<td style="padding:8px;background:#0f1520;"></td>`;
+                cells += `<td style="padding:8px;background:#0f1520;border:1px solid #1e2d45"></td>`;
             }
         });
         rows += `<tr>${cells}</tr>`;
     });
 
-    win.document.write(`<!DOCTYPE html><html><head><title>Emploi du Temps — ${user.name}</title></head>
-        <body style="background:#080c12;color:#e8f0f8;font-family:sans-serif;padding:2rem">
-        <h2 style="color:#e8b84b;font-family:serif">جدول — ${user.name}</h2>
-        <table style="width:100%;border-collapse:collapse;border:1px solid #1e2d45">
-            <tr style="background:#161e2e"><th style="padding:10px;color:#637080"></th>
-            ${days.map(d => `<th style="padding:10px;color:#e8b84b;font-size:14px">${d}</th>`).join('')}
-            </tr>${rows}
-        </table></body></html>`);
+    // Build CSV data (embedded as JS string for download)
+    let csvRows = [['Créneau', ...days]];
+    sortedSlots.forEach(ts => {
+        let row = [`${ts.start}-${ts.end}`];
+        days.forEach(d => {
+            const key = `${currentWeekOffset}_${d}_${ts.id}`;
+            const subjId = sched[key];
+            const subj = subjId ? subjects.find(s => s.id === subjId) : null;
+            row.push(subj ? subj.name : '');
+        });
+        csvRows.push(row);
+    });
+    const csvContent = csvRows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    const csvB64 = btoa(unescape(encodeURIComponent(csvContent)));
+
+    const exportDate = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const fileName = `jadwal_${user.name.replace(/\s+/g, '_')}_semaine${currentWeekOffset >= 0 ? '+' : ''}${currentWeekOffset}`;
+
+    win.document.write(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emploi du Temps — ${user.name}</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c12; --surface: #0f1520; --surface2: #161e2e;
+    --border: #1e2d45; --text: #e8f0f8; --muted: #637080;
+    --gold: #c9972a; --gold-light: #e8b84b; --radius: 12px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
+  .page { max-width:960px; margin:0 auto; padding:2rem 1.5rem 3rem; }
+  /* Header */
+  .export-header { display:flex; align-items:flex-start; justify-content:space-between; gap:1.5rem; margin-bottom:2rem; flex-wrap:wrap; padding-bottom:1.5rem; border-bottom:1px solid var(--border); }
+  .header-left {}
+  .logo { font-family:'Amiri',serif; font-size:2.2rem; color:var(--gold-light); text-shadow:0 0 40px rgba(232,184,75,.3); line-height:1; }
+  .logo-sub { font-size:0.72rem; color:var(--muted); font-family:'JetBrains Mono',monospace; letter-spacing:.1em; text-transform:uppercase; margin-top:.3rem; }
+  .export-meta { margin-top:.8rem; font-size:.8rem; color:var(--muted); display:flex; gap:1rem; flex-wrap:wrap; }
+  .meta-chip { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:.2rem .6rem; font-family:'JetBrains Mono',monospace; font-size:.72rem; }
+  /* Download buttons */
+  .dl-buttons { display:flex; flex-direction:column; gap:.6rem; align-items:flex-end; }
+  .dl-btn { display:inline-flex; align-items:center; gap:.55rem; padding:.7rem 1.2rem; border-radius:10px; font-size:.85rem; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; text-decoration:none; border:none; transition:all .2s ease; white-space:nowrap; }
+  .dl-btn-primary { background:linear-gradient(135deg,#c9972a,#e8b84b); color:#07090d; box-shadow:0 4px 16px rgba(201,151,42,.3); }
+  .dl-btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(201,151,42,.4); }
+  .dl-btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+  .dl-btn-secondary:hover { border-color:var(--gold); color:var(--gold-light); transform:translateY(-1px); }
+  .dl-btn svg { flex-shrink:0; }
+  .dl-hint { font-size:.68rem; color:var(--muted); text-align:right; font-family:'JetBrains Mono',monospace; margin-top:.25rem; }
+  /* Table */
+  .table-wrap { border-radius:var(--radius); overflow:auto; border:1px solid var(--border); -webkit-overflow-scrolling:touch; }
+  table { width:100%; border-collapse:collapse; min-width:520px; }
+  thead th { background:var(--surface2); padding:10px 12px; text-align:center; border:1px solid var(--border); font-size:.8rem; font-weight:700; color:var(--gold-light); font-family:'JetBrains Mono',monospace; letter-spacing:.06em; text-transform:uppercase; }
+  thead th:first-child { color:var(--muted); min-width:90px; }
+  tbody tr:hover td { filter:brightness(1.08); }
+  /* Footer */
+  .export-footer { margin-top:2rem; text-align:center; font-size:.7rem; color:var(--muted); font-family:'JetBrains Mono',monospace; }
+  /* Print styles */
+  @media print {
+    body { background:#fff; color:#111; }
+    .dl-buttons, .dl-hint { display:none !important; }
+    .export-header { border-bottom:1px solid #ddd; }
+    .logo { color:#c9972a; }
+    table { border:1px solid #ccc; }
+    thead th { background:#f5f5f5; color:#333; border:1px solid #ccc; }
+    .page { padding:1rem; }
+  }
+  @media (max-width:600px) {
+    .export-header { flex-direction:column; }
+    .dl-buttons { align-items:stretch; width:100%; }
+    .dl-hint { text-align:left; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="export-header">
+    <div class="header-left">
+      <div class="logo">جدول</div>
+      <div class="logo-sub">Jadwal — Emploi du Temps</div>
+      <div class="export-meta">
+        <span class="meta-chip">👤 ${user.name}</span>
+        <span class="meta-chip">📅 ${exportDate}</span>
+        <span class="meta-chip">Semaine ${currentWeekOffset >= 0 ? '+' : ''}${currentWeekOffset}</span>
+      </div>
+    </div>
+    <div>
+      <div class="dl-buttons">
+        <a id="dl-html" class="dl-btn dl-btn-primary" download="${fileName}.html">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Télécharger HTML
+        </a>
+        <a id="dl-csv" class="dl-btn dl-btn-secondary" download="${fileName}.csv">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Exporter CSV
+        </a>
+        <button class="dl-btn dl-btn-secondary" onclick="window.print()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Imprimer
+        </button>
+      </div>
+      <div class="dl-hint">↑ Cliquez pour sauvegarder sur votre appareil</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Créneau</th>
+          ${days.map(d => `<th>${d}</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>
+
+  <div class="export-footer">Généré par Jadwal · ${exportDate}</div>
+</div>
+
+<script>
+  // Build HTML download blob from current page
+  (function() {
+    const htmlContent = '<!DOCTYPE html>' + document.documentElement.outerHTML;
+    const htmlBlob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const htmlUrl = URL.createObjectURL(htmlBlob);
+    document.getElementById('dl-html').href = htmlUrl;
+
+    // CSV download
+    const csvData = atob('${csvB64}');
+    const csvBlob = new Blob([csvData], { type: 'text/csv;charset=utf-8' });
+    const csvUrl = URL.createObjectURL(csvBlob);
+    document.getElementById('dl-csv').href = csvUrl;
+  })();
+<\/script>
+</body>
+</html>`);
     win.document.close();
 }
-
 /* ══════════════════════════════════════════════
    UTILS
 ══════════════════════════════════════════════ */
@@ -1177,6 +1309,49 @@ async function doResetPassword() {
         setLoading('reset-submit', false);
     }
 }
+
+/* ── Mobile nav helpers ── */
+function updateMobileNav(panel) {
+    document.querySelectorAll('.mobile-bottom-nav .nav-item').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.panel === panel);
+    });
+}
+
+/* Sync avatar initial from sidebar to mobile top bar */
+const _origShowApp = typeof showApp === 'function' ? showApp : null;
+function syncMobileAvatar() {
+    const sAvatar = document.getElementById('sidebar-avatar');
+    const mAvatar = document.getElementById('mobile-avatar');
+    if (sAvatar && mAvatar) {
+        const observer = new MutationObserver(() => {
+            mAvatar.textContent = sAvatar.textContent;
+        });
+        observer.observe(sAvatar, { childList: true, subtree: true, characterData: true });
+        mAvatar.textContent = sAvatar.textContent;
+    }
+}
+document.addEventListener('DOMContentLoaded', () => {
+    syncMobileAvatar();
+    // Sync bottom nav when sidebar nav changes
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(btn => {
+        const origClick = btn.onclick;
+        btn.addEventListener('click', () => {
+            const panel = btn.getAttribute('onclick')?.match(/showPanel\('(\w+)'\)/)?.[1];
+            if (panel) updateMobileNav(panel);
+        });
+    });
+});
+
+/* Close sidebar when tapping outside on mobile */
+document.addEventListener('click', (e) => {
+    const sidebar = document.getElementById('sidebar');
+    const topBar = document.getElementById('mobile-top-bar');
+    if (sidebar && sidebar.classList.contains('open') && window.innerWidth <= 768) {
+        if (!sidebar.contains(e.target) && !topBar?.contains(e.target)) {
+            sidebar.classList.remove('open');
+        }
+    }
+});
 
 /* ══════════════════════════════════════════════
    RENDER ALL — parallel fetches where possible
