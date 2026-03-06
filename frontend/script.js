@@ -385,7 +385,7 @@ async function renderPalette() {
     const el = document.getElementById('palette-chips');
     const cellChips = document.getElementById('cell-modal-chips');
     if (!subjects.length) {
-        el.innerHTML = `<span style="font-size:0.78rem;color:var(--text-muted)">Aucune tâche — allez dans "Mes Tâches" pour en ajouter</span>`;
+        if (el) el.innerHTML = `<span style="font-size:0.78rem;color:var(--text-muted)">Aucune tâche — allez dans "Mes Tâches" pour en ajouter</span>`;
         if (cellChips) cellChips.innerHTML = '';
         return;
     }
@@ -403,7 +403,7 @@ async function renderPalette() {
             ${s.type ? `<span class="chip-subtitle" style="color:${s.color}">${s.type}</span>` : ''}
         </div>
     `).join('');
-    el.innerHTML = chipHtml(false);
+    if (el) el.innerHTML = chipHtml(false);
     if (cellChips) cellChips.innerHTML = chipHtml(true);
 }
 
@@ -610,17 +610,12 @@ function resetDayDone(dayAbbr) {
 }
 
 async function handleCellClick(day, tsId) {
-    if (interactionMode === 'drag') return;
-    if (selectedSubjectId) {
-        assignSubject(day, tsId, selectedSubjectId);
-    } else {
-        const ts = await apiCall('/api/timeslots').then(ts => ts.find(t => t.id === tsId));
-        document.getElementById('cell-modal-day').value = day;
-        document.getElementById('cell-modal-slot').value = tsId;
-        document.getElementById('cell-modal-title').textContent = `${day} · ${ts ? ts.start + '–' + ts.end : ''}`;
-        renderPalette();
-        document.getElementById('cell-modal').classList.add('open');
-    }
+    const ts = await apiCall('/api/timeslots').then(ts => ts.find(t => t.id === tsId));
+    document.getElementById('cell-modal-day').value = day;
+    document.getElementById('cell-modal-slot').value = tsId;
+    document.getElementById('cell-modal-title').textContent = `${day} · ${ts ? ts.start + '–' + ts.end : ''}`;
+    renderPalette();
+    document.getElementById('cell-modal').classList.add('open');
 }
 
 async function assignFromModal(subjId) {
@@ -693,18 +688,43 @@ function onDragLeave(e) {
 }
 
 async function onDrop(e, day, tsId) {
+    // Drag & drop assignment is disabled
     e.preventDefault();
     e.currentTarget.classList.remove('drag-over');
-    if (!dragSubjId) return;
-    if (dragFromDay) {
-        await removeEvent(dragFromDay, dragFromTs);
-    }
-    await assignSubject(day, tsId, dragSubjId);
-    dragSubjId = null; dragFromDay = null; dragFromTs = null;
 }
 
-function changeWeek(delta) {
+async function changeWeek(delta) {
+    const previousOffset = currentWeekOffset;
     currentWeekOffset += delta;
+
+    // Check if new week is empty — if so, copy from previous week
+    const newSched = await apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`);
+    const isEmpty = !newSched || Object.keys(newSched).length === 0;
+
+    if (isEmpty) {
+        const prevSched = await apiCall(`/api/schedule?weekOffset=${previousOffset}`);
+        if (prevSched && Object.keys(prevSched).length > 0) {
+            // Copy all assignments from previous week to new week
+            const assigns = [];
+            for (const key of Object.keys(prevSched)) {
+                const parts = key.split('_');
+                if (parts.length >= 3) {
+                    const day = parts[1];
+                    const tsId = parts.slice(2).join('_');
+                    const subjId = prevSched[key];
+                    assigns.push(
+                        apiCall('/api/schedule/assign', {
+                            method: 'POST',
+                            body: JSON.stringify({ weekOffset: currentWeekOffset, day, timeslotId: tsId, subjectId: subjId })
+                        }).catch(() => { })
+                    );
+                }
+            }
+            await Promise.all(assigns);
+            toast('Planning copié depuis la semaine précédente ✓', 'success');
+        }
+    }
+
     renderScheduleGrid();
 }
 
@@ -1332,7 +1352,7 @@ const GUIDE_STEPS = [
             },
             {
                 title: 'L\'ordre de configuration recommandé',
-                desc: 'Pour une première utilisation, suivez cet ordre : ① Configurer vos jours actifs → ② Créer vos créneaux horaires → ③ Ajouter vos tâches/matières → ④ Construire votre emploi du temps (manuellement ou automatiquement). Ce guide vous accompagnera étape par étape.'
+                desc: 'Pour une première utilisation, suivez cet ordre : ① Configurer vos jours actifs → ② Créer vos créneaux horaires → ③ Ajouter vos tâches/matières → ④ Générer automatiquement votre emploi du temps. Ce guide vous accompagnera étape par étape.'
             },
             {
                 title: 'Vos données sont sauvegardées automatiquement',
@@ -1420,32 +1440,28 @@ const GUIDE_STEPS = [
     {
         id: 'schedule',
         icon: '🗓️',
-        title: 'Étape 4 — Construire votre emploi du temps',
-        subtitle: 'Assignez vos tâches aux créneaux horaires de chaque jour.',
+        title: 'Étape 4 — Consulter votre emploi du temps',
+        subtitle: 'Visualisez, suivez et gérez vos assignations hebdomadaires.',
         actions: [
             {
                 title: 'Comprendre la grille',
-                desc: 'L\'emploi du temps est organisé en colonnes (une par jour actif) et en lignes (une par créneau horaire). Chaque intersection est une "cellule". Une cellule vide affiche "+ Assigner". Une cellule occupée affiche le nom et le type de la tâche avec sa couleur.'
+                desc: 'L\'emploi du temps est organisé en colonnes (une par jour actif) et en lignes (une par créneau horaire). Chaque cellule occupée affiche le nom et le type de la tâche avec sa couleur. Les cellules vides restent disponibles pour la Génération Automatique.'
             },
             {
-                title: 'Mode Clic — Assigner en cliquant',
-                desc: 'Assurez-vous que le mode "Clic" est actif (bouton en haut du panneau). Sélectionnez d\'abord une tâche dans la palette de gauche (elle s\'entoure d\'un contour doré). Ensuite cliquez sur n\'importe quelle cellule vide — la tâche y est immédiatement assignée. Pour changer une cellule déjà occupée, cliquez dessus et choisissez une nouvelle tâche dans le modal.'
+                title: 'Remplir l\'emploi du temps',
+                desc: 'L\'assignation des tâches se fait uniquement via la section « Génération Auto » (⚡). Définissez les heures souhaitées par tâche, puis cliquez sur « Générer automatiquement » — Jadwal remplit intelligemment toutes les cellules disponibles pour vous.'
             },
             {
-                title: 'Mode Glisser-déposer — Assigner en drag & drop',
-                desc: 'Activez le mode "Glisser" via le bouton de bascule. Vous pouvez alors faire glisser une tâche depuis la palette directement vers une cellule de l\'emploi du temps. Vous pouvez aussi faire glisser une tâche déjà placée vers une autre cellule pour la déplacer (l\'ancienne cellule se vide automatiquement).'
-            },
-            {
-                title: 'Supprimer une assignation',
-                desc: 'Cliquez sur une cellule occupée. Un modal s\'ouvre avec la liste de vos tâches ET un bouton "Retirer". Cliquez sur "Retirer" pour vider la cellule, ou choisissez une autre tâche pour remplacer.'
+                title: 'Vider l\'emploi du temps',
+                desc: 'Pour repartir de zéro, utilisez le bouton « 🗑 Vider l\'emploi du temps » dans la section Génération Auto. Cette action efface toutes les assignations de la semaine en cours — à utiliser avec précaution.'
             },
             {
                 title: 'Marquer une tâche comme accomplie',
-                desc: 'Dans chaque cellule occupée, un bouton rond "○" est visible à droite. Cliquez dessus pour marquer la tâche comme faite (il devient "✓" et la cellule s\'assombrit). Ce statut est local à votre navigateur et sert de suivi journalier. Le bouton "↺" en haut de chaque colonne remet tous les statuts de la journée à zéro.'
+                desc: 'Dans chaque cellule occupée, un bouton rond « ○ » est visible à droite. Cliquez dessus pour marquer la tâche comme faite (il devient « ✓ » et la cellule s\'assombrit). Ce statut sert de suivi journalier. Le bouton « ↺ » en haut de chaque colonne remet tous les statuts de la journée à zéro.'
             }
         ],
-        tip: '<strong>Barre de progression :</strong> En haut de la vue Emploi du Temps, une barre colorée indique le taux de remplissage de votre semaine : bleue si < 40%, dorée si 40-80%, verte si > 80%. Visez le vert pour une semaine bien planifiée !',
-        warn: '<strong>Note :</strong> Le bouton "Vider l\'emploi du temps" (dans Génération Auto) efface TOUTES les assignations de la semaine en cours. Utilisez-le avec précaution.'
+        tip: '<strong>Barre de progression :</strong> En bas de la vue Emploi du Temps, une barre colorée indique le taux de remplissage de votre semaine. Visez 100% pour une semaine bien planifiée !',
+        warn: '<strong>Note :</strong> Le bouton « Vider l\'emploi du temps » (dans Génération Auto) efface TOUTES les assignations de la semaine en cours. Utilisez-le avec précaution.'
     },
     {
         id: 'weeks',
@@ -1538,10 +1554,7 @@ const GUIDE_STEPS = [
             { key: 'Entrée', desc: 'Valider un formulaire (login, ajout tâche/créneau)' },
         ],
         actions: [
-            {
-                title: 'Désélectionner une tâche dans la palette',
-                desc: 'Si vous avez sélectionné une tâche (contour doré) et que vous ne voulez plus assigner, cliquez une nouvelle fois sur cette même tâche dans la palette pour la désélectionner. Vous pouvez aussi sélectionner une autre tâche directement.'
-            },
+
             {
                 title: 'Modifier une tâche existante',
                 desc: 'Dans "Mes Tâches", cliquez sur l\'icône crayon ✏️ d\'une carte pour éditer son nom, type ou couleur. La modification est immédiate dans tout l\'emploi du temps.'
@@ -1552,7 +1565,7 @@ const GUIDE_STEPS = [
             },
             {
                 title: 'L\'application est responsive (mobile)',
-                desc: 'Jadwal fonctionne sur smartphone et tablette. Sur mobile, la navigation se trouve en bas de l\'écran (barre inférieure). La sidebar est accessible via le bouton menu ☰ en haut à gauche. Le drag & drop fonctionne également sur écran tactile.'
+                desc: 'Jadwal fonctionne sur smartphone et tablette. Sur mobile, la navigation se trouve en bas de l\'écran (barre inférieure). La sidebar est accessible via le bouton menu ☰ en haut à gauche. La navigation est optimisée pour les écrans tactiles.'
             }
         ],
         tip: '<strong>Performance :</strong> Toutes les données sont chargées en parallèle lors de l\'ouverture de l\'application. Si quelque chose semble ne pas se charger, rafraîchissez la page (F5 ou Ctrl+R) — votre planning est toujours sauvegardé.'
@@ -1777,7 +1790,12 @@ function sendContactEmail() {
     emailjs.send(
         'service_aehzd58',
         'template_gphnkq4',
-        { from_name: name, from_email: email, message: message, to_name: 'Fechetah Makhlouf' }
+        {
+            user_name: name,
+            user_email: email,
+            user_message: message,
+            to_name: 'Fechetah Makhlouf'
+        }
     ).then(() => {
         msgEl.innerHTML = '<span style="color:#22c55e;font-size:0.83rem;">✅ Message envoyé avec succès ! Merci.</span>';
         btnText.textContent = 'Envoyé ✓';

@@ -1439,6 +1439,9 @@ select.form-input option {
     user-select: none;
     transition: var(--transition);
     border-left: 3px solid;
+    min-width: 140px;
+    max-width: 200px;
+    flex: 1 1 140px;
 }
 
 .chip-name {

@@ -346,7 +346,7 @@
                     <div class="panel-header">
                         <div>
                             <div class="panel-title">Emploi du Temps</div>
-                            <div class="panel-sub">Cliquez sur une case ou glissez une tâche pour l'assigner</div>
+                            <div class="panel-sub">Visualisez et suivez votre planning hebdomadaire</div>
                         </div>
                         <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
                             <div id="conflict-badge" class="conflict-badge" role="alert">⚠ Conflits détectés</div>
@@ -355,15 +355,7 @@
                                 Exporter</button>
                         </div>
                     </div>
-                    <div class="subject-palette">
-                        <div class="palette-label">Tâches — glissez ou cliquez pour sélectionner</div>
-                        <div class="palette-chips" id="palette-chips"></div>
-                    </div>
-                    <div class="select-mode-btns" role="group" aria-label="Mode d'interaction">
-                        <button class="mode-btn active" id="mode-click" onclick="setMode('click')">🖱 Mode Clic</button>
-                        <button class="mode-btn" id="mode-drag" onclick="setMode('drag')">✋ Mode Drag &amp;
-                            Drop</button>
-                    </div>
+
                     <div class="schedule-controls">
                         <div class="week-nav" role="group" aria-label="Navigation semaine">
                             <button class="week-btn" onclick="changeWeek(-1)" aria-label="Semaine précédente">←</button>
@@ -679,11 +671,13 @@
 
     <!-- Cell click modal: pick subject -->
     <div class="modal-overlay" id="cell-modal" role="dialog" aria-modal="true" aria-labelledby="cell-modal-title">
-        <div class="modal">
+        <div class="modal" style="max-width:640px;">
             <div class="modal-title" id="cell-modal-title">Assigner une tâche</div>
             <input type="hidden" id="cell-modal-day">
             <input type="hidden" id="cell-modal-slot">
-            <div class="palette-chips" id="cell-modal-chips" style="gap:0.5rem;flex-wrap:wrap;display:flex;"></div>
+            <div class="palette-chips" id="cell-modal-chips"
+                style="gap:0.5rem;flex-wrap:wrap;display:flex;max-height:60vh;overflow-y:auto;padding-right:0.25rem;">
+            </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeModal('cell-modal')">Annuler</button>
                 <button class="btn-danger" onclick="removeCellEvent()">Supprimer</button>
