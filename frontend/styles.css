@@ -3290,3 +3290,190 @@ textarea.form-input:not(:placeholder-shown)~.form-label {
     opacity: 1;
     color: var(--gold);
 }
+
+/* ═══════════════════════════════════════════════════
+   EMOJI PICKER
+═══════════════════════════════════════════════════ */
+.emoji-toggle-btn {
+    position: absolute;
+    right: 0.55rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.2rem;
+    line-height: 1;
+    border-radius: 6px;
+    transition: background var(--transition), transform var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    z-index: 2;
+}
+
+.emoji-toggle-btn:hover {
+    background: var(--surface3);
+    transform: translateY(-50%) scale(1.15);
+}
+
+.emoji-toggle-btn.active {
+    background: var(--gold-dim);
+}
+
+.emoji-toggle-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+    display: block;
+    filter: grayscale(30%);
+    transition: filter var(--transition);
+}
+
+.emoji-toggle-btn:hover .emoji-toggle-icon,
+.emoji-toggle-btn.active .emoji-toggle-icon {
+    filter: none;
+}
+
+/* Picker panel */
+.emoji-picker {
+    position: fixed;
+    z-index: 10000;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(201, 151, 42, 0.08);
+    width: 300px;
+    max-height: 320px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: emoji-pop 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes emoji-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.88) translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.emoji-picker-header {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.45rem 0.5rem 0.4rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+}
+
+.emoji-picker-cats {
+    display: flex;
+    gap: 2px;
+    flex: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.emoji-picker-cats::-webkit-scrollbar {
+    display: none;
+}
+
+.emoji-cat-btn {
+    background: none;
+    border: none;
+    font-size: 1.15rem;
+    cursor: pointer;
+    padding: 0.25rem 0.3rem;
+    border-radius: 6px;
+    transition: background var(--transition), transform 0.15s;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.emoji-cat-btn:hover {
+    background: var(--surface3);
+    transform: scale(1.18);
+}
+
+.emoji-cat-btn.active {
+    background: var(--gold-dim);
+    outline: 1.5px solid var(--gold);
+}
+
+.emoji-picker-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.35rem;
+    border-radius: 6px;
+    transition: background var(--transition), color var(--transition);
+    flex-shrink: 0;
+}
+
+.emoji-picker-close:hover {
+    background: var(--surface3);
+    color: var(--text);
+}
+
+.emoji-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 2px;
+    padding: 0.4rem;
+    overflow-y: auto;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) transparent;
+}
+
+.emoji-picker-grid::-webkit-scrollbar {
+    width: 4px;
+}
+
+.emoji-picker-grid::-webkit-scrollbar-thumb {
+    background: var(--border2);
+    border-radius: 4px;
+}
+
+.emoji-btn {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 6px;
+    line-height: 1;
+    text-align: center;
+    transition: background 0.12s, transform 0.12s;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emoji-btn:hover {
+    background: var(--surface3);
+    transform: scale(1.25);
+}
+
+.emoji-btn:active {
+    transform: scale(0.95);
+}
+
+/* Mobile: full-width picker, anchor to bottom of modal */
+@media (max-width: 600px) {
+    .emoji-picker {
+        width: calc(100vw - 2rem);
+        left: 1rem !important;
+        right: 1rem !important;
+    }
+}

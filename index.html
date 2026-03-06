@@ -612,13 +612,43 @@
                 <input type="hidden" id="subj-edit-id">
                 <div class="form-group">
                     <label class="form-label" for="subj-name">Nom de la tâche</label>
-                    <input class="form-input" id="subj-name" placeholder=""
-                        onkeydown="if(event.key==='Enter')saveSubject()">
+                    <div class="input-emoji-wrap">
+                        <input class="form-input" id="subj-name" placeholder=""
+                            onkeydown="if(event.key==='Enter')saveSubject()">
+                        <button type="button" class="emoji-toggle-btn" aria-label="Choisir un emoji"
+                            onclick="toggleEmojiPicker(event, 'subj-name')">
+                            <span class="emoji-toggle-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M8 13s1.5 2 4 2 4-2 4-2" />
+                                    <line x1="9" y1="9" x2="9.01" y2="9" />
+                                    <line x1="15" y1="9" x2="15.01" y2="9" />
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="subj-type">Sous-titre</label>
-                    <input class="form-input" id="subj-type" type="text" placeholder=""
-                        onkeydown="if(event.key==='Enter')saveSubject()">
+                    <div class="input-emoji-wrap">
+                        <input class="form-input" id="subj-type" type="text" placeholder=""
+                            onkeydown="if(event.key==='Enter')saveSubject()">
+                        <button type="button" class="emoji-toggle-btn" aria-label="Choisir un emoji"
+                            onclick="toggleEmojiPicker(event, 'subj-type')">
+                            <span class="emoji-toggle-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M8 13s1.5 2 4 2 4-2 4-2" />
+                                    <line x1="9" y1="9" x2="9.01" y2="9" />
+                                    <line x1="15" y1="9" x2="15.01" y2="9" />
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <div class="color-picker-grid" id="color-grid" role="listbox" aria-label="Choisir une couleur">
@@ -701,6 +731,15 @@
         </div>
     </div>
 
+
+    <!-- Emoji Picker Panel -->
+    <div id="emoji-picker" class="emoji-picker" role="dialog" aria-label="Sélecteur d'emoji" style="display:none">
+        <div class="emoji-picker-header">
+            <div class="emoji-picker-cats" id="emoji-cats"></div>
+            <button class="emoji-picker-close" onclick="closeEmojiPicker()" aria-label="Fermer">✕</button>
+        </div>
+        <div class="emoji-picker-grid" id="emoji-grid"></div>
+    </div>
 
     <!-- Toast container -->
     <div class="toast-container" id="toasts" aria-live="polite" aria-atomic="false"></div>

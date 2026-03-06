@@ -250,7 +250,7 @@ function openSubjectModal(id) {
     } else {
         document.getElementById('subject-modal-title').textContent = 'Ajouter une tâche';
         document.getElementById('subj-name').value = '';
-        document.getElementById('subj-type').value = 'Normal';
+        document.getElementById('subj-type').value = '';
         selectedColor = COLORS[Math.floor(Math.random() * COLORS.length)];
         buildColorGrid();
     }
@@ -1812,3 +1812,174 @@ function sendContactEmail() {
         btnText.textContent = 'Envoyer →';
     });
 }
+/* ═══════════════════════════════════════════════════
+   EMOJI PICKER
+═══════════════════════════════════════════════════ */
+
+const EMOJI_CATEGORIES = [
+    {
+        icon: '😊', label: 'Visages',
+        emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙',
+            '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬',
+            '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤧', '🥵', '🥶', '😵', '🤯', '🤠', '🥳', '😎', '🤓',
+            '🧐', '😕', '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖',
+            '😣', '😞', '😓', '😩', '😫', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡', '👹', '👺', '👻', '👽', '🤖']
+    },
+    {
+        icon: '👋', label: 'Gestes',
+        emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️',
+            '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦵', '🦶', '👂', '🦻',
+            '👃', '🫀', '🫁', '🧠', '🦷', '🦴', '👀', '👁️', '👅', '👄', '🫦', '💋', '💌']
+    },
+    {
+        icon: '📚', label: 'Objets',
+        emojis: ['📚', '📖', '📝', '✏️', '🖊️', '🖋️', '📌', '📍', '📎', '🖇️', '📐', '📏', '✂️', '🗂️', '📁', '📂', '🗃️', '🗄️', '🗑️',
+            '💼', '📋', '📊', '📈', '📉', '🗒️', '🗓️', '📅', '📆', '📇', '🔒', '🔓', '🔏', '🔐', '🔑', '🗝️', '🔨', '⚒️', '🛠️',
+            '⛏️', '🔧', '🔩', '⚙️', '🧲', '🔫', '💣', '🧨', '🪓', '🔪', '🗡️', '⚔️', '🛡️', '🪚', '🔬', '🔭', '🩺', '💊', '🩹',
+            '🩼', '🩻', '🩸', '💉', '🧬', '🦠', '🧫', '🧪', '🌡️', '🔋', '💡', '🔦', '🕯️', '🧯', '🛢️', '💰', '💳', '💎', '⚖️']
+    },
+    {
+        icon: '🌸', label: 'Nature',
+        emojis: ['🌸', '🌺', '🌻', '🌹', '🥀', '🌷', '🌱', '🌿', '☘️', '🍀', '🎋', '🎍', '🌾', '🍁', '🍂', '🍃', '🍄', '🌰', '🦔',
+            '🐾', '🌵', '🌴', '🌲', '🌳', '🌼', '💐', '🌾', '🍇', '🍈', '🍉', '🍊', '🍋', '🍌', '🍍', '🥭', '🍎', '🍏', '🍐',
+            '🍑', '🍒', '🍓', '🫐', '🥝', '🍅', '🫒', '🥥', '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🫑', '🥒', '🥬', '🥦',
+            '🧄', '🧅', '🍄', '🥜', '🫘', '🌰', '🍞', '🥐', '🥖', '🫓', '🥨', '🧀', '🥚', '🍳', '🧈', '🥞', '🧇', '🥓']
+    },
+    {
+        icon: '⚽', label: 'Activités',
+        emojis: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🏓', '🏸', '🏒', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁',
+            '🎣', '🤿', '🎽', '🎿', '🛷', '🥌', '🎯', '🪀', '🪆', '🎮', '🕹️', '🎰', '🎲', '🧩', '🧸', '🪅', '🎭', '🖼️', '🎨',
+            '🧵', '🪡', '🧶', '🪢', '♟️', '🎪', '🎤', '🎧', '🎼', '🎹', '🥁', '🪘', '🎷', '🎺', '🎸', '🪕', '🎻', '🎬', '🏆',
+            '🥇', '🥈', '🥉', '🏅', '🎖️', '🏵️', '🎗️', '🎫', '🎟️', '🎪', '🤹', '🎭', '🎨', '🖼️', '🎠', '🎡', '🎢', '🎪']
+    },
+    {
+        icon: '🚀', label: 'Voyage',
+        emojis: ['🚀', '✈️', '🛸', '🚂', '🚃', '🚄', '🚅', '🚆', '🚇', '🚈', '🚉', '🚊', '🚝', '🚞', '🚋', '🚌', '🚍', '🚎', '🚐',
+            '🚑', '🚒', '🚓', '🚔', '🚕', '🚖', '🚗', '🚘', '🚙', '🛻', '🚚', '🚛', '🚜', '🏎️', '🏍️', '🛵', '🦽', '🦼', '🛺',
+            '🚲', '🛴', '🛹', '🛼', '🚏', '🛣️', '🛤️', '⛽', '🚨', '🚥', '🚦', '🛑', '🚧', '⚓', '🛟', '⛵', '🚤', '🛥️', '🛳️',
+            '⛴️', '🚢', '🛶', '🪝', '🗺️', '🏔️', '⛰️', '🌋', '🗻', '🏕️', '🏖️', '🏜️', '🏝️', '🏞️', '🏟️', '🏛️', '🏗️', '🧱']
+    },
+    {
+        icon: '⭐', label: 'Symboles',
+        emojis: ['⭐', '🌟', '✨', '💫', '⚡', '🔥', '💥', '❄️', '🌈', '☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '⛈️', '🌩️', '🌨️',
+            '❄️', '🌬️', '🌀', '🌁', '🌫️', '🌊', '💧', '💦', '☔', '⛱️', '⚡', '❗', '❓', '‼️', '⁉️', '🔴', '🟠', '🟡', '🟢',
+            '🔵', '🟣', '⚫', '⚪', '🟤', '🔶', '🔷', '🔸', '🔹', '🔺', '🔻', '💠', '🔘', '🔲', '🔳', '▪️', '▫️', '◾', '◽',
+            '◼️', '◻️', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '⬛', '⬜', '🔑', '💡', '✅', '❌', '⚠️', '🚫', '✔️', '➕', '➖', '➗']
+    },
+    {
+        icon: '💌', label: 'Amour',
+        emojis: ['💌', '💘', '💝', '💖', '💗', '💓', '💞', '💕', '💟', '❣️', '💔', '❤️', '🧡', '💛', '💚', '💙', '💜', '🤎', '🖤',
+            '🤍', '❤️‍🔥', '❤️‍🩹', '💯', '💢', '💬', '💭', '💤', '💮', '♨️', '🌐', '💲', '♻️', '🔱', '📛', '🔰', '⭕', '🆚',
+            '🆒', '🆕', '🆙', '🆓', '🔝', '🆖', '🅰️', '🅱️', '🆎', '🅾️', '🆑', '🅿️', '🈳', '🈹', '🈵', '🈺', '🈶', '🈚',
+            '🎦', '🔞', '📵', '🚭', '🚯', '🚱', '🚳', '🚷', '📳', '📴', '🔕', '🔇', '🔉', '🔊', '📢', '📣', '📡', '🔔', '🔕']
+    }
+];
+
+let _emojiActiveInput = null;
+let _emojiActiveCat = 0;
+
+function initEmojiPicker() {
+    const catsEl = document.getElementById('emoji-cats');
+    if (!catsEl || catsEl.children.length > 0) return;
+    EMOJI_CATEGORIES.forEach((cat, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'emoji-cat-btn' + (i === 0 ? ' active' : '');
+        btn.textContent = cat.icon;
+        btn.title = cat.label;
+        btn.onclick = () => selectEmojiCat(i);
+        catsEl.appendChild(btn);
+    });
+    renderEmojiGrid(0);
+}
+
+function selectEmojiCat(idx) {
+    _emojiActiveCat = idx;
+    document.querySelectorAll('.emoji-cat-btn').forEach((b, i) => {
+        b.classList.toggle('active', i === idx);
+    });
+    renderEmojiGrid(idx);
+}
+
+function renderEmojiGrid(idx) {
+    const grid = document.getElementById('emoji-grid');
+    grid.innerHTML = '';
+    EMOJI_CATEGORIES[idx].emojis.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'emoji-btn';
+        btn.textContent = emoji;
+        btn.onclick = () => insertEmoji(emoji);
+        grid.appendChild(btn);
+    });
+}
+
+function toggleEmojiPicker(event, inputId) {
+    event.stopPropagation();
+    initEmojiPicker();
+    const picker = document.getElementById('emoji-picker');
+    const btn = event.currentTarget;
+    const isOpen = picker.style.display !== 'none' && _emojiActiveInput === inputId;
+
+    // Close if same button clicked again
+    if (isOpen) { closeEmojiPicker(); return; }
+
+    _emojiActiveInput = inputId;
+
+    // Mark button active
+    document.querySelectorAll('.emoji-toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Position picker near the button
+    picker.style.display = 'flex';
+    const rect = btn.getBoundingClientRect();
+    const pickerW = 300;
+    const pickerH = 320;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    let left = rect.right - pickerW;
+    let top = rect.bottom + 6;
+
+    if (left < 8) left = 8;
+    if (left + pickerW > vw - 8) left = vw - pickerW - 8;
+    if (top + pickerH > vh - 8) top = rect.top - pickerH - 6;
+
+    picker.style.left = left + 'px';
+    picker.style.top = top + 'px';
+}
+
+function closeEmojiPicker() {
+    const picker = document.getElementById('emoji-picker');
+    if (picker) picker.style.display = 'none';
+    document.querySelectorAll('.emoji-toggle-btn').forEach(b => b.classList.remove('active'));
+    _emojiActiveInput = null;
+}
+
+function insertEmoji(emoji) {
+    if (!_emojiActiveInput) return;
+    const input = document.getElementById(_emojiActiveInput);
+    if (!input) return;
+    const start = input.selectionStart ?? input.value.length;
+    const end = input.selectionEnd ?? input.value.length;
+    input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
+    const newPos = start + emoji.length;
+    input.focus();
+    input.setSelectionRange(newPos, newPos);
+    // trigger input event so any listeners update
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+// Close picker when clicking outside
+document.addEventListener('click', function (e) {
+    const picker = document.getElementById('emoji-picker');
+    if (!picker || picker.style.display === 'none') return;
+    if (!picker.contains(e.target) && !e.target.closest('.emoji-toggle-btn')) {
+        closeEmojiPicker();
+    }
+});
+
+// Close on Escape
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeEmojiPicker();
+});
