@@ -2,8 +2,8 @@
   "name": "Jadwal — Emploi du Temps",
   "short_name": "Jadwal",
   "description": "Gérez votre emploi du temps hebdomadaire",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/Gestion-du-Temps/",
+  "scope": "/Gestion-du-Temps/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#060a10",
@@ -11,17 +11,17 @@
   "lang": "fr",
   "icons": [
     {
-      "src": "frontend/img/icon-192.png",
+      "src": "/Gestion-du-Temps/frontend/img/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "frontend/img/icon-512.png",
+      "src": "/Gestion-du-Temps/frontend/img/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "frontend/img/icon-512.png",
+      "src": "/Gestion-du-Temps/frontend/img/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

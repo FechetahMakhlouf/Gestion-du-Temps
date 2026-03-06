@@ -9,7 +9,7 @@
     <link rel="shortcut icon" href="frontend/img/favicon.png" type="image/x-icon">
 
     <!-- PWA -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/Gestion-du-Temps/manifest.json">
     <meta name="theme-color" content="#060a10">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -628,7 +628,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('/Gestion-du-Temps/sw.js')
                     .then(reg => console.log('SW enregistré :', reg.scope))
                     .catch(err => console.warn('SW échec :', err));
             });
