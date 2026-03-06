@@ -183,6 +183,14 @@ function showPanel(name) {
         if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(name)) n.classList.add('active');
     });
     if (name === 'schedule') renderScheduleGrid();
+    if (name === 'contact') {
+        // Pre-fill name if logged in and field is empty
+        const usernameEl = document.getElementById('sidebar-username');
+        const nameField = document.getElementById('contact-name');
+        if (usernameEl && nameField && !nameField.value && usernameEl.textContent !== '—') {
+            nameField.value = usernameEl.textContent;
+        }
+    }
     // Si on quitte le panel export, on retire export-mode (restaure la sidebar)
     if (name !== 'export') {
         document.body.classList.remove('export-mode');
@@ -1742,3 +1750,47 @@ window.showPanel = function (name) {
         });
     }
 };
+// ── Contact Panel (EmailJS) ────────────────────────────────────────────────
+function sendContactEmail() {
+    const name = document.getElementById('contact-name').value.trim();
+    const email = document.getElementById('contact-email').value.trim();
+    const message = document.getElementById('contact-message').value.trim();
+    const msgEl = document.getElementById('contact-msg');
+    const btn = document.getElementById('contact-submit');
+    const btnText = document.getElementById('contact-btn-text');
+
+    msgEl.innerHTML = '';
+
+    if (!name || !email || !message) {
+        msgEl.innerHTML = '<span style="color:var(--danger);font-size:0.83rem;">Veuillez remplir tous les champs.</span>';
+        return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        msgEl.innerHTML = '<span style="color:var(--danger);font-size:0.83rem;">Email invalide.</span>';
+        return;
+    }
+
+    btn.disabled = true;
+    btnText.textContent = 'Envoi en cours…';
+
+    emailjs.send(
+        'service_aehzd58',
+        'template_gphnkq4',
+        { from_name: name, from_email: email, message: message, to_name: 'Fechetah Makhlouf' }
+    ).then(() => {
+        msgEl.innerHTML = '<span style="color:#22c55e;font-size:0.83rem;">✅ Message envoyé avec succès ! Merci.</span>';
+        btnText.textContent = 'Envoyé ✓';
+        document.getElementById('contact-message').value = '';
+        setTimeout(() => {
+            btn.disabled = false;
+            btnText.textContent = 'Envoyer →';
+            msgEl.innerHTML = '';
+        }, 4000);
+    }).catch(err => {
+        console.error('EmailJS error:', err);
+        msgEl.innerHTML = '<span style="color:var(--danger);font-size:0.83rem;">Erreur lors de l\'envoi. Veuillez réessayer.</span>';
+        btn.disabled = false;
+        btnText.textContent = 'Envoyer →';
+    });
+}
