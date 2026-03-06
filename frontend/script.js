@@ -162,6 +162,8 @@ async function startApp() {
     document.getElementById('sidebar-username').textContent = user.name;
     const initials = user.name.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
     document.getElementById('sidebar-avatar').textContent = initials;
+    const mobileAvatar = document.getElementById('mobile-avatar');
+    if (mobileAvatar) mobileAvatar.textContent = initials;
     const now = new Date();
     document.getElementById('sidebar-date').textContent = now.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
 
@@ -181,7 +183,11 @@ function showPanel(name) {
         if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(name)) n.classList.add('active');
     });
     if (name === 'schedule') renderScheduleGrid();
-    // Close sidebar on mobile after navigation
+    // Si on quitte le panel export, on retire export-mode (restaure la sidebar)
+    if (name !== 'export') {
+        document.body.classList.remove('export-mode');
+    }
+    // Fermer sidebar sur mobile après navigation
     if (window.innerWidth <= 768) {
         document.getElementById('sidebar').classList.remove('open');
     }
@@ -956,8 +962,17 @@ async function autoGenerate() {
    EXPORT
 ══════════════════════════════════════════════ */
 
+const exportCSS = `:root{--bg:#060a10;--surface:#0d1420;--surface2:#131c2e;--border:#1a2840;--border2:#243650;--text:#e4edf8;--muted:#5a6e85;--dim:#2e3f55;--gold:#c9972a;--gold-l:#e8b84b;}*{margin:0;padding:0;box-sizing:border-box;}body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;}.page{max-width:1000px;margin:0 auto;padding:2rem 1.5rem 4rem;}.export-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;padding-bottom:1.5rem;margin-bottom:1.75rem;border-bottom:1px solid var(--border);}.logo{font-family:'Amiri',serif;font-size:2.4rem;color:var(--gold-l);text-shadow:0 0 40px rgba(232,184,75,.25);line-height:1;}.logo-sub{font-size:.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;margin-top:.3rem;}.gold-line{width:40px;height:1.5px;background:linear-gradient(90deg,var(--gold),transparent);margin:.5rem 0;}.meta-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem;}.meta-chip{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.2rem .65rem;font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--muted);}.actions{display:flex;flex-direction:column;gap:.5rem;align-items:flex-end;}.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.1rem;border-radius:10px;font-size:.82rem;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;text-decoration:none;border:none;transition:all .2s;white-space:nowrap;}.btn-gold{background:linear-gradient(135deg,#c9972a,#e8b84b);color:#07090d;box-shadow:0 4px 14px rgba(201,151,42,.28);}.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(201,151,42,.38);}.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border);}.btn-ghost:hover{border-color:var(--gold);color:var(--gold-l);}.btn svg{flex-shrink:0;}.btn-hint{font-size:.65rem;color:var(--muted);text-align:right;font-family:'JetBrains Mono',monospace;margin-top:.2rem;}.legend{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.5rem;}.legend-item{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--muted);background:var(--surface);padding:.25rem .6rem;border-radius:6px;border:1px solid var(--border);}.legend-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}.days-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;}.day-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:box-shadow .2s;}.day-card:hover{box-shadow:0 4px 24px rgba(0,0,0,.35);}.day-header{padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);gap:.5rem;}.day-title{display:flex;align-items:center;gap:.6rem;}.day-abbr{font-weight:700;font-size:1rem;color:var(--text);}.day-date{font-family:'JetBrains Mono',monospace;font-size:.78rem;background:var(--surface2);color:var(--muted);padding:.1rem .4rem;border-radius:5px;border:1px solid var(--border);}.day-actions{display:flex;align-items:center;gap:.4rem;}.day-chip{font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:.1rem .4rem;border-radius:4px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);}.print-day-btn,.img-day-btn{display:inline-flex;align-items:center;gap:.3rem;padding:.28rem .6rem;border-radius:7px;font-size:.7rem;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .18s;white-space:nowrap;}.print-day-btn:hover{border-color:var(--gold);color:var(--gold-l);}.img-day-btn{border-color:rgba(31,111,235,.3);color:#58a6ff;background:rgba(31,111,235,.08);}.img-day-btn:hover{border-color:#58a6ff;background:rgba(31,111,235,.15);}.timeline{padding:.65rem;display:flex;flex-direction:column;gap:.3rem;}.block{display:grid;grid-template-columns:64px 1fr;gap:.4rem;align-items:start;}.block-time{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--muted);padding-top:.45rem;line-height:1.35;text-align:right;padding-right:.5rem;border-right:2px solid var(--border);}.block-content{border-radius:8px;padding:.45rem .65rem;font-size:.8rem;line-height:1.4;font-weight:600;}.block-sub{display:block;font-size:.65rem;font-weight:400;opacity:.75;margin-top:.1rem;}.block-empty{border-radius:8px;padding:.45rem .65rem;min-height:36px;background:rgba(26,40,64,.3)!important;border:1.5px dashed var(--border2)!important;color:var(--dim);font-size:.65rem;display:flex;align-items:center;}.export-footer{margin-top:3rem;text-align:center;font-size:.68rem;color:var(--dim);font-family:'JetBrains Mono',monospace;}@media print{body{background:#fff!important;color:#111!important;}.page{padding:.5rem!important;}.export-header .actions,.btn-hint,.print-day-btn,.img-day-btn{display:none!important;}.export-header{border-bottom:1px solid #ddd!important;}.logo{color:#c9972a!important;text-shadow:none!important;}.gold-line{background:#c9972a!important;}.meta-chip{background:#f5f5f5!important;border:1px solid #ddd!important;color:#666!important;}.legend-item{background:#f5f5f5!important;border:1px solid #ddd!important;color:#555!important;}.days-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))!important;gap:.75rem!important;}.day-card{background:#fff!important;border:1px solid #ddd!important;border-radius:10px!important;break-inside:avoid;}.day-header{border-bottom:1px solid #eee!important;}.day-abbr{color:#111!important;}.day-date{background:#f5f5f5!important;border:1px solid #ddd!important;color:#666!important;}.day-chip{background:#f5f5f5!important;border:1px solid #ddd!important;color:#888!important;}.block-time{color:#888!important;border-right:2px solid #ddd!important;}.block-empty{background:#fafafa!important;border:1.5px dashed #ddd!important;color:#bbb!important;}.export-footer{color:#aaa!important;}}@media(max-width:600px){.export-header{flex-direction:column;}.actions{align-items:stretch;width:100%;}.btn-hint{text-align:left;}.days-grid{grid-template-columns:1fr;}.day-actions{flex-wrap:wrap;}}`;
+
 async function exportSchedule() {
-    const win = window.open('', '_blank');
+    // Ferme la sidebar sur TOUS les écrans (mobile + desktop)
+    document.getElementById('sidebar').classList.remove('open');
+    document.body.classList.add('export-mode');
+    showPanel('export');
+    const exportLoading = document.getElementById('export-loading');
+    const exportFrame = document.getElementById('export-frame');
+    if (exportLoading) { exportLoading.style.display = 'flex'; }
+    if (exportFrame) { exportFrame.style.display = 'none'; }
     const [subjects, sched, timeslots, days, user] = await Promise.all([
         apiCall('/api/subjects'),
         apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`),
@@ -968,162 +983,96 @@ async function exportSchedule() {
 
     const sortedSlots = timeslots.slice().sort((a, b) => a.start.localeCompare(b.start));
 
-    // Build HTML table rows
-    let rows = '';
-    sortedSlots.forEach(ts => {
-        let cells = `<td style="font-family:monospace;font-size:12px;padding:8px 12px;background:#0f1520;color:#637080;white-space:nowrap;border:1px solid #1e2d45">${ts.start}–${ts.end}</td>`;
-        days.forEach(d => {
-            const key = `${currentWeekOffset}_${d}_${ts.id}`;
-            const subjId = sched[key];
-            const subj = subjId ? subjects.find(s => s.id === subjId) : null;
-            if (subj) {
-                cells += `<td style="padding:8px 12px;background:${hexAlpha(subj.color, 0.25)};color:${subj.color};font-weight:600;font-size:13px;border-left:3px solid ${subj.color};border:1px solid #1e2d45">${subj.name}<br><span style="font-size:10px;opacity:0.7;font-weight:400">${subj.type}</span></td>`;
-            } else {
-                cells += `<td style="padding:8px;background:#0f1520;border:1px solid #1e2d45"></td>`;
-            }
-        });
-        rows += `<tr>${cells}</tr>`;
-    });
+    // Helper: hex to rgba
+    function hxAlpha(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r},${g},${b},${alpha})`;
+    }
 
-    // Build CSV data (embedded as JS string for download)
-    let csvRows = [['Créneau', ...days]];
-    sortedSlots.forEach(ts => {
-        let row = [`${ts.start}-${ts.end}`];
-        days.forEach(d => {
-            const key = `${currentWeekOffset}_${d}_${ts.id}`;
-            const subjId = sched[key];
-            const subj = subjId ? subjects.find(s => s.id === subjId) : null;
-            row.push(subj ? subj.name : '');
-        });
-        csvRows.push(row);
+    // Compute week dates like renderScheduleGrid does
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay() + currentWeekOffset * 7);
+    const dayOrder = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    const weekDays = days.map((abbr, i) => {
+        const idx = dayOrder.indexOf(abbr);
+        const d = new Date(weekStart);
+        d.setDate(weekStart.getDate() + (idx >= 0 ? idx : i));
+        const dateNum = d.getDate();
+        const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+        return { abbr, dateNum, monthStr: monthNames[d.getMonth()], dateObj: d };
     });
-    const csvContent = csvRows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
-    const csvB64 = btoa(unescape(encodeURIComponent(csvContent)));
 
     const exportDate = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     const fileName = `jadwal_${user.name.replace(/\s+/g, '_')}_semaine${currentWeekOffset >= 0 ? '+' : ''}${currentWeekOffset}`;
 
-    win.document.write(`<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Emploi du Temps — ${user.name}</title>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #080c12; --surface: #0f1520; --surface2: #161e2e;
-    --border: #1e2d45; --text: #e8f0f8; --muted: #637080;
-    --gold: #c9972a; --gold-light: #e8b84b; --radius: 12px;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
-  .page { max-width:960px; margin:0 auto; padding:2rem 1.5rem 3rem; }
-  /* Header */
-  .export-header { display:flex; align-items:flex-start; justify-content:space-between; gap:1.5rem; margin-bottom:2rem; flex-wrap:wrap; padding-bottom:1.5rem; border-bottom:1px solid var(--border); }
-  .header-left {}
-  .logo { font-family:'Amiri',serif; font-size:2.2rem; color:var(--gold-light); text-shadow:0 0 40px rgba(232,184,75,.3); line-height:1; }
-  .logo-sub { font-size:0.72rem; color:var(--muted); font-family:'JetBrains Mono',monospace; letter-spacing:.1em; text-transform:uppercase; margin-top:.3rem; }
-  .export-meta { margin-top:.8rem; font-size:.8rem; color:var(--muted); display:flex; gap:1rem; flex-wrap:wrap; }
-  .meta-chip { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:.2rem .6rem; font-family:'JetBrains Mono',monospace; font-size:.72rem; }
-  /* Download buttons */
-  .dl-buttons { display:flex; flex-direction:column; gap:.6rem; align-items:flex-end; }
-  .dl-btn { display:inline-flex; align-items:center; gap:.55rem; padding:.7rem 1.2rem; border-radius:10px; font-size:.85rem; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; text-decoration:none; border:none; transition:all .2s ease; white-space:nowrap; }
-  .dl-btn-primary { background:linear-gradient(135deg,#c9972a,#e8b84b); color:#07090d; box-shadow:0 4px 16px rgba(201,151,42,.3); }
-  .dl-btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(201,151,42,.4); }
-  .dl-btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
-  .dl-btn-secondary:hover { border-color:var(--gold); color:var(--gold-light); transform:translateY(-1px); }
-  .dl-btn svg { flex-shrink:0; }
-  .dl-hint { font-size:.68rem; color:var(--muted); text-align:right; font-family:'JetBrains Mono',monospace; margin-top:.25rem; }
-  /* Table */
-  .table-wrap { border-radius:var(--radius); overflow:auto; border:1px solid var(--border); -webkit-overflow-scrolling:touch; }
-  table { width:100%; border-collapse:collapse; min-width:520px; }
-  thead th { background:var(--surface2); padding:10px 12px; text-align:center; border:1px solid var(--border); font-size:.8rem; font-weight:700; color:var(--gold-light); font-family:'JetBrains Mono',monospace; letter-spacing:.06em; text-transform:uppercase; }
-  thead th:first-child { color:var(--muted); min-width:90px; }
-  tbody tr:hover td { filter:brightness(1.08); }
-  /* Footer */
-  .export-footer { margin-top:2rem; text-align:center; font-size:.7rem; color:var(--muted); font-family:'JetBrains Mono',monospace; }
-  /* Print styles */
-  @media print {
-    body { background:#fff; color:#111; }
-    .dl-buttons, .dl-hint { display:none !important; }
-    .export-header { border-bottom:1px solid #ddd; }
-    .logo { color:#c9972a; }
-    table { border:1px solid #ccc; }
-    thead th { background:#f5f5f5; color:#333; border:1px solid #ccc; }
-    .page { padding:1rem; }
-  }
-  @media (max-width:600px) {
-    .export-header { flex-direction:column; }
-    .dl-buttons { align-items:stretch; width:100%; }
-    .dl-hint { text-align:left; }
-  }
-</style>
-</head>
-<body>
-<div class="page">
-  <div class="export-header">
-    <div class="header-left">
-      <div class="logo">جدول</div>
-      <div class="logo-sub">Jadwal — Emploi du Temps</div>
-      <div class="export-meta">
-        <span class="meta-chip">👤 ${user.name}</span>
-        <span class="meta-chip">📅 ${exportDate}</span>
-        <span class="meta-chip">Semaine ${currentWeekOffset >= 0 ? '+' : ''}${currentWeekOffset}</span>
-      </div>
-    </div>
-    <div>
-      <div class="dl-buttons">
-        <a id="dl-html" class="dl-btn dl-btn-primary" download="${fileName}.html">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Télécharger HTML
-        </a>
-        <a id="dl-csv" class="dl-btn dl-btn-secondary" download="${fileName}.csv">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          Exporter CSV
-        </a>
-        <button class="dl-btn dl-btn-secondary" onclick="window.print()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-          Imprimer
-        </button>
-      </div>
-      <div class="dl-hint">↑ Cliquez pour sauvegarder sur votre appareil</div>
-    </div>
-  </div>
+    // Build day-card HTML for each day
+    let dayCardsHtml = '';
+    weekDays.forEach(({ abbr, dateNum, monthStr }) => {
+        const daySlots = sortedSlots.filter(ts => !ts.days || ts.days.length === 0 || ts.days.includes(abbr));
+        if (!daySlots.length) return;
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Créneau</th>
-          ${days.map(d => `<th>${d}</th>`).join('')}
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-  </div>
+        const filled = daySlots.filter(ts => sched[`${currentWeekOffset}_${abbr}_${ts.id}`]).length;
+        const total = daySlots.length;
 
-  <div class="export-footer">Généré par Jadwal · ${exportDate}</div>
-</div>
+        let blocks = '';
+        daySlots.forEach(ts => {
+            const key = `${currentWeekOffset}_${abbr}_${ts.id}`;
+            const subjId = sched[key];
+            const subj = subjId ? subjects.find(s => s.id === subjId) : null;
 
-<script>
-  // Build HTML download blob from current page
-  (function() {
-    const htmlContent = '<!DOCTYPE html>' + document.documentElement.outerHTML;
-    const htmlBlob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-    const htmlUrl = URL.createObjectURL(htmlBlob);
-    document.getElementById('dl-html').href = htmlUrl;
+            if (subj) {
+                blocks += `
+                <div class="block">
+                    <div class="block-time">${ts.start}<br>→ ${ts.end}</div>
+                    <div class="block-content" style="background:${hxAlpha(subj.color, 0.18)};border-left:3px solid ${subj.color};color:${subj.color}">
+                        <strong>${subj.name}</strong>
+                        ${subj.type ? `<span class="block-sub">${subj.type}</span>` : ''}
+                    </div>
+                </div>`;
+            } else {
+                blocks += `
+                <div class="block">
+                    <div class="block-time">${ts.start}<br>→ ${ts.end}</div>
+                    <div class="block-empty">—</div>
+                </div>`;
+            }
+        });
 
-    // CSV download
-    const csvData = atob('${csvB64}');
-    const csvBlob = new Blob([csvData], { type: 'text/csv;charset=utf-8' });
-    const csvUrl = URL.createObjectURL(csvBlob);
-    document.getElementById('dl-csv').href = csvUrl;
-  })();
-<\/script>
-</body>
-</html>`);
-    win.document.close();
+        dayCardsHtml += `
+        <div class="day-card" id="day-${abbr}">
+            <div class="day-header">
+                <div class="day-title">
+                    <span class="day-abbr">${abbr}</span>
+                    <span class="day-date">${dateNum} ${monthStr}</span>
+                </div>
+                <div class="day-actions">
+                    <span class="day-chip">${filled}/${total}</span>
+                    <button class="img-day-btn" onclick="saveAsImage('${abbr}')" title="Sauvegarder en image">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        Image
+                    </button>
+                </div>
+            </div>
+            <div class="timeline">${blocks}</div>
+        </div>`;
+    });
+
+    // Build legend from used subjects
+    const usedSubjIds = new Set(Object.values(sched));
+    const usedSubjects = subjects.filter(s => usedSubjIds.has(s.id));
+    const legendHtml = usedSubjects.map(s =>
+        ``
+    ).join('');
+
+    const exportFrame2 = document.getElementById('export-frame');
+    const exportLoading2 = document.getElementById('export-loading');
+    if (exportFrame2) {
+        exportFrame2.srcdoc = `<!DOCTYPE html>\r\n<html lang="fr">\r\n<head>\r\n<meta charset="UTF-8">\r\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\r\n<title>Emploi du Temps — ${user.name}</title>\r\n<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\r\n<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>\r\n<style>${exportCSS}<\/style>\r\n</head>\r\n<body>\r\n<div class="page">\r\n\r\n  <div class="export-header">\r\n    <div>\r\n      <div class="logo">جدول<\/div>\r\n      <div class="gold-line"><\/div>\r\n      <div class="logo-sub">Jadwal — Emploi du Temps<\/div>\r\n      <div class="meta-row">\r\n        <span class="meta-chip">👤 ${user.name}<\/span>\r\n        <span class="meta-chip">📅 ${exportDate}<\/span>\r\n        <span class="meta-chip">Semaine ${currentWeekOffset >= 0 ? '+' : ''}${currentWeekOffset}<\/span>\r\n      <\/div>\r\n    <\/div>\r\n    <div class="actions">\r\n      <button class="btn btn-gold" onclick="window.print()">\r\n        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"\/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"\/><rect x="6" y="14" width="12" height="8"\/><\/svg>\r\n        Imprimer la semaine\r\n      <\/button>\r\n      <a id="dl-html" class="btn btn-ghost" download="${fileName}.html">\r\n        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"\/><polyline points="7 10 12 15 17 10"\/><line x1="12" y1="15" x2="12" y2="3"\/><\/svg>\r\n        Télécharger HTML\r\n      <\/a>\r\n      <div class="btn-hint">Chaque jour : bouton Imprimer ou Image 👇<\/div>\r\n    <\/div>\r\n  <\/div>\r\n\r\n  ${legendHtml ? `<div class="legend">${legendHtml}<\/div>` : ''}\r\n\r\n  <div class="days-grid">\r\n    ${dayCardsHtml}\r\n  <\/div>\r\n\r\n  <div class="export-footer">Généré par Jadwal · ${exportDate}<\/div>\r\n<\/div>\r\n\r\n<script>\r\n(function() {\r\n  const htmlContent = '<!DOCTYPE html>' + document.documentElement.outerHTML;\r\n  const htmlBlob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });\r\n  document.getElementById('dl-html').href = URL.createObjectURL(htmlBlob);\r\n})();\r\n\r\nfunction printDay(abbr) {\r\n  const card = document.getElementById('day-' + abbr);\r\n  if (!card) return;\r\n  const printWin = window.open('', '_blank', 'width=480,height=700');\r\n  const cardHtml = card.outerHTML;\r\n  printWin.document.write(\`<!DOCTYPE html>\r\n<html><head><meta charset="UTF-8">\r\n<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\r\n<style>\r\n  *{margin:0;padding:0;box-sizing:border-box;}\r\n  body{background:#fff;color:#111;font-family:'DM Sans',sans-serif;padding:1.5rem;}\r\n  .day-card{border:1px solid #ddd;border-radius:12px;overflow:hidden;max-width:400px;margin:0 auto;}\r\n  .day-header{padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;gap:.5rem;}\r\n  .day-title{display:flex;align-items:center;gap:.6rem;}\r\n  .day-abbr{font-weight:700;font-size:1rem;color:#111;}\r\n  .day-date{font-family:'JetBrains Mono',monospace;font-size:.78rem;background:#f5f5f5;color:#666;padding:.1rem .4rem;border-radius:5px;border:1px solid #ddd;}\r\n  .day-actions{display:none;}\r\n  .day-chip{font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:.1rem .4rem;border-radius:4px;background:#f5f5f5;color:#888;border:1px solid #ddd;}\r\n  .timeline{padding:.65rem;display:flex;flex-direction:column;gap:.3rem;}\r\n  .block{display:grid;grid-template-columns:64px 1fr;gap:.4rem;align-items:start;}\r\n  .block-time{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#888;padding-top:.45rem;line-height:1.35;text-align:right;padding-right:.5rem;border-right:2px solid #eee;}\r\n  .block-content{border-radius:8px;padding:.45rem .65rem;font-size:.8rem;line-height:1.4;font-weight:600;}\r\n  .block-sub{display:block;font-size:.65rem;font-weight:400;opacity:.7;margin-top:.1rem;}\r\n  .block-empty{border-radius:8px;padding:.45rem .65rem;min-height:36px;background:#fafafa;border:1.5px dashed #ddd;color:#ccc;font-size:.65rem;display:flex;align-items:center;}\r\n  .footer{margin-top:1.5rem;text-align:center;font-size:.65rem;color:#bbb;font-family:'JetBrains Mono',monospace;}\r\n<\/style>\r\n<\/head><body>\r\n\${cardHtml}\r\n<div class="footer">Jadwal · \${new Date().toLocaleDateString('fr-FR')}<\/div>\r\n<\/body><\/html>\`);\r\n  printWin.document.close();\r\n  printWin.onload = () => { printWin.focus(); printWin.print(); };\r\n}\r\n\r\nasync function saveAsImage(abbr) {\r\n  const card = document.getElementById('day-' + abbr);\r\n  if (!card) return;\r\n  if (typeof html2canvas === 'undefined') {\r\n    alert('html2canvas non chargé, réessayez dans un instant.');\r\n    return;\r\n  }\r\n  const btn = card.querySelector('.img-day-btn');\r\n  if (btn) { btn.textContent = '…'; btn.disabled = true; }\r\n  try {\r\n    const canvas = await html2canvas(card, { backgroundColor: '#0d1420', scale: 2, useCORS: true, logging: false });\r\n    const link = document.createElement('a');\r\n    link.download = 'jadwal_' + abbr + '_${fileName}.png';\r\n    link.href = canvas.toDataURL('image/png');\r\n    link.click();\r\n  } catch(e) {\r\n    alert('Erreur lors de la capture : ' + e.message);\r\n  } finally {\r\n    if (btn) { btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"\/><circle cx="8.5" cy="8.5" r="1.5"\/><polyline points="21 15 16 10 5 21"\/><\/svg> Image'; btn.disabled = false; }\r\n  }\r\n}\r\n<\/script>\r\n<\/body>\r\n<\/html>`;
+        exportFrame2.onload = () => {
+            if (exportLoading2) exportLoading2.style.display = 'none';
+            exportFrame2.style.display = 'block';
+        };
+    }
 }
 /* ══════════════════════════════════════════════
    UTILS
@@ -1358,3 +1307,438 @@ async function renderAll() {
         renderAutogenGrid()
     ]);
 }
+/* ══════════════════════════════════════════════
+   GUIDE D'UTILISATION — Données & Logique
+══════════════════════════════════════════════ */
+
+const GUIDE_STEPS = [
+    {
+        id: 'welcome',
+        icon: '👋',
+        title: 'Bienvenue sur Jadwal !',
+        subtitle: 'Votre assistant de planning hebdomadaire — 5 minutes suffisent pour tout configurer.',
+        actions: [
+            {
+                title: 'Qu\'est-ce que Jadwal ?',
+                desc: 'Jadwal (جدول = "tableau" en arabe) est une application web de gestion d\'emploi du temps. Elle vous permet de planifier votre semaine : définissez vos matières/tâches, vos créneaux horaires disponibles, puis assignez chaque tâche aux bons moments de la semaine. Chaque utilisateur a son propre compte et son propre planning — tout est sauvegardé automatiquement dans le cloud.'
+            },
+            {
+                title: 'L\'ordre de configuration recommandé',
+                desc: 'Pour une première utilisation, suivez cet ordre : ① Configurer vos jours actifs → ② Créer vos créneaux horaires → ③ Ajouter vos tâches/matières → ④ Construire votre emploi du temps (manuellement ou automatiquement). Ce guide vous accompagnera étape par étape.'
+            },
+            {
+                title: 'Vos données sont sauvegardées automatiquement',
+                desc: 'Chaque action (ajout, modification, suppression) est immédiatement sauvegardée sur le serveur. Inutile d\'appuyer sur un bouton "Enregistrer" global. Vous pouvez fermer la fenêtre et revenir plus tard : votre planning sera intact.'
+            }
+        ],
+        tip: '<strong>Astuce de départ :</strong> Commencez par les "Créneaux Horaires" avant tout. Sans créneaux définis, il est impossible d\'assigner des tâches dans votre emploi du temps.'
+    },
+    {
+        id: 'days',
+        icon: '📅',
+        title: 'Étape 1 — Configurer vos jours actifs',
+        subtitle: 'Dites à Jadwal quels jours de la semaine vous êtes actif.',
+        actions: [
+            {
+                title: 'Où trouver ce réglage ?',
+                desc: 'Dans le panneau "Créneaux Horaires" (accessible depuis la barre de navigation de gauche), vous trouverez une section "Jours actifs de la semaine" avec 7 cases à cocher : Dim, Lun, Mar, Mer, Jeu, Ven, Sam.'
+            },
+            {
+                title: 'Cocher / décocher un jour',
+                desc: 'Cliquez simplement sur la case d\'un jour pour l\'activer ou le désactiver. Les jours actifs s\'affichent en doré avec une bordure colorée. Les jours inactifs sont grisés. Cette sélection est immédiatement sauvegardée et affecte l\'affichage de votre emploi du temps.'
+            },
+            {
+                title: 'Effet sur l\'emploi du temps',
+                desc: 'Seuls les jours cochés apparaissent dans votre vue "Emploi du Temps". Par exemple, si vous cochez uniquement Lun-Ven, les week-ends n\'apparaissent pas. Vous pouvez changer cette configuration à tout moment — l\'emploi du temps se met à jour instantanément.'
+            }
+        ],
+        tip: '<strong>Exemple :</strong> Un étudiant qui n\'a cours que du Lundi au Vendredi cochera Lun, Mar, Mer, Jeu, Ven. Un étudiant ayant aussi des cours le Samedi matin ajoutera Sam à sa sélection.'
+    },
+    {
+        id: 'timeslots',
+        icon: '🕐',
+        title: 'Étape 2 — Créer vos créneaux horaires',
+        subtitle: 'Les créneaux définissent les plages de temps disponibles dans votre emploi du temps.',
+        actions: [
+            {
+                title: 'Ouvrir le formulaire de création',
+                desc: 'Allez dans "Créneaux Horaires" via la navigation de gauche. Cliquez sur le bouton "+ Ajouter un créneau". Un formulaire apparaît avec trois champs : l\'heure de début, l\'heure de fin, et les jours concernés.'
+            },
+            {
+                title: 'Remplir l\'heure de début et de fin',
+                desc: 'Cliquez sur le champ "Début" et saisissez l\'heure au format HH:MM (exemple : 08:30). Faites de même pour "Fin" (exemple : 10:00). L\'application vérifie automatiquement que l\'heure de fin est bien après l\'heure de début. La durée calculée s\'affiche dans votre liste (ex: 1h30).'
+            },
+            {
+                title: 'Sélectionner les jours du créneau',
+                desc: 'Cochez les jours où ce créneau existe. Un créneau peut s\'appliquer à un seul jour (ex: cours de sport uniquement le Mercredi 14h-16h) ou à plusieurs jours (ex: cours d\'anglais Lun+Mer+Ven 8h-9h). Vous devez cocher au moins un jour pour valider.'
+            },
+            {
+                title: 'Valider et vérifier les conflits',
+                desc: 'Cliquez sur "Ajouter". Si le créneau chevauche un créneau existant sur les mêmes jours, un message d\'erreur vous indique exactement le conflit (ex: "Chevauche 08:00-09:30 sur : Lun, Mer"). Dans ce cas, ajustez les horaires ou décochez les jours qui posent problème.'
+            }
+        ],
+        tip: '<strong>Bonne pratique :</strong> Créez un créneau séparé pour chaque plage horaire unique de votre semaine. Par exemple : "08h-10h (Lun, Mar, Jeu)", "10h-12h (Lun, Mer, Ven)", "14h-16h (Mar, Jeu)". Plus vos créneaux sont précis, plus votre planning sera fidèle à la réalité.',
+        warn: '<strong>Attention :</strong> Supprimer un créneau efface également toutes les assignations liées à ce créneau dans TOUS vos emplois du temps (toutes les semaines). Cette action est irréversible.'
+    },
+    {
+        id: 'subjects',
+        icon: '📚',
+        title: 'Étape 3 — Ajouter vos tâches/matières',
+        subtitle: 'Les tâches sont les activités que vous souhaitez placer dans votre emploi du temps.',
+        actions: [
+            {
+                title: 'Créer une nouvelle tâche',
+                desc: 'Allez dans "Mes Tâches" via la navigation. Cliquez sur "+ Ajouter une tâche". Un modal s\'ouvre avec trois informations à renseigner : le nom, le type, et la couleur.'
+            },
+            {
+                title: 'Donner un nom à votre tâche',
+                desc: 'Le nom identifie votre tâche dans l\'emploi du temps. Soyez précis mais concis : "Mathématiques", "Sport", "Anglais", "Projet Python", "Révision Physique", etc. Ce nom apparaîtra dans chaque cellule de l\'emploi du temps où vous l\'assignerez.'
+            },
+            {
+                title: 'Choisir le type',
+                desc: 'Le type est une catégorie libre qui apparaît en sous-titre sous le nom de la tâche. Exemples : "Cours magistral", "TD", "TP", "Révision", "Sport", "Projet", "Personnel". Ce champ est optionnel mais aide à distinguer des tâches de même nom (ex: deux cours de Maths de types différents).'
+            },
+            {
+                title: 'Sélectionner une couleur',
+                desc: 'Cliquez sur l\'une des 24 couleurs proposées dans la grille. La couleur sélectionnée est mise en évidence avec un contour blanc. Chaque tâche obtient une couleur aléatoire par défaut que vous pouvez modifier. La couleur est utilisée dans l\'emploi du temps pour identifier visuellement la tâche d\'un coup d\'œil.'
+            },
+            {
+                title: 'Consulter les statistiques',
+                desc: 'En haut du panneau "Mes Tâches", quatre statistiques s\'affichent : nombre total de tâches, nombre de tâches utilisées cette semaine, nombre de créneaux assignés, et taux d\'utilisation (%). Chaque carte tâche affiche aussi une barre de progression montrant sa fréquence d\'utilisation relative.'
+            }
+        ],
+        tip: '<strong>Conseil de couleur :</strong> Utilisez des couleurs contrastées entre les tâches similaires. Par exemple, utilisez le bleu foncé pour "Maths", le vert pour "SVT", le rouge pour "Physique". Cela rend la lecture de l\'emploi du temps beaucoup plus rapide.'
+    },
+    {
+        id: 'schedule',
+        icon: '🗓️',
+        title: 'Étape 4 — Construire votre emploi du temps',
+        subtitle: 'Assignez vos tâches aux créneaux horaires de chaque jour.',
+        actions: [
+            {
+                title: 'Comprendre la grille',
+                desc: 'L\'emploi du temps est organisé en colonnes (une par jour actif) et en lignes (une par créneau horaire). Chaque intersection est une "cellule". Une cellule vide affiche "+ Assigner". Une cellule occupée affiche le nom et le type de la tâche avec sa couleur.'
+            },
+            {
+                title: 'Mode Clic — Assigner en cliquant',
+                desc: 'Assurez-vous que le mode "Clic" est actif (bouton en haut du panneau). Sélectionnez d\'abord une tâche dans la palette de gauche (elle s\'entoure d\'un contour doré). Ensuite cliquez sur n\'importe quelle cellule vide — la tâche y est immédiatement assignée. Pour changer une cellule déjà occupée, cliquez dessus et choisissez une nouvelle tâche dans le modal.'
+            },
+            {
+                title: 'Mode Glisser-déposer — Assigner en drag & drop',
+                desc: 'Activez le mode "Glisser" via le bouton de bascule. Vous pouvez alors faire glisser une tâche depuis la palette directement vers une cellule de l\'emploi du temps. Vous pouvez aussi faire glisser une tâche déjà placée vers une autre cellule pour la déplacer (l\'ancienne cellule se vide automatiquement).'
+            },
+            {
+                title: 'Supprimer une assignation',
+                desc: 'Cliquez sur une cellule occupée. Un modal s\'ouvre avec la liste de vos tâches ET un bouton "Retirer". Cliquez sur "Retirer" pour vider la cellule, ou choisissez une autre tâche pour remplacer.'
+            },
+            {
+                title: 'Marquer une tâche comme accomplie',
+                desc: 'Dans chaque cellule occupée, un bouton rond "○" est visible à droite. Cliquez dessus pour marquer la tâche comme faite (il devient "✓" et la cellule s\'assombrit). Ce statut est local à votre navigateur et sert de suivi journalier. Le bouton "↺" en haut de chaque colonne remet tous les statuts de la journée à zéro.'
+            }
+        ],
+        tip: '<strong>Barre de progression :</strong> En haut de la vue Emploi du Temps, une barre colorée indique le taux de remplissage de votre semaine : bleue si < 40%, dorée si 40-80%, verte si > 80%. Visez le vert pour une semaine bien planifiée !',
+        warn: '<strong>Note :</strong> Le bouton "Vider l\'emploi du temps" (dans Génération Auto) efface TOUTES les assignations de la semaine en cours. Utilisez-le avec précaution.'
+    },
+    {
+        id: 'weeks',
+        icon: '🔄',
+        title: 'Étape 5 — Naviguer entre les semaines',
+        subtitle: 'Jadwal supporte un planning différent pour chaque semaine.',
+        actions: [
+            {
+                title: 'Les boutons de navigation semaine',
+                desc: 'En haut de l\'emploi du temps, vous trouvez : une flèche gauche "← Semaine précédente", un label affichant les dates de la semaine courante (ex: "03/03 – 09/03"), un bouton "Aujourd\'hui" pour revenir à la semaine en cours, et une flèche droite "Semaine suivante →".'
+            },
+            {
+                title: 'Chaque semaine est indépendante',
+                desc: 'Votre emploi du temps de la semaine actuelle (offset 0) est complètement séparé de celui de la semaine prochaine (offset +1) ou de la semaine dernière (offset -1). Vous pouvez avoir des plannings totalement différents selon les semaines : idéal pour les emplois du temps qui alternent (semaines A/B par exemple).'
+            },
+            {
+                title: 'Planifier à l\'avance',
+                desc: 'Cliquez sur "→" pour aller à la semaine prochaine et construisez votre planning en avance. Les semaines futures commencent vides. Vous pouvez naviguer aussi loin que vous le souhaitez dans le futur ou le passé.'
+            },
+            {
+                title: 'Revenir à aujourd\'hui',
+                desc: 'Le bouton "Aujourd\'hui" vous ramène instantanément à la semaine en cours (offset 0), peu importe où vous vous trouviez dans la navigation. Le jour courant est mis en évidence avec un marqueur "Aujourd\'hui" dans sa colonne.'
+            }
+        ],
+        tip: '<strong>Astuce :</strong> Si vous avez toujours le même emploi du temps chaque semaine, construisez-le une fois sur la semaine actuelle, puis reconstruisez-le manuellement ou utilisez la Génération Automatique pour les semaines suivantes.'
+    },
+    {
+        id: 'autogen',
+        icon: '⚡',
+        title: 'Étape 6 — Génération automatique',
+        subtitle: 'Laissez Jadwal construire votre planning à votre place selon un volume horaire cible.',
+        actions: [
+            {
+                title: 'Principe de la génération automatique',
+                desc: 'Au lieu d\'assigner manuellement chaque tâche, vous indiquez combien d\'heures par semaine vous souhaitez consacrer à chaque tâche. Jadwal remplit alors automatiquement les créneaux disponibles en respectant ces quotas horaires, dans l\'ordre où les tâches apparaissent.'
+            },
+            {
+                title: 'Définir les heures par tâche',
+                desc: 'Dans le panneau "Génération Auto", une ligne s\'affiche pour chaque tâche. Saisissez le nombre d\'heures souhaitées (décimales acceptées : 0.5 = 30min, 1.5 = 1h30, etc.). Laissez à 0 les tâches que vous ne voulez pas inclure dans la génération. Le total s\'affiche en bas en temps réel.'
+            },
+            {
+                title: 'Vérifier la capacité disponible',
+                desc: 'La capacité maximale (calculée automatiquement) indique le total d\'heures de créneaux disponibles par semaine. Si le total demandé dépasse la capacité, un avertissement "⚠ dépassement" s\'affiche en rouge. Dans ce cas, réduisez les heures de certaines tâches pour rester dans la capacité.'
+            },
+            {
+                title: 'Lancer la génération',
+                desc: 'Cliquez sur "⚡ Générer automatiquement". Jadwal sauvegarde d\'abord votre configuration d\'heures, puis remplit les créneaux libres de la semaine affichée. Un message confirme le nombre de créneaux assignés. L\'application bascule automatiquement vers la vue Emploi du Temps pour que vous voyiez le résultat.'
+            },
+            {
+                title: 'La génération respecte les créneaux existants',
+                desc: 'Si votre emploi du temps de la semaine n\'est pas vide, la génération n\'écrase pas les assignations existantes — elle remplit uniquement les cellules encore vides. Pour tout recommencer, utilisez d\'abord le bouton "🗑 Vider l\'emploi du temps" puis relancez la génération.'
+            }
+        ],
+        tip: '<strong>Exemple concret :</strong> Vous voulez 3h de Maths, 2h d\'Anglais et 1h de Sport par semaine. Saisissez ces valeurs, cliquez Générer. Jadwal assignera Maths sur les 3 premiers créneaux disponibles, puis Anglais sur les 2 suivants, puis Sport sur 1 créneau.',
+        warn: '<strong>Limitation :</strong> La génération automatique assigne les tâches dans l\'ordre (première tâche en premier). Elle ne prend pas en compte vos préférences de jours ou d\'horaires spécifiques. Pour un contrôle précis, complétez la génération par une assignation manuelle.'
+    },
+    {
+        id: 'export',
+        icon: '📤',
+        title: 'Étape 7 — Exporter votre emploi du temps',
+        subtitle: 'Partagez ou sauvegardez votre planning en dehors de l\'application.',
+        actions: [
+            {
+                title: 'Accéder à l\'export',
+                desc: 'Dans le panneau "Emploi du Temps", cliquez sur le bouton "📤 Exporter" (visible dans l\'en-tête du panneau). Une nouvelle fenêtre s\'ouvre avec votre planning de la semaine en cours, mis en forme pour l\'impression ou le téléchargement.'
+            },
+            {
+                title: 'Télécharger en HTML',
+                desc: 'Cliquez sur "Télécharger HTML". Un fichier .html est sauvegardé sur votre ordinateur. Vous pouvez l\'ouvrir dans n\'importe quel navigateur sans connexion internet — il contient une version complète et stylisée de votre emploi du temps avec les couleurs de chaque tâche.'
+            },
+            {
+                title: 'Exporter en CSV',
+                desc: 'Cliquez sur "Exporter CSV". Un fichier .csv est téléchargé, compatible avec Excel, Google Sheets ou LibreOffice Calc. Les colonnes représentent les jours et les lignes les créneaux horaires. Idéal si vous souhaitez manipuler vos données dans un tableur.'
+            },
+            {
+                title: 'Imprimer',
+                desc: 'Cliquez sur "Imprimer" pour ouvrir la boîte de dialogue d\'impression de votre navigateur. La page est optimisée pour l\'impression : fond blanc, couleurs préservées, boutons cachés. Vous pouvez aussi "Imprimer vers PDF" pour créer un fichier PDF sans logiciel supplémentaire.'
+            }
+        ],
+        tip: '<strong>Partage rapide :</strong> Téléchargez le fichier HTML et envoyez-le par email ou WhatsApp. Le destinataire peut l\'ouvrir directement dans son navigateur sans avoir de compte Jadwal.'
+    },
+    {
+        id: 'tips',
+        icon: '💡',
+        title: 'Astuces & raccourcis',
+        subtitle: 'Tout ce qui rend votre expérience plus rapide et plus agréable.',
+        shortcuts: [
+            { key: 'Échap', desc: 'Fermer n\'importe quel modal ouvert' },
+            { key: 'Clic extérieur', desc: 'Fermer un modal en cliquant dehors' },
+            { key: 'Entrée', desc: 'Valider un formulaire (login, ajout tâche/créneau)' },
+        ],
+        actions: [
+            {
+                title: 'Désélectionner une tâche dans la palette',
+                desc: 'Si vous avez sélectionné une tâche (contour doré) et que vous ne voulez plus assigner, cliquez une nouvelle fois sur cette même tâche dans la palette pour la désélectionner. Vous pouvez aussi sélectionner une autre tâche directement.'
+            },
+            {
+                title: 'Modifier une tâche existante',
+                desc: 'Dans "Mes Tâches", cliquez sur l\'icône crayon ✏️ d\'une carte pour éditer son nom, type ou couleur. La modification est immédiate dans tout l\'emploi du temps.'
+            },
+            {
+                title: 'Compte oublié ? Réinitialiser le mot de passe',
+                desc: 'Sur la page de connexion, cliquez sur "Mot de passe oublié ?" en bas du formulaire. Entrez votre email — un lien de réinitialisation valable 1 heure vous sera envoyé. Cliquez sur le lien dans l\'email pour choisir un nouveau mot de passe.'
+            },
+            {
+                title: 'L\'application est responsive (mobile)',
+                desc: 'Jadwal fonctionne sur smartphone et tablette. Sur mobile, la navigation se trouve en bas de l\'écran (barre inférieure). La sidebar est accessible via le bouton menu ☰ en haut à gauche. Le drag & drop fonctionne également sur écran tactile.'
+            }
+        ],
+        tip: '<strong>Performance :</strong> Toutes les données sont chargées en parallèle lors de l\'ouverture de l\'application. Si quelque chose semble ne pas se charger, rafraîchissez la page (F5 ou Ctrl+R) — votre planning est toujours sauvegardé.'
+    }
+];
+
+let currentGuideStep = 0;
+let completedGuideSteps = new Set();
+
+function renderGuideStepsNav() {
+    const nav = document.getElementById('guide-steps-nav');
+    if (!nav) return;
+    nav.innerHTML = GUIDE_STEPS.map((step, i) => `
+        <button class="guide-step-pill ${i === currentGuideStep ? 'active' : ''} ${completedGuideSteps.has(i) && i !== currentGuideStep ? 'completed' : ''}"
+                onclick="goToGuideStep(${i})"
+                aria-label="Étape ${i + 1} : ${step.title}">
+            <span class="pill-num">${completedGuideSteps.has(i) && i !== currentGuideStep ? '✓' : i + 1}</span>
+            ${step.icon}
+            <span style="display:none;font-size:0.7rem">${step.title.split('—')[0].trim()}</span>
+        </button>
+    `).join('');
+}
+
+function renderGuideStepContent() {
+    const el = document.getElementById('guide-step-content');
+    if (!el) return;
+    const step = GUIDE_STEPS[currentGuideStep];
+
+    let bodyHtml = '';
+
+    // Actions list
+    if (step.actions && step.actions.length) {
+        bodyHtml += `<div class="guide-section-label">Comment faire</div>`;
+        bodyHtml += `<div class="guide-actions">`;
+        step.actions.forEach((action, i) => {
+            bodyHtml += `
+                <div class="guide-action">
+                    <div class="guide-action-num">${i + 1}</div>
+                    <div class="guide-action-content">
+                        <div class="guide-action-title">${action.title}</div>
+                        <div class="guide-action-desc">${action.desc}</div>
+                    </div>
+                </div>`;
+        });
+        bodyHtml += `</div>`;
+    }
+
+    // Shortcuts
+    if (step.shortcuts && step.shortcuts.length) {
+        bodyHtml += `<div class="guide-section-label">Raccourcis clavier</div>`;
+        bodyHtml += `<div class="guide-shortcuts">`;
+        step.shortcuts.forEach(sc => {
+            bodyHtml += `<div class="guide-shortcut"><kbd>${sc.key}</kbd><span>${sc.desc}</span></div>`;
+        });
+        bodyHtml += `</div>`;
+    }
+
+    // Tip
+    if (step.tip) {
+        bodyHtml += `
+            <div class="guide-tip-box">
+                <div class="guide-tip-icon">💡</div>
+                <div class="guide-tip-text">${step.tip}</div>
+            </div>`;
+    }
+
+    // Warning
+    if (step.warn) {
+        bodyHtml += `
+            <div class="guide-warn-box">
+                <div class="guide-tip-icon">⚠️</div>
+                <div class="guide-warn-text">${step.warn}</div>
+            </div>`;
+    }
+
+    // Last step: quick nav summary
+    if (currentGuideStep === GUIDE_STEPS.length - 1) {
+        bodyHtml += `
+            <div class="guide-section-label" style="margin-top:0.5rem">Accès rapide aux sections</div>
+            <div class="guide-summary-grid">
+                <div class="guide-summary-card" onclick="showPanel('schedule');updateMobileNav('schedule')">
+                    <div class="guide-summary-icon">🗓️</div>
+                    <div class="guide-summary-title">Emploi du Temps</div>
+                    <div class="guide-summary-desc">Vue semaine, assignation, suivi</div>
+                </div>
+                <div class="guide-summary-card" onclick="showPanel('tasks');updateMobileNav('tasks')">
+                    <div class="guide-summary-icon">📚</div>
+                    <div class="guide-summary-title">Mes Tâches</div>
+                    <div class="guide-summary-desc">Créer et gérer vos matières</div>
+                </div>
+                <div class="guide-summary-card" onclick="showPanel('timeslots');updateMobileNav('timeslots')">
+                    <div class="guide-summary-icon">🕐</div>
+                    <div class="guide-summary-title">Créneaux Horaires</div>
+                    <div class="guide-summary-desc">Plages de temps disponibles</div>
+                </div>
+                <div class="guide-summary-card" onclick="showPanel('autogen');updateMobileNav('autogen')">
+                    <div class="guide-summary-icon">⚡</div>
+                    <div class="guide-summary-title">Génération Auto</div>
+                    <div class="guide-summary-desc">Planning automatique</div>
+                </div>
+            </div>`;
+    }
+
+    const stepNum = currentGuideStep + 1;
+    const totalSteps = GUIDE_STEPS.length;
+
+    el.innerHTML = `
+        <div class="guide-step-card">
+            <div class="guide-step-header">
+                <div class="guide-step-icon">${step.icon}</div>
+                <div class="guide-step-meta">
+                    <div class="guide-step-num">Étape ${stepNum} / ${totalSteps}</div>
+                    <div class="guide-step-title">${step.title}</div>
+                    <div class="guide-step-subtitle">${step.subtitle}</div>
+                </div>
+            </div>
+            <div class="guide-step-body">${bodyHtml}</div>
+        </div>`;
+
+    // Update nav buttons
+    const prevBtn = document.getElementById('guide-prev-btn');
+    const nextBtn = document.getElementById('guide-next-btn');
+    if (prevBtn) prevBtn.style.display = currentGuideStep === 0 ? 'none' : '';
+    if (nextBtn) {
+        if (currentGuideStep === GUIDE_STEPS.length - 1) {
+            nextBtn.textContent = '✓ Terminer le guide';
+            nextBtn.onclick = () => { showPanel('schedule'); updateMobileNav('schedule'); toast('Guide terminé — bon planning ! 🗓️', 'success'); };
+        } else {
+            nextBtn.textContent = 'Suivant →';
+            nextBtn.onclick = guideNext;
+        }
+    }
+}
+
+function goToGuideStep(index) {
+    completedGuideSteps.add(currentGuideStep);
+    currentGuideStep = index;
+    renderGuideStepsNav();
+    renderGuideStepContent();
+    document.getElementById('guide-step-content')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function guideNext() {
+    if (currentGuideStep < GUIDE_STEPS.length - 1) {
+        goToGuideStep(currentGuideStep + 1);
+    }
+}
+
+function guidePrev() {
+    if (currentGuideStep > 0) {
+        goToGuideStep(currentGuideStep - 1);
+    }
+}
+
+// ── Invocation overlay for the guide ──────────────────────────────────────
+function showGuideInvocation(callback) {
+    const overlay = document.createElement('div');
+    overlay.id = 'guide-invocation-overlay';
+    overlay.innerHTML = `
+        <div class="giv-card">
+            <div class="giv-bismillah">أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ</div>
+            <div class="giv-dua-block">
+                <p class="giv-arabic">رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي وَاحْلُلْ عُقْدَةً مِنْ لِسَانِي يَفْقَهُوا قَوْلِي</p>
+                <p class="giv-transliteration">Rabbish-raḥ lī ṣadrī, wa yassir lī amrī, waḥlul ʿuqdatan min lisānī, yafqahū qawlī.</p>
+            </div>
+            <div class="giv-separator"><span>✦</span></div>
+            <div class="giv-dua-block">
+                <p class="giv-arabic">اللَّهُمَّ لاَ سَهْلَ إِلَّا مَا جَعَلْتَهُ سَهْلًا، وَأَنْتَ تَجْعَلُ الحَزْنَ إِذَا شِئْتَ سَهْلًا</p>
+                <p class="giv-transliteration">Allāhumma lā sahla illā mā jaʿaltahu sahlan, wa anta tajʿalul-ḥazna idhā shiʾta sahlā.</p>
+            </div>
+            <button class="giv-btn" id="giv-start-btn">Commencer le guide →</button>
+        </div>`;
+    document.body.appendChild(overlay);
+
+    // Animate in
+    requestAnimationFrame(() => overlay.classList.add('giv-visible'));
+
+    document.getElementById('giv-start-btn').addEventListener('click', () => {
+        overlay.classList.remove('giv-visible');
+        overlay.classList.add('giv-hiding');
+        setTimeout(() => { overlay.remove(); callback(); }, 500);
+    });
+}
+
+// Override showPanel to init guide when opened
+const _origShowPanel = window.showPanel;
+window.showPanel = function (name) {
+    _origShowPanel(name);
+    if (name === 'guide') {
+        currentGuideStep = 0;
+        completedGuideSteps = new Set();
+        showGuideInvocation(() => {
+            renderGuideStepsNav();
+            renderGuideStepContent();
+        });
+    }
+};
