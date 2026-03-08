@@ -1095,7 +1095,7 @@ async function exportSchedule() {
     const exportFrame2 = document.getElementById('export-frame');
     const exportLoading2 = document.getElementById('export-loading');
     if (exportFrame2) {
-        exportFrame2.srcdoc = `<!DOCTYPE html>\r\n<html lang="fr">\r\n<head>\r\n<meta charset="UTF-8">\r\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\r\n<title>Emploi du Temps — ${user.name}</title>\r\n<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\r\n<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>\r\n<style>${exportCSS}<\/style>\r\n</head>\r\n<body>\r\n<div class="page">\r\n\r\n  <div class="export-header">\r\n    <div>\r\n      <div class="logo">جدول<\/div>\r\n      <div class="gold-line"><\/div>\r\n      <div class="logo-sub">Jadwal — Emploi du Temps<\/div>\r\n      <div class="meta-row">\r\n        <span class="meta-chip">👤 ${user.name}<\/span>\r\n        <span class="meta-chip">📅 ${exportDate}<\/span>\r\n        <span class="meta-chip">Semaine ${currentWeekOffset >= 0 ? '+' : ''}${currentWeekOffset}<\/span>\r\n      <\/div>\r\n    <\/div>\r\n    <div class="actions">\r\n      <button class="btn btn-gold" onclick="window.print()">\r\n        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"\/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"\/><rect x="6" y="14" width="12" height="8"\/><\/svg>\r\n        Imprimer la semaine\r\n      <\/button>\r\n      <a id="dl-html" class="btn btn-ghost" download="${fileName}.html">\r\n        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"\/><polyline points="7 10 12 15 17 10"\/><line x1="12" y1="15" x2="12" y2="3"\/><\/svg>\r\n        Télécharger HTML\r\n      <\/a>\r\n      <div class="btn-hint">Chaque jour : bouton Imprimer ou Image 👇<\/div>\r\n    <\/div>\r\n  <\/div>\r\n\r\n  ${legendHtml ? `<div class="legend">${legendHtml}<\/div>` : ''}\r\n\r\n  <div class="days-grid">\r\n    ${dayCardsHtml}\r\n  <\/div>\r\n\r\n  <div class="export-footer">Généré par Jadwal · ${exportDate}<\/div>\r\n<\/div>\r\n\r\n<script>\r\n(function() {\r\n  const htmlContent = '<!DOCTYPE html>' + document.documentElement.outerHTML;\r\n  const htmlBlob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });\r\n  document.getElementById('dl-html').href = URL.createObjectURL(htmlBlob);\r\n})();\r\n\r\nfunction printDay(abbr) {\r\n  const card = document.getElementById('day-' + abbr);\r\n  if (!card) return;\r\n  const printWin = window.open('', '_blank', 'width=480,height=700');\r\n  const cardHtml = card.outerHTML;\r\n  printWin.document.write(\`<!DOCTYPE html>\r\n<html><head><meta charset="UTF-8">\r\n<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\r\n<style>\r\n  *{margin:0;padding:0;box-sizing:border-box;}\r\n  body{background:#fff;color:#111;font-family:'DM Sans',sans-serif;padding:1.5rem;}\r\n  .day-card{border:1px solid #ddd;border-radius:12px;overflow:hidden;max-width:400px;margin:0 auto;}\r\n  .day-header{padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;gap:.5rem;}\r\n  .day-title{display:flex;align-items:center;gap:.6rem;}\r\n  .day-abbr{font-weight:700;font-size:1rem;color:#111;}\r\n  .day-date{font-family:'JetBrains Mono',monospace;font-size:.78rem;background:#f5f5f5;color:#666;padding:.1rem .4rem;border-radius:5px;border:1px solid #ddd;}\r\n  .day-actions{display:none;}\r\n  .day-chip{font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:.1rem .4rem;border-radius:4px;background:#f5f5f5;color:#888;border:1px solid #ddd;}\r\n  .timeline{padding:.65rem;display:flex;flex-direction:column;gap:.3rem;}\r\n  .block{display:grid;grid-template-columns:64px 1fr;gap:.4rem;align-items:start;}\r\n  .block-time{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#888;padding-top:.45rem;line-height:1.35;text-align:right;padding-right:.5rem;border-right:2px solid #eee;}\r\n  .block-content{border-radius:8px;padding:.45rem .65rem;font-size:.8rem;line-height:1.4;font-weight:600;}\r\n  .block-sub{display:block;font-size:.65rem;font-weight:400;opacity:.7;margin-top:.1rem;}\r\n  .block-empty{border-radius:8px;padding:.45rem .65rem;min-height:36px;background:#fafafa;border:1.5px dashed #ddd;color:#ccc;font-size:.65rem;display:flex;align-items:center;}\r\n  .footer{margin-top:1.5rem;text-align:center;font-size:.65rem;color:#bbb;font-family:'JetBrains Mono',monospace;}\r\n<\/style>\r\n<\/head><body>\r\n\${cardHtml}\r\n<div class="footer">Jadwal · \${new Date().toLocaleDateString('fr-FR')}<\/div>\r\n<\/body><\/html>\`);\r\n  printWin.document.close();\r\n  printWin.onload = () => { printWin.focus(); printWin.print(); };\r\n}\r\n\r\nasync function saveAsImage(abbr) {\r\n  const card = document.getElementById('day-' + abbr);\r\n  if (!card) return;\r\n  if (typeof html2canvas === 'undefined') {\r\n    alert('html2canvas non chargé, réessayez dans un instant.');\r\n    return;\r\n  }\r\n  const btn = card.querySelector('.img-day-btn');\r\n  if (btn) { btn.textContent = '…'; btn.disabled = true; }\r\n  try {\r\n    const canvas = await html2canvas(card, { backgroundColor: '#0d1420', scale: 2, useCORS: true, logging: false });\r\n    const link = document.createElement('a');\r\n    link.download = 'jadwal_' + abbr + '_${fileName}.png';\r\n    link.href = canvas.toDataURL('image/png');\r\n    link.click();\r\n  } catch(e) {\r\n    alert('Erreur lors de la capture : ' + e.message);\r\n  } finally {\r\n    if (btn) { btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"\/><circle cx="8.5" cy="8.5" r="1.5"\/><polyline points="21 15 16 10 5 21"\/><\/svg> Image'; btn.disabled = false; }\r\n  }\r\n}\r\n<\/script>\r\n<\/body>\r\n<\/html>`;
+        exportFrame2.srcdoc = `<!DOCTYPE html>\r\n<html lang="fr">\r\n<head>\r\n<meta charset="UTF-8">\r\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\r\n<title>Emploi du Temps — ${user.name}</title>\r\n<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\r\n<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>\r\n<style>${exportCSS}<\/style>\r\n</head>\r\n<body>\r\n<div class="page">\r\n\r\n  <div class="export-header">\r\n    <div>\r\n      <div class="logo">جدول<\/div>\r\n      <div class="gold-line"><\/div>\r\n      <div class="logo-sub">Jadwal — Emploi du Temps<\/div>\r\n      <div class="meta-row">\r\n        <span class="meta-chip">👤 ${user.name}<\/span>\r\n        <span class="meta-chip">📅 ${exportDate}<\/span>\r\n        <span class="meta-chip">Semaine ${currentWeekOffset >= 0 ? '+' : ''}${currentWeekOffset}<\/span>\r\n      <\/div>\r\n    <\/div>\r\n    <div class="actions">\r\n      <button class="btn btn-gold" onclick="window.print()">\r\n        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"\/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"\/><rect x="6" y="14" width="12" height="8"\/><\/svg>\r\n        Imprimer la semaine\r\n      <\/button>\r\n      <a id="dl-html" class="btn btn-ghost" download="${fileName}.html">\r\n        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"\/><polyline points="7 10 12 15 17 10"\/><line x1="12" y1="15" x2="12" y2="3"\/><\/svg>\r\n        Télécharger HTML\r\n      <\/a>\r\n      <div class="btn-hint">Chaque jour : bouton Image 👇<\/div>\r\n    <\/div>\r\n  <\/div>\r\n\r\n  ${legendHtml ? `<div class="legend">${legendHtml}<\/div>` : ''}\r\n\r\n  <div class="days-grid">\r\n    ${dayCardsHtml}\r\n  <\/div>\r\n\r\n  <div class="export-footer">Généré par Jadwal · ${exportDate}<\/div>\r\n<\/div>\r\n\r\n<script>\r\n(function() {\r\n  const htmlContent = '<!DOCTYPE html>' + document.documentElement.outerHTML;\r\n  const htmlBlob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });\r\n  document.getElementById('dl-html').href = URL.createObjectURL(htmlBlob);\r\n})();\r\n\r\nfunction printDay(abbr) {\r\n  const card = document.getElementById('day-' + abbr);\r\n  if (!card) return;\r\n  const printWin = window.open('', '_blank', 'width=480,height=700');\r\n  const cardHtml = card.outerHTML;\r\n  printWin.document.write(\`<!DOCTYPE html>\r\n<html><head><meta charset="UTF-8">\r\n<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\r\n<style>\r\n  *{margin:0;padding:0;box-sizing:border-box;}\r\n  body{background:#fff;color:#111;font-family:'DM Sans',sans-serif;padding:1.5rem;}\r\n  .day-card{border:1px solid #ddd;border-radius:12px;overflow:hidden;max-width:400px;margin:0 auto;}\r\n  .day-header{padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;gap:.5rem;}\r\n  .day-title{display:flex;align-items:center;gap:.6rem;}\r\n  .day-abbr{font-weight:700;font-size:1rem;color:#111;}\r\n  .day-date{font-family:'JetBrains Mono',monospace;font-size:.78rem;background:#f5f5f5;color:#666;padding:.1rem .4rem;border-radius:5px;border:1px solid #ddd;}\r\n  .day-actions{display:none;}\r\n  .day-chip{font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:.1rem .4rem;border-radius:4px;background:#f5f5f5;color:#888;border:1px solid #ddd;}\r\n  .timeline{padding:.65rem;display:flex;flex-direction:column;gap:.3rem;}\r\n  .block{display:grid;grid-template-columns:64px 1fr;gap:.4rem;align-items:start;}\r\n  .block-time{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#888;padding-top:.45rem;line-height:1.35;text-align:right;padding-right:.5rem;border-right:2px solid #eee;}\r\n  .block-content{border-radius:8px;padding:.45rem .65rem;font-size:.8rem;line-height:1.4;font-weight:600;}\r\n  .block-sub{display:block;font-size:.65rem;font-weight:400;opacity:.7;margin-top:.1rem;}\r\n  .block-empty{border-radius:8px;padding:.45rem .65rem;min-height:36px;background:#fafafa;border:1.5px dashed #ddd;color:#ccc;font-size:.65rem;display:flex;align-items:center;}\r\n  .footer{margin-top:1.5rem;text-align:center;font-size:.65rem;color:#bbb;font-family:'JetBrains Mono',monospace;}\r\n<\/style>\r\n<\/head><body>\r\n\${cardHtml}\r\n<div class="footer">Jadwal · \${new Date().toLocaleDateString('fr-FR')}<\/div>\r\n<\/body><\/html>\`);\r\n  printWin.document.close();\r\n  printWin.onload = () => { printWin.focus(); printWin.print(); };\r\n}\r\n\r\nasync function saveAsImage(abbr) {\r\n  const card = document.getElementById('day-' + abbr);\r\n  if (!card) return;\r\n  if (typeof html2canvas === 'undefined') {\r\n    alert('html2canvas non chargé, réessayez dans un instant.');\r\n    return;\r\n  }\r\n  const btn = card.querySelector('.img-day-btn');\r\n  if (btn) { btn.textContent = '…'; btn.disabled = true; }\r\n  try {\r\n    const canvas = await html2canvas(card, { backgroundColor: '#0d1420', scale: 2, useCORS: true, logging: false });\r\n    const link = document.createElement('a');\r\n    link.download = 'jadwal_' + abbr + '_${fileName}.png';\r\n    link.href = canvas.toDataURL('image/png');\r\n    link.click();\r\n  } catch(e) {\r\n    alert('Erreur lors de la capture : ' + e.message);\r\n  } finally {\r\n    if (btn) { btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"\/><circle cx="8.5" cy="8.5" r="1.5"\/><polyline points="21 15 16 10 5 21"\/><\/svg> Image'; btn.disabled = false; }\r\n  }\r\n}\r\n<\/script>\r\n<\/body>\r\n<\/html>`;
         exportFrame2.onload = () => {
             if (exportLoading2) exportLoading2.style.display = 'none';
             exportFrame2.style.display = 'block';
@@ -1344,231 +1344,148 @@ const GUIDE_STEPS = [
         id: 'welcome',
         icon: '👋',
         title: 'Bienvenue sur Jadwal !',
-        subtitle: 'Votre assistant de planning hebdomadaire — 5 minutes suffisent pour tout configurer.',
+        subtitle: 'Votre assistant de planning hebdomadaire.',
         actions: [
             {
                 title: 'Qu\'est-ce que Jadwal ?',
-                desc: 'Jadwal (جدول = "tableau" en arabe) est une application web de gestion d\'emploi du temps. Elle vous permet de planifier votre semaine : définissez vos matières/tâches, vos créneaux horaires disponibles, puis assignez chaque tâche aux bons moments de la semaine. Chaque utilisateur a son propre compte et son propre planning — tout est sauvegardé automatiquement dans le cloud.'
+                desc: 'Une application pour organiser votre semaine. Définissez vos tâches, vos créneaux horaires, puis générez votre emploi du temps automatiquement. Tout est sauvegardé en temps réel.'
             },
             {
-                title: 'L\'ordre de configuration recommandé',
-                desc: 'Pour une première utilisation, suivez cet ordre : ① Configurer vos jours actifs → ② Créer vos créneaux horaires → ③ Ajouter vos tâches/matières → ④ Générer automatiquement votre emploi du temps. Ce guide vous accompagnera étape par étape.'
-            },
-            {
-                title: 'Vos données sont sauvegardées automatiquement',
-                desc: 'Chaque action (ajout, modification, suppression) est immédiatement sauvegardée sur le serveur. Inutile d\'appuyer sur un bouton "Enregistrer" global. Vous pouvez fermer la fenêtre et revenir plus tard : votre planning sera intact.'
+                title: 'Par où commencer ?',
+                desc: '① Activez vos jours → ② Créez vos créneaux horaires → ③ Ajoutez vos tâches → ④ Générez votre planning.'
             }
         ],
-        tip: '<strong>Astuce de départ :</strong> Commencez par les "Créneaux Horaires" avant tout. Sans créneaux définis, il est impossible d\'assigner des tâches dans votre emploi du temps.'
+        tip: '<strong>Important :</strong> Commencez toujours par créer vos créneaux horaires. Sans eux, impossible d\'assigner des tâches.'
     },
     {
         id: 'days',
         icon: '📅',
-        title: 'Étape 1 — Configurer vos jours actifs',
-        subtitle: 'Dites à Jadwal quels jours de la semaine vous êtes actif.',
+        title: 'Étape 1 — Jours actifs',
+        subtitle: 'Choisissez les jours qui apparaissent dans votre planning.',
         actions: [
             {
-                title: 'Où trouver ce réglage ?',
-                desc: 'Dans le panneau "Créneaux Horaires" (accessible depuis la barre de navigation de gauche), vous trouverez une section "Jours actifs de la semaine" avec 7 cases à cocher : Dim, Lun, Mar, Mer, Jeu, Ven, Sam.'
+                title: 'Où configurer ?',
+                desc: 'Dans "Créneaux Horaires", section "Jours affichés" en bas. Cochez les jours souhaités (Lun–Ven, ou plus si besoin).'
             },
             {
-                title: 'Cocher / décocher un jour',
-                desc: 'Cliquez simplement sur la case d\'un jour pour l\'activer ou le désactiver. Les jours actifs s\'affichent en doré avec une bordure colorée. Les jours inactifs sont grisés. Cette sélection est immédiatement sauvegardée et affecte l\'affichage de votre emploi du temps.'
-            },
-            {
-                title: 'Effet sur l\'emploi du temps',
-                desc: 'Seuls les jours cochés apparaissent dans votre vue "Emploi du Temps". Par exemple, si vous cochez uniquement Lun-Ven, les week-ends n\'apparaissent pas. Vous pouvez changer cette configuration à tout moment — l\'emploi du temps se met à jour instantanément.'
+                title: 'Effet immédiat',
+                desc: 'Seuls les jours cochés s\'affichent dans votre emploi du temps. La modification est sauvegardée instantanément.'
             }
         ],
-        tip: '<strong>Exemple :</strong> Un étudiant qui n\'a cours que du Lundi au Vendredi cochera Lun, Mar, Mer, Jeu, Ven. Un étudiant ayant aussi des cours le Samedi matin ajoutera Sam à sa sélection.'
+        tip: '<strong>Exemple :</strong> Pour un étudiant Lun–Ven, cochez uniquement ces cinq jours.'
     },
     {
         id: 'timeslots',
         icon: '🕐',
-        title: 'Étape 2 — Créer vos créneaux horaires',
-        subtitle: 'Les créneaux définissent les plages de temps disponibles dans votre emploi du temps.',
+        title: 'Étape 2 — Créneaux horaires',
+        subtitle: 'Définissez vos plages de temps disponibles.',
         actions: [
             {
-                title: 'Ouvrir le formulaire de création',
-                desc: 'Allez dans "Créneaux Horaires" via la navigation de gauche. Cliquez sur le bouton "+ Ajouter un créneau". Un formulaire apparaît avec trois champs : l\'heure de début, l\'heure de fin, et les jours concernés.'
+                title: 'Créer un créneau',
+                desc: 'Dans "Créneaux Horaires", cliquez "+ Ajouter un créneau". Renseignez l\'heure de début, l\'heure de fin, et cochez les jours concernés.'
             },
             {
-                title: 'Remplir l\'heure de début et de fin',
-                desc: 'Cliquez sur le champ "Début" et saisissez l\'heure au format HH:MM (exemple : 08:30). Faites de même pour "Fin" (exemple : 10:00). L\'application vérifie automatiquement que l\'heure de fin est bien après l\'heure de début. La durée calculée s\'affiche dans votre liste (ex: 1h30).'
-            },
-            {
-                title: 'Sélectionner les jours du créneau',
-                desc: 'Cochez les jours où ce créneau existe. Un créneau peut s\'appliquer à un seul jour (ex: cours de sport uniquement le Mercredi 14h-16h) ou à plusieurs jours (ex: cours d\'anglais Lun+Mer+Ven 8h-9h). Vous devez cocher au moins un jour pour valider.'
-            },
-            {
-                title: 'Valider et vérifier les conflits',
-                desc: 'Cliquez sur "Ajouter". Si le créneau chevauche un créneau existant sur les mêmes jours, un message d\'erreur vous indique exactement le conflit (ex: "Chevauche 08:00-09:30 sur : Lun, Mer"). Dans ce cas, ajustez les horaires ou décochez les jours qui posent problème.'
+                title: 'Exemple pratique',
+                desc: '"08h–10h" sur Lun, Mar, Jeu ; "14h–16h" sur Mer, Ven. Créez un créneau séparé pour chaque plage unique.'
             }
         ],
-        tip: '<strong>Bonne pratique :</strong> Créez un créneau séparé pour chaque plage horaire unique de votre semaine. Par exemple : "08h-10h (Lun, Mar, Jeu)", "10h-12h (Lun, Mer, Ven)", "14h-16h (Mar, Jeu)". Plus vos créneaux sont précis, plus votre planning sera fidèle à la réalité.',
-        warn: '<strong>Attention :</strong> Supprimer un créneau efface également toutes les assignations liées à ce créneau dans TOUS vos emplois du temps (toutes les semaines). Cette action est irréversible.'
+        tip: '<strong>Conseil :</strong> Plus vos créneaux sont précis, plus le planning généré sera fidèle à la réalité.',
+        warn: '<strong>Attention :</strong> Supprimer un créneau efface toutes ses assignations sur toutes les semaines.'
     },
     {
         id: 'subjects',
         icon: '📚',
-        title: 'Étape 3 — Ajouter vos tâches/matières',
-        subtitle: 'Les tâches sont les activités que vous souhaitez placer dans votre emploi du temps.',
+        title: 'Étape 3 — Tâches / Matières',
+        subtitle: 'Créez les activités à placer dans votre planning.',
         actions: [
             {
-                title: 'Créer une nouvelle tâche',
-                desc: 'Allez dans "Mes Tâches" via la navigation. Cliquez sur "+ Ajouter une tâche". Un modal s\'ouvre avec trois informations à renseigner : le nom, le type, et la couleur.'
+                title: 'Ajouter une tâche',
+                desc: 'Dans "Mes Tâches", cliquez "+ Ajouter une tâche". Donnez-lui un nom (ex: "Maths"), un sous-titre optionnel (ex: "TD") et choisissez une couleur.'
             },
             {
-                title: 'Donner un nom à votre tâche',
-                desc: 'Le nom identifie votre tâche dans l\'emploi du temps. Soyez précis mais concis : "Mathématiques", "Sport", "Anglais", "Projet Python", "Révision Physique", etc. Ce nom apparaîtra dans chaque cellule de l\'emploi du temps où vous l\'assignerez.'
-            },
-            {
-                title: 'Choisir le type',
-                desc: 'Le type est une catégorie libre qui apparaît en sous-titre sous le nom de la tâche. Exemples : "Cours magistral", "TD", "TP", "Révision", "Sport", "Projet", "Personnel". Ce champ est optionnel mais aide à distinguer des tâches de même nom (ex: deux cours de Maths de types différents).'
-            },
-            {
-                title: 'Sélectionner une couleur',
-                desc: 'Cliquez sur l\'une des 24 couleurs proposées dans la grille. La couleur sélectionnée est mise en évidence avec un contour blanc. Chaque tâche obtient une couleur aléatoire par défaut que vous pouvez modifier. La couleur est utilisée dans l\'emploi du temps pour identifier visuellement la tâche d\'un coup d\'œil.'
-            },
-            {
-                title: 'Consulter les statistiques',
-                desc: 'En haut du panneau "Mes Tâches", quatre statistiques s\'affichent : nombre total de tâches, nombre de tâches utilisées cette semaine, nombre de créneaux assignés, et taux d\'utilisation (%). Chaque carte tâche affiche aussi une barre de progression montrant sa fréquence d\'utilisation relative.'
+                title: 'Modifier ou supprimer',
+                desc: 'Cliquez sur l\'icône ✏️ d\'une tâche pour la modifier. La couleur est mise à jour partout dans l\'emploi du temps immédiatement.'
             }
         ],
-        tip: '<strong>Conseil de couleur :</strong> Utilisez des couleurs contrastées entre les tâches similaires. Par exemple, utilisez le bleu foncé pour "Maths", le vert pour "SVT", le rouge pour "Physique". Cela rend la lecture de l\'emploi du temps beaucoup plus rapide.'
-    },
-    {
-        id: 'schedule',
-        icon: '🗓️',
-        title: 'Étape 4 — Consulter votre emploi du temps',
-        subtitle: 'Visualisez, suivez et gérez vos assignations hebdomadaires.',
-        actions: [
-            {
-                title: 'Comprendre la grille',
-                desc: 'L\'emploi du temps est organisé en colonnes (une par jour actif) et en lignes (une par créneau horaire). Chaque cellule occupée affiche le nom et le type de la tâche avec sa couleur. Les cellules vides restent disponibles pour la Génération Automatique.'
-            },
-            {
-                title: 'Remplir l\'emploi du temps',
-                desc: 'L\'assignation des tâches se fait uniquement via la section « Génération Auto » (⚡). Définissez les heures souhaitées par tâche, puis cliquez sur « Générer automatiquement » — Jadwal remplit intelligemment toutes les cellules disponibles pour vous.'
-            },
-            {
-                title: 'Vider l\'emploi du temps',
-                desc: 'Pour repartir de zéro, utilisez le bouton « 🗑 Vider l\'emploi du temps » dans la section Génération Auto. Cette action efface toutes les assignations de la semaine en cours — à utiliser avec précaution.'
-            },
-            {
-                title: 'Marquer une tâche comme accomplie',
-                desc: 'Dans chaque cellule occupée, un bouton rond « ○ » est visible à droite. Cliquez dessus pour marquer la tâche comme faite (il devient « ✓ » et la cellule s\'assombrit). Ce statut sert de suivi journalier. Le bouton « ↺ » en haut de chaque colonne remet tous les statuts de la journée à zéro.'
-            }
-        ],
-        tip: '<strong>Barre de progression :</strong> En bas de la vue Emploi du Temps, une barre colorée indique le taux de remplissage de votre semaine. Visez 100% pour une semaine bien planifiée !',
-        warn: '<strong>Note :</strong> Le bouton « Vider l\'emploi du temps » (dans Génération Auto) efface TOUTES les assignations de la semaine en cours. Utilisez-le avec précaution.'
-    },
-    {
-        id: 'weeks',
-        icon: '🔄',
-        title: 'Étape 5 — Naviguer entre les semaines',
-        subtitle: 'Jadwal supporte un planning différent pour chaque semaine.',
-        actions: [
-            {
-                title: 'Les boutons de navigation semaine',
-                desc: 'En haut de l\'emploi du temps, vous trouvez : une flèche gauche "← Semaine précédente", un label affichant les dates de la semaine courante (ex: "03/03 – 09/03"), un bouton "Aujourd\'hui" pour revenir à la semaine en cours, et une flèche droite "Semaine suivante →".'
-            },
-            {
-                title: 'Chaque semaine est indépendante',
-                desc: 'Votre emploi du temps de la semaine actuelle (offset 0) est complètement séparé de celui de la semaine prochaine (offset +1) ou de la semaine dernière (offset -1). Vous pouvez avoir des plannings totalement différents selon les semaines : idéal pour les emplois du temps qui alternent (semaines A/B par exemple).'
-            },
-            {
-                title: 'Planifier à l\'avance',
-                desc: 'Cliquez sur "→" pour aller à la semaine prochaine et construisez votre planning en avance. Les semaines futures commencent vides. Vous pouvez naviguer aussi loin que vous le souhaitez dans le futur ou le passé.'
-            },
-            {
-                title: 'Revenir à aujourd\'hui',
-                desc: 'Le bouton "Aujourd\'hui" vous ramène instantanément à la semaine en cours (offset 0), peu importe où vous vous trouviez dans la navigation. Le jour courant est mis en évidence avec un marqueur "Aujourd\'hui" dans sa colonne.'
-            }
-        ],
-        tip: '<strong>Astuce :</strong> Si vous avez toujours le même emploi du temps chaque semaine, construisez-le une fois sur la semaine actuelle, puis reconstruisez-le manuellement ou utilisez la Génération Automatique pour les semaines suivantes.'
+        tip: '<strong>Astuce couleurs :</strong> Utilisez des couleurs contrastées pour distinguer rapidement vos tâches d\'un coup d\'œil.'
     },
     {
         id: 'autogen',
         icon: '⚡',
-        title: 'Étape 6 — Génération automatique',
-        subtitle: 'Laissez Jadwal construire votre planning à votre place selon un volume horaire cible.',
+        title: 'Étape 4 — Génération automatique',
+        subtitle: 'Laissez Jadwal remplir votre planning.',
         actions: [
             {
-                title: 'Principe de la génération automatique',
-                desc: 'Au lieu d\'assigner manuellement chaque tâche, vous indiquez combien d\'heures par semaine vous souhaitez consacrer à chaque tâche. Jadwal remplit alors automatiquement les créneaux disponibles en respectant ces quotas horaires, dans l\'ordre où les tâches apparaissent.'
-            },
-            {
                 title: 'Définir les heures par tâche',
-                desc: 'Dans le panneau "Génération Auto", une ligne s\'affiche pour chaque tâche. Saisissez le nombre d\'heures souhaitées (décimales acceptées : 0.5 = 30min, 1.5 = 1h30, etc.). Laissez à 0 les tâches que vous ne voulez pas inclure dans la génération. Le total s\'affiche en bas en temps réel.'
-            },
-            {
-                title: 'Vérifier la capacité disponible',
-                desc: 'La capacité maximale (calculée automatiquement) indique le total d\'heures de créneaux disponibles par semaine. Si le total demandé dépasse la capacité, un avertissement "⚠ dépassement" s\'affiche en rouge. Dans ce cas, réduisez les heures de certaines tâches pour rester dans la capacité.'
+                desc: 'Dans "Génération Auto", saisissez le nombre d\'heures par semaine souhaité pour chaque tâche. Le total s\'affiche en temps réel. Ne dépassez pas la capacité disponible.'
             },
             {
                 title: 'Lancer la génération',
-                desc: 'Cliquez sur "⚡ Générer automatiquement". Jadwal sauvegarde d\'abord votre configuration d\'heures, puis remplit les créneaux libres de la semaine affichée. Un message confirme le nombre de créneaux assignés. L\'application bascule automatiquement vers la vue Emploi du Temps pour que vous voyiez le résultat.'
-            },
-            {
-                title: 'La génération respecte les créneaux existants',
-                desc: 'Si votre emploi du temps de la semaine n\'est pas vide, la génération n\'écrase pas les assignations existantes — elle remplit uniquement les cellules encore vides. Pour tout recommencer, utilisez d\'abord le bouton "🗑 Vider l\'emploi du temps" puis relancez la génération.'
+                desc: 'Cliquez "⚡ Générer automatiquement". Jadwal remplit les créneaux libres et bascule vers la vue emploi du temps. Les cellules déjà assignées ne sont pas écrasées.'
             }
         ],
-        tip: '<strong>Exemple concret :</strong> Vous voulez 3h de Maths, 2h d\'Anglais et 1h de Sport par semaine. Saisissez ces valeurs, cliquez Générer. Jadwal assignera Maths sur les 3 premiers créneaux disponibles, puis Anglais sur les 2 suivants, puis Sport sur 1 créneau.',
-        warn: '<strong>Limitation :</strong> La génération automatique assigne les tâches dans l\'ordre (première tâche en premier). Elle ne prend pas en compte vos préférences de jours ou d\'horaires spécifiques. Pour un contrôle précis, complétez la génération par une assignation manuelle.'
+        tip: '<strong>Exemple :</strong> 3h Maths + 2h Anglais + 1h Sport → Jadwal remplit 6 créneaux dans l\'ordre.',
+        warn: '<strong>Note :</strong> La génération ne tient pas compte de vos préférences de jours. Pour un contrôle fin, ajustez manuellement après.'
+    },
+    {
+        id: 'schedule',
+        icon: '🗓️',
+        title: 'Étape 5 — Emploi du temps',
+        subtitle: 'Visualisez et suivez votre semaine.',
+        actions: [
+            {
+                title: 'Naviguer entre les semaines',
+                desc: 'Utilisez les flèches ← → en haut du planning pour changer de semaine. Le bouton "Aujourd\'hui" ramène à la semaine en cours. Chaque semaine est indépendante.'
+            },
+            {
+                title: 'Marquer une tâche comme faite',
+                desc: 'Cliquez le bouton ○ dans une cellule pour la cocher ✓. Le bouton ↺ en haut d\'une colonne remet toute la journée à zéro.'
+            },
+            {
+                title: 'Vider la semaine',
+                desc: 'Dans "Génération Auto", le bouton "🗑 Vider l\'emploi du temps" efface toutes les assignations de la semaine affichée.'
+            }
+        ],
+        tip: '<strong>Barre de progression :</strong> Elle indique le taux de remplissage de votre semaine. Visez 100% !'
     },
     {
         id: 'export',
         icon: '📤',
-        title: 'Étape 7 — Exporter votre emploi du temps',
-        subtitle: 'Partagez ou sauvegardez votre planning en dehors de l\'application.',
+        title: 'Étape 6 — Exporter',
+        subtitle: 'Sauvegardez ou partagez votre planning.',
         actions: [
             {
                 title: 'Accéder à l\'export',
-                desc: 'Dans le panneau "Emploi du Temps", cliquez sur le bouton "📤 Exporter" (visible dans l\'en-tête du panneau). Une nouvelle fenêtre s\'ouvre avec votre planning de la semaine en cours, mis en forme pour l\'impression ou le téléchargement.'
+                desc: 'Dans "Emploi du Temps", cliquez sur "⬇ Exporter" en haut à droite. Votre planning s\'affiche mis en forme.'
             },
             {
-                title: 'Télécharger en HTML',
-                desc: 'Cliquez sur "Télécharger HTML". Un fichier .html est sauvegardé sur votre ordinateur. Vous pouvez l\'ouvrir dans n\'importe quel navigateur sans connexion internet — il contient une version complète et stylisée de votre emploi du temps avec les couleurs de chaque tâche.'
-            },
-            {
-                title: 'Exporter en CSV',
-                desc: 'Cliquez sur "Exporter CSV". Un fichier .csv est téléchargé, compatible avec Excel, Google Sheets ou LibreOffice Calc. Les colonnes représentent les jours et les lignes les créneaux horaires. Idéal si vous souhaitez manipuler vos données dans un tableur.'
-            },
-            {
-                title: 'Imprimer',
-                desc: 'Cliquez sur "Imprimer" pour ouvrir la boîte de dialogue d\'impression de votre navigateur. La page est optimisée pour l\'impression : fond blanc, couleurs préservées, boutons cachés. Vous pouvez aussi "Imprimer vers PDF" pour créer un fichier PDF sans logiciel supplémentaire.'
+                title: 'Formats disponibles',
+                desc: '<strong>HTML</strong> — fichier à ouvrir dans un navigateur, sans connexion. <strong>CSV</strong> — compatible Excel / Google Sheets. <strong>Imprimer</strong> — ou "Imprimer vers PDF" depuis votre navigateur.'
             }
         ],
-        tip: '<strong>Partage rapide :</strong> Téléchargez le fichier HTML et envoyez-le par email ou WhatsApp. Le destinataire peut l\'ouvrir directement dans son navigateur sans avoir de compte Jadwal.'
+        tip: '<strong>Partage :</strong> Envoyez le fichier HTML par email ou WhatsApp. Le destinataire l\'ouvre directement sans compte Jadwal.'
     },
     {
         id: 'tips',
         icon: '💡',
         title: 'Astuces & raccourcis',
-        subtitle: 'Tout ce qui rend votre expérience plus rapide et plus agréable.',
+        subtitle: 'Pour aller plus vite.',
         shortcuts: [
-            { key: 'Échap', desc: 'Fermer n\'importe quel modal ouvert' },
-            { key: 'Clic extérieur', desc: 'Fermer un modal en cliquant dehors' },
-            { key: 'Entrée', desc: 'Valider un formulaire (login, ajout tâche/créneau)' },
+            { key: 'Échap', desc: 'Fermer un modal' },
+            { key: 'Clic extérieur', desc: 'Fermer un modal' },
+            { key: 'Entrée', desc: 'Valider un formulaire' },
         ],
         actions: [
-
             {
-                title: 'Modifier une tâche existante',
-                desc: 'Dans "Mes Tâches", cliquez sur l\'icône crayon ✏️ d\'une carte pour éditer son nom, type ou couleur. La modification est immédiate dans tout l\'emploi du temps.'
+                title: 'Mot de passe oublié ?',
+                desc: 'Sur la page de connexion, cliquez "Mot de passe oublié ?". Un lien valable 1h sera envoyé à votre adresse email.'
             },
             {
-                title: 'Compte oublié ? Réinitialiser le mot de passe',
-                desc: 'Sur la page de connexion, cliquez sur "Mot de passe oublié ?" en bas du formulaire. Entrez votre email — un lien de réinitialisation valable 1 heure vous sera envoyé. Cliquez sur le lien dans l\'email pour choisir un nouveau mot de passe.'
-            },
-            {
-                title: 'L\'application est responsive (mobile)',
-                desc: 'Jadwal fonctionne sur smartphone et tablette. Sur mobile, la navigation se trouve en bas de l\'écran (barre inférieure). La sidebar est accessible via le bouton menu ☰ en haut à gauche. La navigation est optimisée pour les écrans tactiles.'
+                title: 'Application mobile',
+                desc: 'Sur téléphone, la navigation est en bas de l\'écran. L\'interface est entièrement optimisée pour les écrans tactiles.'
             }
         ],
-        tip: '<strong>Performance :</strong> Toutes les données sont chargées en parallèle lors de l\'ouverture de l\'application. Si quelque chose semble ne pas se charger, rafraîchissez la page (F5 ou Ctrl+R) — votre planning est toujours sauvegardé.'
+        tip: '<strong>En cas de problème :</strong> Rafraîchissez la page (F5). Vos données sont toujours sauvegardées.'
     }
 ];
 

@@ -2794,7 +2794,21 @@ select.form-input option {
     .panel-header {
         margin-bottom: 1rem;
         flex-direction: column;
-        gap: 0.5rem;
+        align-items: center;
+        text-align: center;
+        gap: 0.6rem;
+    }
+
+    .panel-header>div:first-child {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .panel-header>button,
+    .panel-header>div:last-child {
+        align-self: center;
     }
 
     .panel-title {
