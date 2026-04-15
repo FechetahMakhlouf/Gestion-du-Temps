@@ -64,6 +64,10 @@ def create_app():
             return send_from_directory(frontend_dir, path)
         return send_from_directory(frontend_dir, 'index.html')
 
+    @app.route('/api/ping', methods=['GET'])
+    def ping():
+        return {"status": "ok"}, 200
+
     return app
 
 
