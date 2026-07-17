@@ -10,7 +10,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     name = db.Column(db.String(80), nullable=False)
-    password = db.Column(db.String(200), nullable=False)
+    password = db.Column(db.String(255), nullable=False)  # 255 to fit bcrypt hashes (~60 chars)
     active_days = db.Column(
         db.JSON, default=['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'])
 

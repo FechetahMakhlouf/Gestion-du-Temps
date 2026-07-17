@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from flask_mail import Mail, Message
 from models import db, User, PasswordResetToken
 from utils import json_response
-import base64
+from werkzeug.security import generate_password_hash, check_password_hash
 import threading
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
@@ -28,7 +28,7 @@ def register():
     user = User(
         email=email,
         name=name,
-        password=base64.b64encode(password.encode()).decode()
+        password=generate_password_hash(password)
     )
     db.session.add(user)
     db.session.commit()
@@ -43,7 +43,7 @@ def login():
     password = data.get('password')
 
     user = User.query.filter_by(email=email).first()
-    if not user or user.password != base64.b64encode(password.encode()).decode():
+    if not user or not check_password_hash(user.password, password):
         return json_response(message='Invalid credentials', status=401)
 
     login_user(user)
@@ -104,7 +104,6 @@ def forgot_password():
             </div>
             """
         )
-        # Send in background thread so it doesn't block the worker
         app_ctx = current_app._get_current_object()
 
         def send_async(app, message):
@@ -136,7 +135,7 @@ def reset_password():
         return json_response(message='Lien invalide ou expiré', status=400)
 
     user = User.query.get(reset.user_id)
-    user.password = base64.b64encode(new_password.encode()).decode()
+    user.password = generate_password_hash(new_password)
     reset.used = True
     db.session.commit()
 
