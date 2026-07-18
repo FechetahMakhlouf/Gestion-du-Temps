@@ -2,6 +2,7 @@ from flask import Flask, send_from_directory
 from flask_login import LoginManager
 from flask_cors import CORS
 from flask_mail import Mail
+from flask_migrate import Migrate
 from models import db, User
 from config import Config
 from auth import auth_bp, mail
@@ -36,6 +37,7 @@ def create_app():
         pass
 
     db.init_app(app)
+    migrate = Migrate(app, db)
     mail.init_app(app)
 
     login_manager = LoginManager()
@@ -51,9 +53,6 @@ def create_app():
     app.register_blueprint(days_bp)
     app.register_blueprint(schedule_bp)
     app.register_blueprint(autogen_bp)
-
-    with app.app_context():
-        db.create_all()
 
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
