@@ -3491,3 +3491,55 @@ textarea.form-input:not(:placeholder-shown)~.form-label {
         right: 1rem !important;
     }
 }
+
+/* ═══════════════════════════════════════════════════
+   SETTINGS PANEL — gear button + account settings
+═══════════════════════════════════════════════════ */
+
+.sidebar-settings-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.4rem;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.sidebar-settings-btn:hover {
+    color: var(--gold-light);
+    background: var(--gold-dim);
+}
+
+.sidebar-settings-btn:active {
+    transform: scale(0.92);
+}
+
+.settings-section-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 -0.4rem;
+}
+
+.settings-danger-title {
+    color: var(--red-light);
+}
+
+.settings-danger-text {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.settings-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+}

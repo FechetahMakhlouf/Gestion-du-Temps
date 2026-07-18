@@ -7,6 +7,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from limiter import limiter
 import threading
 
+PASSWORD_MIN_LENGTH = 6
+
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 mail = Mail()
 
@@ -145,3 +147,49 @@ def reset_password():
     db.session.commit()
 
     return json_response(message='Mot de passe mis à jour avec succès !')
+
+
+@auth_bp.route('/change-password', methods=['PUT'])
+@login_required
+@limiter.limit("5 per minute")
+def change_password():
+    data = request.get_json() or {}
+    current_password = data.get('currentPassword') or ''
+    new_password = data.get('newPassword') or ''
+
+    if not current_password or not new_password:
+        return json_response(message='Mot de passe actuel et nouveau mot de passe requis', status=400)
+
+    if not check_password_hash(current_user.password, current_password):
+        return json_response(message='Mot de passe actuel incorrect', status=400)
+
+    if len(new_password) < PASSWORD_MIN_LENGTH:
+        return json_response(message='Nouveau mot de passe trop court (min 6 caractères)', status=400)
+
+    current_user.password = generate_password_hash(new_password)
+    db.session.commit()
+
+    return json_response(message='Mot de passe modifié avec succès !')
+
+
+@auth_bp.route('/account', methods=['DELETE'])
+@login_required
+@limiter.limit("5 per minute")
+def delete_account():
+    data = request.get_json() or {}
+    password = data.get('password') or ''
+
+    if not check_password_hash(current_user.password, password):
+        return json_response(message='Mot de passe incorrect', status=403)
+
+    user = User.query.get(current_user.id)
+
+    # PasswordResetToken has no cascade relationship on User, so it must be
+    # cleared explicitly or the DB's FK constraint will block the delete.
+    PasswordResetToken.query.filter_by(user_id=user.id).delete()
+
+    db.session.delete(user)
+    db.session.commit()
+
+    logout_user()
+    return json_response(message='Compte supprimé avec succès')

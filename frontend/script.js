@@ -1278,6 +1278,72 @@ async function doResetPassword() {
     }
 }
 
+/* ══════════════════════════════════════════════
+   ACCOUNT SETTINGS — change password / delete account
+══════════════════════════════════════════════ */
+
+async function doChangePassword() {
+    const currentPwd = document.getElementById('settings-current-password').value;
+    const newPwd = document.getElementById('settings-new-password').value;
+    const confirmPwd = document.getElementById('settings-confirm-password').value;
+    const msgEl = document.getElementById('settings-password-msg');
+
+    if (!currentPwd || !newPwd || !confirmPwd) {
+        showMsg(msgEl, 'Remplissez tous les champs.', 'error'); return;
+    }
+    if (newPwd.length < 6) {
+        showMsg(msgEl, 'Nouveau mot de passe trop court (min 6 caractères).', 'error'); return;
+    }
+    if (newPwd !== confirmPwd) {
+        showMsg(msgEl, 'Les mots de passe ne correspondent pas.', 'error'); return;
+    }
+
+    setLoading('settings-password-submit', true);
+    try {
+        const res = await apiCall('/api/auth/change-password', {
+            method: 'PUT',
+            body: JSON.stringify({ currentPassword: currentPwd, newPassword: newPwd })
+        });
+        showMsg(msgEl, res.message || 'Mot de passe modifié avec succès !', 'success');
+        document.getElementById('settings-current-password').value = '';
+        document.getElementById('settings-new-password').value = '';
+        document.getElementById('settings-confirm-password').value = '';
+        toast('Mot de passe modifié', 'success');
+    } catch (e) {
+        showMsg(msgEl, e.message, 'error');
+    } finally {
+        setLoading('settings-password-submit', false);
+    }
+}
+
+function openDeleteAccountModal() {
+    document.getElementById('delete-account-password').value = '';
+    document.getElementById('delete-account-msg').innerHTML = '';
+    document.getElementById('delete-account-modal').classList.add('open');
+    requestAnimationFrame(() => document.getElementById('delete-account-password').focus());
+}
+
+async function doDeleteAccount() {
+    const pwd = document.getElementById('delete-account-password').value;
+    const msgEl = document.getElementById('delete-account-msg');
+    if (!pwd) { showMsg(msgEl, 'Entrez votre mot de passe.', 'error'); return; }
+
+    setLoading('delete-account-submit', true);
+    try {
+        await apiCall('/api/auth/account', {
+            method: 'DELETE',
+            body: JSON.stringify({ password: pwd })
+        });
+        closeModal('delete-account-modal');
+        document.getElementById('app-page').style.display = 'none';
+        document.getElementById('auth-page').style.display = 'flex';
+        toast('Votre compte a été supprimé', 'info');
+    } catch (e) {
+        showMsg(msgEl, e.message, 'error');
+        setLoading('delete-account-submit', false);
+    }
+}
+
 /* ── Mobile nav helpers ── */
 function updateMobileNav(panel) {
     document.querySelectorAll('.mobile-bottom-nav .nav-item').forEach(btn => {
