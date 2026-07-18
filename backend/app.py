@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 from models import db, User
 from config import Config
 from auth import auth_bp, mail
+from limiter import limiter
 from subjects import subjects_bp
 from timeslots import timeslots_bp
 from days import days_bp
@@ -39,6 +40,7 @@ def create_app():
     db.init_app(app)
     migrate = Migrate(app, db)
     mail.init_app(app)
+    limiter.init_app(app)
 
     login_manager = LoginManager()
     login_manager.init_app(app)
@@ -66,6 +68,10 @@ def create_app():
     @app.route('/api/ping', methods=['GET'])
     def ping():
         return {"status": "ok"}, 200
+
+    @app.errorhandler(429)
+    def rate_limit_handler(e):
+        return {"message": "Trop de tentatives. Attendez une minute."}, 429
 
     return app
 
