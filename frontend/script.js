@@ -1680,7 +1680,7 @@ window.showPanel = function (name) {
         });
     }
 };
-// ── Contact Panel (EmailJS) ────────────────────────────────────────────────
+// ── Contact Panel (Backend API) ─────────────────────────────────────────────
 function sendContactEmail() {
     const name = document.getElementById('contact-name').value.trim();
     const email = document.getElementById('contact-email').value.trim();
@@ -1704,16 +1704,10 @@ function sendContactEmail() {
     btn.disabled = true;
     btnText.textContent = 'Envoi en cours…';
 
-    emailjs.send(
-        'service_aehzd58',
-        'template_gphnkq4',
-        {
-            user_name: name,
-            user_email: email,
-            user_message: message,
-            to_name: 'Fechetah Makhlouf'
-        }
-    ).then(() => {
+    apiCall('/api/contact', {
+        method: 'POST',
+        body: JSON.stringify({ name, email, message })
+    }).then(() => {
         msgEl.innerHTML = '<span style="color:#22c55e;font-size:0.83rem;">✅ Message envoyé avec succès ! Merci.</span>';
         btnText.textContent = 'Envoyé ✓';
         document.getElementById('contact-message').value = '';
@@ -1723,8 +1717,8 @@ function sendContactEmail() {
             msgEl.innerHTML = '';
         }, 4000);
     }).catch(err => {
-        console.error('EmailJS error:', err);
-        msgEl.innerHTML = '<span style="color:var(--danger);font-size:0.83rem;">Erreur lors de l\'envoi. Veuillez réessayer.</span>';
+        console.error('Contact API error:', err);
+        msgEl.innerHTML = `<span style="color:var(--danger);font-size:0.83rem;">${err.message || "Erreur lors de l'envoi. Veuillez réessayer."}</span>`;
         btn.disabled = false;
         btnText.textContent = 'Envoyer →';
     });
