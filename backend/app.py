@@ -13,6 +13,7 @@ from days import days_bp
 from schedule import schedule_bp
 from autogen import autogen_bp
 from contact import contact_bp
+from productivity_routes import productivity_bp
 import os
 
 
@@ -57,6 +58,7 @@ def create_app():
     app.register_blueprint(schedule_bp)
     app.register_blueprint(autogen_bp)
     app.register_blueprint(contact_bp)
+    app.register_blueprint(productivity_bp)
 
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
