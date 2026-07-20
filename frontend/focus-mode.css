@@ -1,0 +1,417 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   JADWAL — Focus Mode Styles
+   Appended to the project — uses existing CSS variables from styles.css
+   so it integrates naturally with the design system.
+═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Focus toggle button ────────────────────────────────────────────── */
+
+.focus-mode-toggle-btn {
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: background var(--transition), color var(--transition);
+}
+
+.focus-mode-toggle-btn.fm-btn-active {
+    background: var(--gold-dim);
+    border-color: var(--gold);
+    color: var(--gold-light);
+}
+
+/* ── Hide app UI while focus is active ─────────────────────────────── */
+
+body.focus-mode-active .sidebar,
+body.focus-mode-active .mobile-bottom-nav,
+body.focus-mode-active .mobile-nav-toggle,
+body.focus-mode-active .main-content,
+body.focus-mode-active .top-bar {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   OVERLAY BASE
+══════════════════════════════════════════════════════════════════════ */
+
+#focus-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    overflow-y: auto;
+    padding: 2rem 1rem;
+}
+
+#focus-overlay.fm-visible {
+    opacity: 1;
+}
+
+/* Dark background preference */
+#focus-overlay.fm-dark {
+    background: #030508;
+}
+
+/* Ambient gradient preference */
+#focus-overlay.fm-gradient {
+    background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,151,42,0.08) 0%, transparent 70%),
+        var(--bg);
+}
+
+#focus-overlay.fm-dark.fm-gradient {
+    background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,151,42,0.1) 0%, transparent 70%),
+        #030508;
+}
+
+/* ── Inner wrapper ──────────────────────────────────────────────────── */
+
+.fm-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.8rem;
+    width: 100%;
+    max-width: 560px;
+    text-align: center;
+    animation: fm-slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes fm-slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ── Large typography preference ────────────────────────────────────── */
+
+#focus-overlay.fm-large .fm-task-name  { font-size: 2.8rem; }
+#focus-overlay.fm-large .fm-clock      { font-size: 5rem; }
+#focus-overlay.fm-large .fm-countdown  { font-size: 3.6rem; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   CLOCK
+══════════════════════════════════════════════════════════════════════ */
+
+.fm-clock {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 3.8rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.05em;
+    line-height: 1;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   TASK BLOCK
+══════════════════════════════════════════════════════════════════════ */
+
+.fm-task-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.fm-task-emoji {
+    font-size: 2.4rem;
+    line-height: 1;
+}
+
+.fm-task-name {
+    font-family: 'Amiri', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid var(--gold);
+    transition: border-color var(--transition);
+}
+
+.fm-task-type {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+}
+
+.fm-task-time {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+
+.fm-time-arrow {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   COUNTDOWN
+══════════════════════════════════════════════════════════════════════ */
+
+.fm-countdown-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    transition: opacity 0.3s ease;
+}
+
+.fm-countdown-section.fm-hidden {
+    display: none;
+}
+
+.fm-countdown {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2.8rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.06em;
+    transition: color 0.3s ease;
+}
+
+.fm-countdown.fm-paused {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.fm-countdown-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   PROGRESS BAR
+══════════════════════════════════════════════════════════════════════ */
+
+.fm-progress-wrap {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.fm-progress-track {
+    width: 100%;
+    height: 6px;
+    background: var(--surface3);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.fm-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 1s linear;
+    min-width: 4px;
+}
+
+.fm-progress-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MOTIVATIONAL QUOTE
+══════════════════════════════════════════════════════════════════════ */
+
+.fm-quote {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-style: italic;
+    letter-spacing: 0.03em;
+    max-width: 320px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   SETTINGS PANEL (in-overlay)
+══════════════════════════════════════════════════════════════════════ */
+
+.fm-settings-row {
+    display: flex;
+    justify-content: center;
+}
+
+.fm-settings-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: color var(--transition), border-color var(--transition);
+}
+
+.fm-settings-btn:hover,
+.fm-settings-btn:focus-visible {
+    color: var(--text);
+    border-color: var(--border2);
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+}
+
+.fm-settings-panel {
+    width: 100%;
+    max-width: 320px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    animation: fm-slide-up 0.25s ease both;
+}
+
+.fm-settings-title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 0.2rem;
+}
+
+.fm-pref-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.fm-pref-check {
+    accent-color: var(--gold);
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   EXIT BUTTON
+══════════════════════════════════════════════════════════════════════ */
+
+.fm-exit-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    padding: 0.65rem 1.6rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition),
+                border-color var(--transition);
+    margin-top: 0.5rem;
+}
+
+.fm-exit-btn:hover,
+.fm-exit-btn:focus-visible {
+    background: var(--surface3);
+    color: var(--text);
+    border-color: var(--border2);
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   EMPTY STATE
+══════════════════════════════════════════════════════════════════════ */
+
+.fm-empty {
+    gap: 1.2rem;
+}
+
+.fm-empty-icon {
+    font-size: 4rem;
+    line-height: 1;
+}
+
+.fm-empty-title {
+    font-family: 'Amiri', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.fm-empty-sub {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.fm-next-task {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.fm-next-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+}
+
+.fm-next-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.fm-next-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.fm-free-time {
+    font-size: 1.05rem;
+    color: var(--gold-light);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+    .fm-clock        { font-size: 2.8rem; }
+    .fm-task-name    { font-size: 1.7rem; }
+    .fm-countdown    { font-size: 2rem;   }
+    .fm-empty-title  { font-size: 1.5rem; }
+    .fm-empty-icon   { font-size: 3rem;   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #focus-overlay, .fm-inner, .fm-settings-panel {
+        animation: none !important;
+        transition: none !important;
+    }
+    .fm-progress-fill {
+        transition: none !important;
+    }
+}

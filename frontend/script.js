@@ -169,6 +169,12 @@ async function startApp() {
 
     buildColorGrid();
     renderAll();
+
+    // ── Focus Mode integration ──────────────────────────────────────────
+    // Inject the ⏱ Focus button into the schedule panel header, then
+    // restore focus state if the user reloaded during an active session.
+    if (typeof injectFocusButton === 'function') injectFocusButton();
+    if (typeof restoreFocusState === 'function') restoreFocusState();
 }
 
 /* ══════════════════════════════════════════════
@@ -1138,8 +1144,11 @@ function toast(msg, type = 'info') {
 }
 
 // Close modals with Escape key
+// (Focus Mode has its own ESC handler registered via registerFocusShortcuts)
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
+        // Let focus-mode.js handle ESC when overlay is active
+        if (document.getElementById('focus-overlay')) return;
         document.querySelectorAll('.modal-overlay.open').forEach(o => o.classList.remove('open'));
     }
 });
