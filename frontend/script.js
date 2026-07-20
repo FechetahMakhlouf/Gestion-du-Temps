@@ -1960,3 +1960,169 @@ document.addEventListener('click', function (e) {
 document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeEmojiPicker();
 });
+/* ══════════════════════════════════════════════════════
+   📈 PRODUCTIVITY SCORE
+   Fetches score from /api/productivity/<weekOffset>
+   and renders the card in the schedule panel.
+   Automatically refreshes whenever the schedule changes.
+══════════════════════════════════════════════════════ */
+
+/** Max scores per factor — must mirror backend constants */
+const PROD_MAX = {
+    hours:        25,
+    consistency:  20,
+    distribution: 20,
+    efficiency:   15,
+    variety:      10,
+    balance:      10,
+};
+
+/** Human-readable French labels for each factor */
+const PROD_LABELS = {
+    hours:        'Heures',
+    consistency:  'Régularité',
+    distribution: 'Distribution',
+    efficiency:   'Efficacité',
+    variety:      'Variété',
+    balance:      'Équilibre',
+};
+
+/**
+ * Renders the productivity card for the current week.
+ * Called automatically after every schedule mutation and on panel show.
+ */
+async function renderProductivityCard() {
+    const card = document.getElementById('productivity-card');
+    if (!card) return;
+
+    // Show card with skeleton while loading
+    card.style.display = '';
+    _prodShowSkeleton();
+
+    let data;
+    try {
+        data = await apiCall(`/api/productivity/${currentWeekOffset}`);
+    } catch (e) {
+        // Silently hide card on error (e.g. not logged in, server down)
+        card.style.display = 'none';
+        return;
+    }
+
+    _prodRenderScore(data);
+}
+
+/** Inject skeleton placeholders while the API call is in flight */
+function _prodShowSkeleton() {
+    const barsEl  = document.getElementById('prod-bars');
+    const scoreEl = document.getElementById('prod-gauge-score');
+    const levelEl = document.getElementById('prod-card-level');
+    if (scoreEl) scoreEl.textContent = '…';
+    if (levelEl) levelEl.textContent = '';
+    if (barsEl)  barsEl.innerHTML = Object.keys(PROD_MAX).map(() =>
+        `<div class="prod-bar-row">
+            <div class="prod-skeleton" style="height:10px;width:60px;border-radius:4px"></div>
+            <div class="prod-skeleton prod-bar-track" style="height:6px"></div>
+            <div class="prod-skeleton" style="height:10px;width:32px;border-radius:4px;margin-left:auto"></div>
+         </div>`
+    ).join('');
+}
+
+/** Full render once data is available */
+function _prodRenderScore(data) {
+    const score   = data.score   ?? 0;
+    const level   = data.level   ?? '';
+    const details = data.details ?? {};
+    const tips    = data.tips    ?? [];
+    const max     = data.max     ?? PROD_MAX;
+
+    // ── Gauge ──────────────────────────────────────────────────────────────
+    const scoreEl = document.getElementById('prod-gauge-score');
+    const fillEl  = document.getElementById('prod-gauge-fill');
+    const levelEl = document.getElementById('prod-card-level');
+
+    if (scoreEl) scoreEl.textContent = score;
+    if (levelEl) levelEl.textContent = level;
+
+    if (fillEl) {
+        const circumference = 2 * Math.PI * 50; // r=50 → 314.16
+        const offset = circumference - (score / 100) * circumference;
+        // Use requestAnimationFrame so CSS transition triggers
+        requestAnimationFrame(() => {
+            fillEl.style.strokeDashoffset = offset;
+        });
+
+        // Colour tier
+        const tier = score >= 90 ? 'excellent'
+                   : score >= 75 ? 'productive'
+                   : score >= 60 ? 'good'
+                   : score >= 40 ? 'needs-work'
+                   :               'poor';
+        fillEl.setAttribute('data-score-tier', tier);
+
+        // Also colour the level badge
+        const levelEl2 = document.getElementById('prod-card-level');
+        if (levelEl2) {
+            levelEl2.style.color =
+                tier === 'excellent'  ? 'var(--green-light)' :
+                tier === 'productive' ? 'var(--blue-light)'  :
+                tier === 'good'       ? 'var(--gold-light)'  :
+                tier === 'needs-work' ? '#e07b2a'            :
+                                        'var(--red-light)';
+        }
+    }
+
+    // ── Breakdown bars ─────────────────────────────────────────────────────
+    const barsEl = document.getElementById('prod-bars');
+    if (barsEl) {
+        barsEl.innerHTML = Object.keys(PROD_LABELS).map(key => {
+            const val    = details[key] ?? 0;
+            const maxVal = max[key]     ?? PROD_MAX[key] ?? 10;
+            const pct    = maxVal > 0 ? (val / maxVal) * 100 : 0;
+            const label  = PROD_LABELS[key];
+
+            // Bar colour reflects fill level
+            const barColor =
+                pct >= 80 ? 'var(--green)'      :
+                pct >= 50 ? 'var(--blue)'        :
+                pct >= 30 ? 'var(--gold)'        :
+                            'var(--red-light)';
+
+            return `<div class="prod-bar-row">
+                <span class="prod-bar-label" title="${label}">${label}</span>
+                <div class="prod-bar-track">
+                    <div class="prod-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+                </div>
+                <span class="prod-bar-value">${Math.round(val)}/${maxVal}</span>
+            </div>`;
+        }).join('');
+    }
+
+    // ── Tips ───────────────────────────────────────────────────────────────
+    const tipsWrap = document.getElementById('prod-tips');
+    const tipsList = document.getElementById('prod-tips-list');
+
+    if (tipsWrap && tipsList && tips.length) {
+        tipsList.innerHTML = tips.map(t => `<li>${t}</li>`).join('');
+        tipsWrap.style.display = '';
+    } else if (tipsWrap) {
+        tipsWrap.style.display = 'none';
+    }
+}
+
+/* ── Hook into existing schedule mutations ────────────────────────────────
+   We wrap the functions that already call renderScheduleGrid() so the
+   productivity card refreshes automatically without duplicating logic.
+   ─────────────────────────────────────────────────────────────────────── */
+
+(function _hookProductivity() {
+    // Wrap renderScheduleGrid — it's the single convergence point for all
+    // schedule changes (assign, remove, auto-gen, week change, day toggle…)
+    const _origRenderScheduleGrid = window.renderScheduleGrid;
+
+    window.renderScheduleGrid = async function (...args) {
+        const result = await _origRenderScheduleGrid.apply(this, args);
+        // Refresh productivity score in parallel after grid renders
+        renderProductivityCard();
+        return result;
+    };
+})();

@@ -797,6 +797,44 @@
                 >0 / 0 créneaux assignés</span
               >
             </div>
+            <!-- ── Productivity Score Card ── -->
+            <div class="productivity-card" id="productivity-card" aria-label="Score de productivité" style="display:none">
+              <div class="prod-card-header">
+                <span class="prod-card-title">📈 Score de Productivité</span>
+                <span class="prod-card-level" id="prod-level"></span>
+              </div>
+              <div class="prod-card-body">
+                <!-- Circular gauge -->
+                <div class="prod-gauge-wrap" aria-hidden="true">
+                  <svg class="prod-gauge" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="prod-gauge-track" cx="60" cy="60" r="50" />
+                    <circle class="prod-gauge-fill" id="prod-gauge-fill" cx="60" cy="60" r="50"
+                      stroke-dasharray="314.16"
+                      stroke-dashoffset="314.16"
+                      stroke-linecap="round" />
+                  </svg>
+                  <div class="prod-gauge-center">
+                    <div class="prod-gauge-score" id="prod-gauge-score">—</div>
+                    <div class="prod-gauge-label">/ 100</div>
+                  </div>
+                </div>
+
+                <!-- Breakdown bars -->
+                <div class="prod-breakdown">
+                  <div class="prod-breakdown-title">Détail</div>
+                  <div class="prod-bars" id="prod-bars">
+                    <!-- injected by JS -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tips -->
+              <div class="prod-tips" id="prod-tips" style="display:none">
+                <div class="prod-tips-title">💡 Suggestions</div>
+                <ul class="prod-tips-list" id="prod-tips-list"></ul>
+              </div>
+            </div>
+
             <!-- Dynamic legend -->
             <div
               id="schedule-legend"
