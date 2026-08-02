@@ -15,12 +15,11 @@ def get_subtasks(subject_id):
 
     # Optional ?day= filter; if omitted, return all subtasks (subjects panel)
     day = request.args.get('day', None)
-    query = Subtask.query.filter_by(subject_id=subject_id, user_id=current_user.id)
+    query = Subtask.query.filter_by(
+        subject_id=subject_id, user_id=current_user.id)
     if day:
-        # Return subtasks scoped to this day, plus legacy rows with no day
-        query = query.filter(
-            db.or_(Subtask.day == day, Subtask.day == None)  # noqa: E711
-        )
+        # Return only subtasks scoped strictly to this day
+        query = query.filter(Subtask.day == day)
     subtasks = query.order_by(Subtask.position).all()
 
     return json_response([{
