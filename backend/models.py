@@ -31,6 +31,20 @@ class Subject(db.Model):
     type = db.Column(db.String(50), nullable=False)
     color = db.Column(db.String(7), nullable=False)
 
+    subtasks = db.relationship(
+        'Subtask', backref='subject', lazy=True,
+        cascade='all, delete-orphan',
+        order_by='Subtask.position')
+
+
+class Subtask(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    subject_id = db.Column(db.String(50), db.ForeignKey(
+        'subject.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    position = db.Column(db.Integer, nullable=False, default=0)
+
 
 class Timeslot(db.Model):
     id = db.Column(db.String(50), primary_key=True)

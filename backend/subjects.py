@@ -25,7 +25,7 @@ def add_subject():
         id=subj_id,
         user_id=current_user.id,
         name=data['name'],
-        type=data['type'],
+        type=data.get('type', ''),
         color=data['color']
     )
     db.session.add(subject)
@@ -40,7 +40,7 @@ def update_subject(subject_id):
         id=subject_id, user_id=current_user.id).first_or_404()
     data = request.get_json()
     subject.name = data['name']
-    subject.type = data['type']
+    subject.type = data.get('type', subject.type)
     subject.color = data['color']
     db.session.commit()
     return json_response(message='Subject updated')
