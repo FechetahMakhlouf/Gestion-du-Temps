@@ -12,15 +12,23 @@ def get_subtasks(subject_id):
     # Ensure the subject belongs to the current user
     Subject.query.filter_by(
         id=subject_id, user_id=current_user.id).first_or_404()
-    subtasks = (Subtask.query
-                .filter_by(subject_id=subject_id, user_id=current_user.id)
-                .order_by(Subtask.position)
-                .all())
+
+    # Optional ?day= filter; if omitted, return all subtasks (subjects panel)
+    day = request.args.get('day', None)
+    query = Subtask.query.filter_by(subject_id=subject_id, user_id=current_user.id)
+    if day:
+        # Return subtasks scoped to this day, plus legacy rows with no day
+        query = query.filter(
+            db.or_(Subtask.day == day, Subtask.day == None)  # noqa: E711
+        )
+    subtasks = query.order_by(Subtask.position).all()
+
     return json_response([{
         'id': st.id,
         'subject_id': st.subject_id,
         'title': st.title,
-        'position': st.position
+        'position': st.position,
+        'day': st.day
     } for st in subtasks])
 
 
@@ -34,16 +42,19 @@ def add_subtask(subject_id):
     if not title:
         return json_response(message='Le titre est requis.', status=400)
 
-    # Place at the end
+    day = (data.get('day') or '').strip() or None
+
+    # Place at the end within the same (subject, day) scope
     max_pos = db.session.query(db.func.max(Subtask.position)).filter_by(
-        subject_id=subject_id, user_id=current_user.id).scalar() or -1
+        subject_id=subject_id, user_id=current_user.id, day=day).scalar() or -1
     position = data.get('position', max_pos + 1)
 
     subtask = Subtask(
         subject_id=subject_id,
         user_id=current_user.id,
         title=title,
-        position=position
+        position=position,
+        day=day
     )
     db.session.add(subtask)
     db.session.commit()
@@ -51,7 +62,8 @@ def add_subtask(subject_id):
         'id': subtask.id,
         'subject_id': subtask.subject_id,
         'title': subtask.title,
-        'position': subtask.position
+        'position': subtask.position,
+        'day': subtask.day
     }, message='Sous-titre ajouté', status=201)
 
 
@@ -79,7 +91,8 @@ def update_subtask(subject_id, subtask_id):
         'id': subtask.id,
         'subject_id': subtask.subject_id,
         'title': subtask.title,
-        'position': subtask.position
+        'position': subtask.position,
+        'day': subtask.day
     }, message='Sous-titre modifié')
 
 

@@ -44,6 +44,8 @@ class Subtask(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     title = db.Column(db.String(200), nullable=False)
     position = db.Column(db.Integer, nullable=False, default=0)
+    # Day abbreviation (e.g. 'Lun', 'Mar', …). NULL means applies to all days (legacy).
+    day = db.Column(db.String(3), nullable=True, default=None)
 
 
 class Timeslot(db.Model):
