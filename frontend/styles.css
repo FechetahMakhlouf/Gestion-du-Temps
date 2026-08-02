@@ -1810,9 +1810,6 @@ select.form-input option {
 
 /* Color picker grid */
 .color-picker-grid {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 0.5rem;
   margin-top: 0.4rem;
 }
 
@@ -1830,6 +1827,71 @@ select.form-input option {
 .color-swatch:hover {
   border-color: white;
   transform: scale(1.1);
+}
+
+/* Color Wheel Picker */
+.wheel-picker {
+  margin-top: 0.3rem;
+}
+
+.wheel-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+#color-wheel {
+  border-radius: 50%;
+  cursor: crosshair;
+  flex-shrink: 0;
+  display: block;
+}
+
+#brightness-bar {
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: block;
+}
+
+.wheel-right {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+}
+
+.wheel-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wheel-preview {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  flex-shrink: 0;
+  transition: background 0.1s;
+}
+
+.wheel-hex-input {
+  width: 90px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.78rem;
+  padding: 0.4rem 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: border-color 0.2s;
+}
+
+.wheel-hex-input:focus {
+  outline: none;
+  border-color: var(--gold);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -3017,12 +3079,13 @@ select.form-input option {
   }
 
   /* ── Color picker ── */
-  .color-picker-grid {
-    gap: 0.55rem;
+  #color-wheel {
+    width: 150px;
+    height: 150px;
   }
 
-  .color-swatch {
-    min-height: 32px;
+  #brightness-bar {
+    height: 150px;
   }
 
   /* ── Touch feedback ── */
@@ -3897,10 +3960,13 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 .subtask-add-btn {
   flex: 0 0 auto;
   white-space: nowrap;
-  padding: 0.25rem 0.55rem;
-  font-size: 0.72rem;
-  line-height: 1.3;
+  padding: 0.5rem 1rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
   min-width: unset;
+  width: auto !important;
+  min-height: unset !important;
+  border-radius: 10px;
 }
 
 /* Subtask list container */
@@ -4019,13 +4085,15 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 
 @media (max-width: 640px) {
   .subtask-add-row {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
   }
   .subtask-add-btn {
-    width: 100%;
+    width: auto !important;
+    min-height: unset !important;
     justify-content: center;
     font-size: 0.78rem;
-    padding: 0.35rem 0.75rem;
+    padding: 0.45rem 0.85rem;
+    flex-shrink: 0;
   }
 }

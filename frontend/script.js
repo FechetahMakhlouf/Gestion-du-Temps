@@ -1,6 +1,6 @@
 let currentWeekOffset = 0;
 let selectedSubjectId = null;
-let interactionMode = 'click';
+let interactionMode = "click";
 let currentActiveDays = [];
 
 /* ══════════════════════════════════════════════
@@ -8,43 +8,44 @@ let currentActiveDays = [];
 ══════════════════════════════════════════════ */
 
 function setLoading(btnId, isLoading) {
-    const btn = typeof btnId === 'string' ? document.getElementById(btnId) : btnId;
-    if (!btn) return;
-    if (isLoading) {
-        btn.disabled = true;
-        btn._origText = btn.innerHTML;
-        btn.innerHTML = '<span class="btn-spinner"></span>';
-    } else {
-        btn.disabled = false;
-        btn.innerHTML = btn._origText || btn.innerHTML;
-    }
+  const btn =
+    typeof btnId === "string" ? document.getElementById(btnId) : btnId;
+  if (!btn) return;
+  if (isLoading) {
+    btn.disabled = true;
+    btn._origText = btn.innerHTML;
+    btn.innerHTML = '<span class="btn-spinner"></span>';
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = btn._origText || btn.innerHTML;
+  }
 }
 
 function togglePwd(inputId, btn) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    const isPassword = input.type === 'password';
-    input.type = isPassword ? 'text' : 'password';
-    btn.classList.toggle('active', isPassword);
-    // Swap eye / eye-off icon
-    btn.innerHTML = isPassword
-        ? `<svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const isPassword = input.type === "password";
+  input.type = isPassword ? "text" : "password";
+  btn.classList.toggle("active", isPassword);
+  // Swap eye / eye-off icon
+  btn.innerHTML = isPassword
+    ? `<svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
                <line x1="1" y1="1" x2="23" y2="23"/>
            </svg>`
-        : `<svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    : `<svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                <circle cx="12" cy="12" r="3"/>
            </svg>`;
 }
 
 function showLoader() {
-    const l = document.getElementById('app-loader');
-    if (l) l.classList.add('visible');
+  const l = document.getElementById("app-loader");
+  if (l) l.classList.add("visible");
 }
 function hideLoader() {
-    const l = document.getElementById('app-loader');
-    if (l) l.classList.remove('visible');
+  const l = document.getElementById("app-loader");
+  if (l) l.classList.remove("visible");
 }
 
 /* ══════════════════════════════════════════════
@@ -52,129 +53,160 @@ function hideLoader() {
 ══════════════════════════════════════════════ */
 
 function switchAuthTab(tab) {
-    document.querySelectorAll('.auth-tab').forEach((t, i) => {
-        const isActive = (i === 0 && tab === 'login') || (i === 1 && tab === 'register');
-        t.classList.toggle('active', isActive);
-        t.setAttribute('aria-selected', isActive);
-    });
-    document.getElementById('login-form').style.display = tab === 'login' ? 'flex' : 'none';
-    document.getElementById('register-form').style.display = tab === 'register' ? 'flex' : 'none';
-    // Auto-focus first field
-    requestAnimationFrame(() => {
-        const first = document.querySelector(`#${tab === 'login' ? 'login-email' : 'reg-name'}`);
-        if (first) first.focus();
-    });
+  document.querySelectorAll(".auth-tab").forEach((t, i) => {
+    const isActive =
+      (i === 0 && tab === "login") || (i === 1 && tab === "register");
+    t.classList.toggle("active", isActive);
+    t.setAttribute("aria-selected", isActive);
+  });
+  document.getElementById("login-form").style.display =
+    tab === "login" ? "flex" : "none";
+  document.getElementById("register-form").style.display =
+    tab === "register" ? "flex" : "none";
+  // Auto-focus first field
+  requestAnimationFrame(() => {
+    const first = document.querySelector(
+      `#${tab === "login" ? "login-email" : "reg-name"}`,
+    );
+    if (first) first.focus();
+  });
 }
 
 function showMsg(el, msg, type) {
-    el.innerHTML = `<div class="auth-msg ${type}">${msg}</div>`;
+  el.innerHTML = `<div class="auth-msg ${type}">${msg}</div>`;
 }
 
 async function doLogin() {
-    const email = document.getElementById('login-email').value.trim().toLowerCase();
-    const pwd = document.getElementById('login-password').value;
-    const msgEl = document.getElementById('login-msg');
-    if (!email || !pwd) { showMsg(msgEl, 'Remplissez tous les champs.', 'error'); return; }
+  const email = document
+    .getElementById("login-email")
+    .value.trim()
+    .toLowerCase();
+  const pwd = document.getElementById("login-password").value;
+  const msgEl = document.getElementById("login-msg");
+  if (!email || !pwd) {
+    showMsg(msgEl, "Remplissez tous les champs.", "error");
+    return;
+  }
 
-    setLoading('login-submit', true);
-    try {
-        await apiCall('/api/auth/login', {
-            method: 'POST',
-            body: JSON.stringify({ email, password: pwd })
-        });
-        showMsg(msgEl, 'Connexion réussie', 'success');
-        setTimeout(() => { msgEl.innerHTML = ''; }, 2000);
-        setTimeout(() => {
-            startApp();
-            document.getElementById('login-email').value = '';
-            document.getElementById('login-password').value = '';
-        }, 500);
-    } catch (e) {
-        showMsg(msgEl, e.message, 'error');
-        setLoading('login-submit', false);
-    }
+  setLoading("login-submit", true);
+  try {
+    await apiCall("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password: pwd }),
+    });
+    showMsg(msgEl, "Connexion réussie", "success");
+    setTimeout(() => {
+      msgEl.innerHTML = "";
+    }, 2000);
+    setTimeout(() => {
+      startApp();
+      document.getElementById("login-email").value = "";
+      document.getElementById("login-password").value = "";
+    }, 500);
+  } catch (e) {
+    showMsg(msgEl, e.message, "error");
+    setLoading("login-submit", false);
+  }
 }
 
 async function doRegister() {
-    const name = document.getElementById('reg-name').value.trim();
-    const email = document.getElementById('reg-email').value.trim().toLowerCase();
-    const pwd = document.getElementById('reg-password').value;
-    const confirmPwd = document.getElementById('reg-confirm-password').value;
-    const msgEl = document.getElementById('reg-msg');
+  const name = document.getElementById("reg-name").value.trim();
+  const email = document.getElementById("reg-email").value.trim().toLowerCase();
+  const pwd = document.getElementById("reg-password").value;
+  const confirmPwd = document.getElementById("reg-confirm-password").value;
+  const msgEl = document.getElementById("reg-msg");
 
-    if (!name || !email || !pwd || !confirmPwd) {
-        showMsg(msgEl, 'Remplissez tous les champs.', 'error'); return;
-    }
-    if (pwd.length < 6) {
-        showMsg(msgEl, 'Mot de passe trop court (min 6 caractères).', 'error'); return;
-    }
-    if (pwd !== confirmPwd) {
-        showMsg(msgEl, 'Les mots de passe ne correspondent pas.', 'error'); return;
-    }
+  if (!name || !email || !pwd || !confirmPwd) {
+    showMsg(msgEl, "Remplissez tous les champs.", "error");
+    return;
+  }
+  if (pwd.length < 6) {
+    showMsg(msgEl, "Mot de passe trop court (min 6 caractères).", "error");
+    return;
+  }
+  if (pwd !== confirmPwd) {
+    showMsg(msgEl, "Les mots de passe ne correspondent pas.", "error");
+    return;
+  }
 
-    setLoading('reg-submit', true);
-    try {
-        await apiCall('/api/auth/register', {
-            method: 'POST',
-            body: JSON.stringify({ name, email, password: pwd })
-        });
+  setLoading("reg-submit", true);
+  try {
+    await apiCall("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ name, email, password: pwd }),
+    });
 
-        showMsg(msgEl, 'Compte créé avec succès ! Vous pouvez maintenant vous connecter.', 'success');
-        setTimeout(() => { msgEl.innerHTML = ''; }, 2000);
+    showMsg(
+      msgEl,
+      "Compte créé avec succès ! Vous pouvez maintenant vous connecter.",
+      "success",
+    );
+    setTimeout(() => {
+      msgEl.innerHTML = "";
+    }, 2000);
 
-        document.getElementById('reg-name').value = '';
-        document.getElementById('reg-email').value = '';
-        document.getElementById('reg-password').value = '';
-        document.getElementById('reg-confirm-password').value = '';
+    document.getElementById("reg-name").value = "";
+    document.getElementById("reg-email").value = "";
+    document.getElementById("reg-password").value = "";
+    document.getElementById("reg-confirm-password").value = "";
 
-        setTimeout(() => {
-            switchAuthTab('login');
-            document.getElementById('login-email').value = '';
-            document.getElementById('login-password').value = '';
-            document.getElementById('login-msg').innerHTML = '';
-            setLoading('reg-submit', false);
-        }, 1500);
-    } catch (e) {
-        showMsg(msgEl, e.message, 'error');
-        setLoading('reg-submit', false);
-    }
+    setTimeout(() => {
+      switchAuthTab("login");
+      document.getElementById("login-email").value = "";
+      document.getElementById("login-password").value = "";
+      document.getElementById("login-msg").innerHTML = "";
+      setLoading("reg-submit", false);
+    }, 1500);
+  } catch (e) {
+    showMsg(msgEl, e.message, "error");
+    setLoading("reg-submit", false);
+  }
 }
 
 function confirmLogout() {
-    document.getElementById('logout-modal').classList.add('open');
+  document.getElementById("logout-modal").classList.add("open");
 }
 
 async function doLogout() {
-    closeModal('logout-modal');
-    await apiCall('/api/auth/logout', { method: 'POST' }).catch(() => { });
-    document.getElementById('auth-page').style.display = 'flex';
-    document.getElementById('app-page').style.display = 'none';
-    toast('À bientôt !', 'info');
+  closeModal("logout-modal");
+  await apiCall("/api/auth/logout", { method: "POST" }).catch(() => {});
+  document.getElementById("auth-page").style.display = "flex";
+  document.getElementById("app-page").style.display = "none";
+  toast("À bientôt !", "info");
 }
 
 async function startApp() {
-    document.getElementById('auth-page').style.display = 'none';
-    document.getElementById('app-page').style.display = 'block';
-    setLoading('login-submit', false);
-    const user = await apiCall('/api/auth/me');
+  document.getElementById("auth-page").style.display = "none";
+  document.getElementById("app-page").style.display = "block";
+  setLoading("login-submit", false);
+  const user = await apiCall("/api/auth/me");
 
-    // Sidebar: username + initials avatar + date
-    document.getElementById('sidebar-username').textContent = user.name;
-    const initials = user.name.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
-    document.getElementById('sidebar-avatar').textContent = initials;
-    const mobileAvatar = document.getElementById('mobile-avatar');
-    if (mobileAvatar) mobileAvatar.textContent = initials;
-    const now = new Date();
-    document.getElementById('sidebar-date').textContent = now.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+  // Sidebar: username + initials avatar + date
+  document.getElementById("sidebar-username").textContent = user.name;
+  const initials = user.name
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  document.getElementById("sidebar-avatar").textContent = initials;
+  const mobileAvatar = document.getElementById("mobile-avatar");
+  if (mobileAvatar) mobileAvatar.textContent = initials;
+  const now = new Date();
+  document.getElementById("sidebar-date").textContent = now.toLocaleDateString(
+    "fr-FR",
+    { weekday: "short", day: "numeric", month: "short" },
+  );
 
-    buildColorGrid();
-    renderAll();
+  buildColorGrid();
+  renderAll();
 
-    // ── Focus Mode integration ──────────────────────────────────────────
-    // Inject the ⏱ Focus button into the schedule panel header, then
-    // restore focus state if the user reloaded during an active session.
-    if (typeof injectFocusButton === 'function') injectFocusButton();
-    if (typeof restoreFocusState === 'function') restoreFocusState();
+  // ── Focus Mode integration ──────────────────────────────────────────
+  // Inject the ⏱ Focus button into the schedule panel header, then
+  // restore focus state if the user reloaded during an active session.
+  if (typeof injectFocusButton === "function") injectFocusButton();
+  if (typeof restoreFocusState === "function") restoreFocusState();
 }
 
 /* ══════════════════════════════════════════════
@@ -182,130 +214,421 @@ async function startApp() {
 ══════════════════════════════════════════════ */
 
 function showPanel(name) {
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('panel-' + name).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(n => {
-        if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(name)) n.classList.add('active');
-    });
-    if (name === 'schedule') renderScheduleGrid();
-    if (name === 'contact') {
-        // Pre-fill name if logged in and field is empty
-        const usernameEl = document.getElementById('sidebar-username');
-        const nameField = document.getElementById('contact-name');
-        if (usernameEl && nameField && !nameField.value && usernameEl.textContent !== '—') {
-            nameField.value = usernameEl.textContent;
-        }
+  document
+    .querySelectorAll(".panel")
+    .forEach((p) => p.classList.remove("active"));
+  document
+    .querySelectorAll(".nav-item")
+    .forEach((n) => n.classList.remove("active"));
+  document.getElementById("panel-" + name).classList.add("active");
+  document.querySelectorAll(".nav-item").forEach((n) => {
+    if (n.getAttribute("onclick") && n.getAttribute("onclick").includes(name))
+      n.classList.add("active");
+  });
+  if (name === "schedule") renderScheduleGrid();
+  if (name === "contact") {
+    // Pre-fill name if logged in and field is empty
+    const usernameEl = document.getElementById("sidebar-username");
+    const nameField = document.getElementById("contact-name");
+    if (
+      usernameEl &&
+      nameField &&
+      !nameField.value &&
+      usernameEl.textContent !== "—"
+    ) {
+      nameField.value = usernameEl.textContent;
     }
-    // Si on quitte le panel export, on retire export-mode (restaure la sidebar)
-    if (name !== 'export') {
-        document.body.classList.remove('export-mode');
-    }
-    // Fermer sidebar sur mobile après navigation
-    if (window.innerWidth <= 768) {
-        document.getElementById('sidebar').classList.remove('open');
-    }
+  }
+  // Si on quitte le panel export, on retire export-mode (restaure la sidebar)
+  if (name !== "export") {
+    document.body.classList.remove("export-mode");
+  }
+  // Fermer sidebar sur mobile après navigation
+  if (window.innerWidth <= 768) {
+    document.getElementById("sidebar").classList.remove("open");
+  }
 }
 
 function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById("sidebar").classList.toggle("open");
 }
 
 /* ══════════════════════════════════════════════
    SUBJECTS
 ══════════════════════════════════════════════ */
 
-let selectedColor = '#1d4ed8';
-const COLORS = [
-    '#1d4ed8', '#2563eb', '#7c3aed', '#9333ea', '#db2777', '#e11d48',
-    '#dc2626', '#ea580c', '#d97706', '#ca8a04', '#65a30d', '#16a34a',
-    '#059669', '#0d9488', '#0891b2', '#0369a1', '#4338ca', '#6d28d9',
-    '#be185d', '#9f1239', '#b45309', '#78350f', '#15803d', '#155e75',
-];
+let selectedColor = "#1d4ed8";
 
-function buildColorGrid() {
-    const grid = document.getElementById('color-grid');
-    grid.innerHTML = COLORS.map(c => `
-        <div class="color-swatch ${c === selectedColor ? 'selected' : ''}"
-             role="option"
-             aria-label="Couleur ${c}"
-             aria-selected="${c === selectedColor}"
-             style="background:${c}"
-             onclick="pickColor('${c}',this)"
-             tabindex="0"
-             onkeydown="if(event.key==='Enter'||event.key===' ')pickColor('${c}',this)"></div>
-    `).join('');
+/* ── Color Wheel Picker ─────────────────────────── */
+const _wheel = {
+  hue: 210,
+  sat: 0.82,
+  bri: 0.85, // HSB state
+  draggingWheel: false,
+  draggingBar: false,
+};
+
+function _clamp(v, lo, hi) {
+  return Math.max(lo, Math.min(hi, v));
 }
 
-function pickColor(c, el) {
-    selectedColor = c;
-    document.querySelectorAll('.color-swatch').forEach(s => {
-        s.classList.remove('selected');
-        s.setAttribute('aria-selected', 'false');
-    });
-    el.classList.add('selected');
-    el.setAttribute('aria-selected', 'true');
+function _hsbToRgb(h, s, b) {
+  const f = (n) => {
+    const k = (n + h / 60) % 6;
+    return b - b * s * Math.max(0, Math.min(k, 4 - k, 1));
+  };
+  return [
+    Math.round(f(5) * 255),
+    Math.round(f(3) * 255),
+    Math.round(f(1) * 255),
+  ];
+}
+
+function _rgbToHex(r, g, b) {
+  return (
+    "#" +
+    [r, g, b]
+      .map((v) => _clamp(Math.round(v), 0, 255).toString(16).padStart(2, "0"))
+      .join("")
+  );
+}
+
+function _hexToRgb(hex) {
+  const n = parseInt(hex.replace("#", ""), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function _rgbToHsb(r, g, b) {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b),
+    d = max - min;
+  let h = 0;
+  if (d) {
+    if (max === r) h = ((g - b) / d + 6) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+  }
+  return [h, max ? d / max : 0, max];
+}
+
+function _drawWheel(canvas) {
+  const ctx = canvas.getContext("2d");
+  const cx = canvas.width / 2,
+    cy = canvas.height / 2,
+    r = cx - 1;
+  const img = ctx.createImageData(canvas.width, canvas.height);
+  for (let y = 0; y < canvas.height; y++) {
+    for (let x = 0; x < canvas.width; x++) {
+      const dx = x - cx,
+        dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > r) {
+        img.data[(y * canvas.width + x) * 4 + 3] = 0;
+        continue;
+      }
+      const hue = ((Math.atan2(dy, dx) * 180) / Math.PI + 360) % 360;
+      const sat = dist / r;
+      const [rr, gg, bb] = _hsbToRgb(hue, sat, 1);
+      const i = (y * canvas.width + x) * 4;
+      img.data[i] = rr;
+      img.data[i + 1] = gg;
+      img.data[i + 2] = bb;
+      img.data[i + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+function _drawBrightnessBar(canvas, hue, sat) {
+  const ctx = canvas.getContext("2d");
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  const [r1, g1, b1] = _hsbToRgb(hue, sat, 1);
+  grad.addColorStop(0, `rgb(${r1},${g1},${b1})`);
+  grad.addColorStop(1, "#000");
+  ctx.fillStyle = grad;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.beginPath();
+  ctx.roundRect(0, 0, canvas.width, canvas.height, 5);
+  ctx.fill();
+}
+
+function _drawWheelCursor(canvas, hue, sat) {
+  const ctx = canvas.getContext("2d");
+  _drawWheel(canvas);
+  const cx = canvas.width / 2,
+    cy = canvas.height / 2,
+    r = cx - 1;
+  const ang = (hue * Math.PI) / 180;
+  const px = cx + Math.cos(ang) * sat * r;
+  const py = cy + Math.sin(ang) * sat * r;
+  ctx.beginPath();
+  ctx.arc(px, py, 7, 0, Math.PI * 2);
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(px, py, 5, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(0,0,0,0.4)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+function _drawBarCursor(canvas, bri) {
+  const ctx = canvas.getContext("2d");
+  _drawBrightnessBar(canvas, _wheel.hue, _wheel.sat);
+  const y = (1 - bri) * canvas.height;
+  ctx.beginPath();
+  ctx.rect(0, y - 2, canvas.width, 4);
+  ctx.fillStyle = "#fff";
+  ctx.fill();
+  ctx.beginPath();
+  ctx.rect(0, y - 3, canvas.width, 6);
+  ctx.strokeStyle = "rgba(0,0,0,0.4)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+function _syncWheelFromHsb() {
+  const [r, g, b] = _hsbToRgb(_wheel.hue, _wheel.sat, _wheel.bri);
+  const hex = _rgbToHex(r, g, b);
+  selectedColor = hex;
+  const preview = document.getElementById("wheel-preview");
+  const hexInput = document.getElementById("wheel-hex");
+  if (preview) preview.style.background = hex;
+  if (hexInput) hexInput.value = hex.toUpperCase();
+  _redrawWheel();
+}
+
+function _redrawWheel() {
+  const wCanvas = document.getElementById("color-wheel");
+  const bCanvas = document.getElementById("brightness-bar");
+  if (wCanvas) _drawWheelCursor(wCanvas, _wheel.hue, _wheel.sat);
+  if (bCanvas) _drawBarCursor(bCanvas, _wheel.bri);
+}
+
+function _initColorWheel() {
+  const wCanvas = document.getElementById("color-wheel");
+  const bCanvas = document.getElementById("brightness-bar");
+  if (!wCanvas || !bCanvas) return;
+
+  _drawWheelCursor(wCanvas, _wheel.hue, _wheel.sat);
+  _drawBarCursor(bCanvas, _wheel.bri);
+
+  const getWheelHSFromEvent = (e, canvas) => {
+    const rect = canvas.getBoundingClientRect();
+    const cx = canvas.width / 2,
+      cy = canvas.height / 2,
+      r = cx - 1;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const dx = (clientX - rect.left) * scaleX - cx;
+    const dy = (clientY - rect.top) * scaleY - cy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const hue = ((Math.atan2(dy, dx) * 180) / Math.PI + 360) % 360;
+    const sat = Math.min(dist / r, 1);
+    return [hue, sat];
+  };
+
+  const getBarBriFromEvent = (e, canvas) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleY = canvas.height / rect.height;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const y = _clamp((clientY - rect.top) * scaleY, 0, canvas.height);
+    return 1 - y / canvas.height;
+  };
+
+  const onWheelMove = (e) => {
+    if (!_wheel.draggingWheel) return;
+    e.preventDefault();
+    const [h, s] = getWheelHSFromEvent(e, wCanvas);
+    _wheel.hue = h;
+    _wheel.sat = s;
+    _syncWheelFromHsb();
+  };
+  const onBarMove = (e) => {
+    if (!_wheel.draggingBar) return;
+    e.preventDefault();
+    _wheel.bri = getBarBriFromEvent(e, bCanvas);
+    _syncWheelFromHsb();
+  };
+
+  wCanvas.addEventListener("mousedown", (e) => {
+    _wheel.draggingWheel = true;
+    const [h, s] = getWheelHSFromEvent(e, wCanvas);
+    _wheel.hue = h;
+    _wheel.sat = s;
+    _syncWheelFromHsb();
+  });
+  bCanvas.addEventListener("mousedown", (e) => {
+    _wheel.draggingBar = true;
+    _wheel.bri = getBarBriFromEvent(e, bCanvas);
+    _syncWheelFromHsb();
+  });
+  wCanvas.addEventListener(
+    "touchstart",
+    (e) => {
+      _wheel.draggingWheel = true;
+      const [h, s] = getWheelHSFromEvent(e, wCanvas);
+      _wheel.hue = h;
+      _wheel.sat = s;
+      _syncWheelFromHsb();
+    },
+    { passive: false },
+  );
+  bCanvas.addEventListener(
+    "touchstart",
+    (e) => {
+      _wheel.draggingBar = true;
+      _wheel.bri = getBarBriFromEvent(e, bCanvas);
+      _syncWheelFromHsb();
+    },
+    { passive: false },
+  );
+
+  document.addEventListener("mousemove", onWheelMove);
+  document.addEventListener("mousemove", onBarMove);
+  document.addEventListener("touchmove", onWheelMove, { passive: false });
+  document.addEventListener("touchmove", onBarMove, { passive: false });
+  document.addEventListener("mouseup", () => {
+    _wheel.draggingWheel = false;
+    _wheel.draggingBar = false;
+  });
+  document.addEventListener("touchend", () => {
+    _wheel.draggingWheel = false;
+    _wheel.draggingBar = false;
+  });
+
+  _syncWheelFromHsb();
+}
+
+function onWheelHexInput(val) {
+  const normalized = val.startsWith("#") ? val : "#" + val;
+  if (/^#[0-9a-fA-F]{6}$/.test(normalized)) {
+    const [r, g, b] = _hexToRgb(normalized);
+    const [h, s, bri] = _rgbToHsb(r, g, b);
+    _wheel.hue = h;
+    _wheel.sat = s;
+    _wheel.bri = bri;
+    selectedColor = normalized;
+    const preview = document.getElementById("wheel-preview");
+    if (preview) preview.style.background = normalized;
+    _redrawWheel();
+  }
+}
+
+function onWheelHexBlur() {
+  const hexInput = document.getElementById("wheel-hex");
+  if (hexInput && !/^#[0-9a-fA-F]{6}$/.test(hexInput.value)) {
+    hexInput.value = selectedColor.toUpperCase();
+  }
+}
+
+function buildColorGrid() {
+  // Sync wheel state from selectedColor
+  const [r, g, b] = _hexToRgb(selectedColor);
+  const [h, s, bri] = _rgbToHsb(r, g, b);
+  _wheel.hue = h;
+  _wheel.sat = s;
+  _wheel.bri = bri;
+
+  requestAnimationFrame(() => {
+    _initColorWheel();
+  });
+}
+
+function pickColor(c) {
+  selectedColor = c;
+  const [r, g, b] = _hexToRgb(c);
+  const [h, s, bri] = _rgbToHsb(r, g, b);
+  _wheel.hue = h;
+  _wheel.sat = s;
+  _wheel.bri = bri;
+  _syncWheelFromHsb();
 }
 
 function openSubjectModal(id) {
-    const modal = document.getElementById('subject-modal');
-    document.getElementById('subj-edit-id').value = id || '';
-    document.getElementById('subj-msg').innerHTML = '';
-    if (id) {
-        loadSubjectsForEdit(id);
-    } else {
-        document.getElementById('subject-modal-title').textContent = 'Ajouter une tâche';
-        document.getElementById('subj-name').value = '';
-        selectedColor = COLORS[Math.floor(Math.random() * COLORS.length)];
-        buildColorGrid();
-    }
-    modal.classList.add('open');
-    requestAnimationFrame(() => document.getElementById('subj-name').focus());
+  const modal = document.getElementById("subject-modal");
+  document.getElementById("subj-edit-id").value = id || "";
+  document.getElementById("subj-msg").innerHTML = "";
+  if (id) {
+    loadSubjectsForEdit(id);
+  } else {
+    document.getElementById("subject-modal-title").textContent =
+      "Ajouter une tâche";
+    document.getElementById("subj-name").value = "";
+    const randHue = Math.floor(Math.random() * 360);
+    const [rr, gg, bb] = _hsbToRgb(randHue, 0.8, 0.85);
+    selectedColor = _rgbToHex(rr, gg, bb);
+    buildColorGrid();
+  }
+  modal.classList.add("open");
+  requestAnimationFrame(() => document.getElementById("subj-name").focus());
 }
 
 async function loadSubjectsForEdit(id) {
-    const subjects = await apiCall('/api/subjects');
-    const subj = subjects.find(s => s.id === id);
-    if (!subj) return;
-    document.getElementById('subject-modal-title').textContent = 'Modifier la tâche';
-    document.getElementById('subj-name').value = subj.name;
-    selectedColor = subj.color;
-    buildColorGrid();
+  const subjects = await apiCall("/api/subjects");
+  const subj = subjects.find((s) => s.id === id);
+  if (!subj) return;
+  document.getElementById("subject-modal-title").textContent =
+    "Modifier la tâche";
+  document.getElementById("subj-name").value = subj.name;
+  selectedColor = subj.color;
+  buildColorGrid();
 }
 
 async function saveSubject() {
-    const name = document.getElementById('subj-name').value.trim();
-    const id = document.getElementById('subj-edit-id').value;
-    const msgEl = document.getElementById('subj-msg');
-    if (!name) { showMsg(msgEl, 'Le nom est requis.', 'error'); return; }
+  const name = document.getElementById("subj-name").value.trim();
+  const id = document.getElementById("subj-edit-id").value;
+  const msgEl = document.getElementById("subj-msg");
+  if (!name) {
+    showMsg(msgEl, "Le nom est requis.", "error");
+    return;
+  }
 
-    const payload = { name, color: selectedColor };
-    setLoading('subj-save', true);
-    try {
-        if (id) {
-            await apiCall(`/api/subjects/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
-        } else {
-            await apiCall('/api/subjects', { method: 'POST', body: JSON.stringify(payload) });
-        }
-        closeModal('subject-modal');
-        await renderAll();
-        toast(id ? 'Tâche modifiée ✓' : 'Tâche ajoutée ✓', 'success');
-    } catch (e) {
-        showMsg(msgEl, e.message, 'error');
-    } finally {
-        setLoading('subj-save', false);
+  const payload = { name, color: selectedColor };
+  setLoading("subj-save", true);
+  try {
+    if (id) {
+      await apiCall(`/api/subjects/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+    } else {
+      await apiCall("/api/subjects", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
     }
+    closeModal("subject-modal");
+    await renderAll();
+    toast(id ? "Tâche modifiée ✓" : "Tâche ajoutée ✓", "success");
+  } catch (e) {
+    showMsg(msgEl, e.message, "error");
+  } finally {
+    setLoading("subj-save", false);
+  }
 }
 
 async function deleteSubject(id) {
-    if (!confirm('Supprimer cette tâche ? Les créneaux assignés seront aussi effacés.')) return;
-    try {
-        await apiCall(`/api/subjects/${id}`, { method: 'DELETE' });
-        await renderAll();
-        toast('Tâche supprimée', 'info');
-    } catch (e) {
-        toast(e.message, 'error');
-    }
+  if (
+    !confirm(
+      "Supprimer cette tâche ? Les créneaux assignés seront aussi effacés.",
+    )
+  )
+    return;
+  try {
+    await apiCall(`/api/subjects/${id}`, { method: "DELETE" });
+    await renderAll();
+    toast("Tâche supprimée", "info");
+  } catch (e) {
+    toast(e.message, "error");
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -317,34 +640,40 @@ let _subtaskSubjectId = null;
 let _subtaskDay = null;
 
 async function openSubtaskModal(subjectId, subjectName, subjectColor, day) {
-    _subtaskSubjectId = subjectId;
-    _subtaskDay = day || null;
-    document.getElementById('subtask-subject-id').value = subjectId;
-    document.getElementById('subtask-day').value = day || '';
-    const nameEl = document.getElementById('subtask-modal-subject-name');
-    nameEl.textContent = subjectName;
-    nameEl.style.color = subjectColor;
-    document.getElementById('subtask-new-title').value = '';
-    document.getElementById('subtask-msg').innerHTML = '';
-    await renderSubtaskList(subjectId, subjectColor, day);
-    document.getElementById('subtask-modal').classList.add('open');
-    requestAnimationFrame(() => document.getElementById('subtask-new-title').focus());
+  _subtaskSubjectId = subjectId;
+  _subtaskDay = day || null;
+  document.getElementById("subtask-subject-id").value = subjectId;
+  document.getElementById("subtask-day").value = day || "";
+  const nameEl = document.getElementById("subtask-modal-subject-name");
+  nameEl.textContent = subjectName;
+  nameEl.style.color = subjectColor;
+  document.getElementById("subtask-new-title").value = "";
+  document.getElementById("subtask-msg").innerHTML = "";
+  await renderSubtaskList(subjectId, subjectColor, day);
+  document.getElementById("subtask-modal").classList.add("open");
+  requestAnimationFrame(() =>
+    document.getElementById("subtask-new-title").focus(),
+  );
 }
 
 async function renderSubtaskList(subjectId, color, day) {
-    const listEl = document.getElementById('subtask-list');
-    let subtasks = [];
-    const dayParam = day ? `?day=${encodeURIComponent(day)}` : '';
-    try {
-        subtasks = await apiCall(`/api/subjects/${subjectId}/subtasks${dayParam}`);
-    } catch (_) { subtasks = []; }
+  const listEl = document.getElementById("subtask-list");
+  let subtasks = [];
+  const dayParam = day ? `?day=${encodeURIComponent(day)}` : "";
+  try {
+    subtasks = await apiCall(`/api/subjects/${subjectId}/subtasks${dayParam}`);
+  } catch (_) {
+    subtasks = [];
+  }
 
-    if (!subtasks.length) {
-        listEl.innerHTML = `<div class="subtask-empty">Aucun sous-titre — ajoutez-en un ci-dessus.</div>`;
-        return;
-    }
+  if (!subtasks.length) {
+    listEl.innerHTML = `<div class="subtask-empty">Aucun sous-titre — ajoutez-en un ci-dessus.</div>`;
+    return;
+  }
 
-    listEl.innerHTML = subtasks.map((st, idx) => `
+  listEl.innerHTML = subtasks
+    .map(
+      (st, idx) => `
         <div class="subtask-row" draggable="true" data-id="${st.id}"
              ondragstart="onSubtaskDragStart(event,${st.id})"
              ondragover="onSubtaskDragOver(event)"
@@ -361,159 +690,179 @@ async function renderSubtaskList(subjectId, color, day) {
                 </button>
             </div>
         </div>
-    `).join('');
+    `,
+    )
+    .join("");
 }
 
 function escHtml(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 function escApos(str) {
-    return String(str).replace(/'/g,"\\'");
+  return String(str).replace(/'/g, "\\'");
 }
 
 async function addSubtaskFromModal() {
-    const subjectId = document.getElementById('subtask-subject-id').value;
-    const day = document.getElementById('subtask-day').value || null;
-    const titleInput = document.getElementById('subtask-new-title');
-    const title = titleInput.value.trim();
-    const msgEl = document.getElementById('subtask-msg');
-    if (!title) { showMsg(msgEl, 'Le titre est requis.', 'error'); return; }
-    try {
-        const body = { title };
-        if (day) body.day = day;
-        await apiCall(`/api/subjects/${subjectId}/subtasks`, {
-            method: 'POST',
-            body: JSON.stringify(body)
-        });
-        titleInput.value = '';
-        msgEl.innerHTML = '';
-        const color = document.getElementById('subtask-modal-subject-name').style.color;
-        await renderSubtaskList(subjectId, color, day);
-        // Refresh the schedule grid so subtasks appear in blocks
-        await renderScheduleGrid();
-        await renderSubjectsPanel();
-    } catch (e) {
-        showMsg(msgEl, e.message, 'error');
-    }
+  const subjectId = document.getElementById("subtask-subject-id").value;
+  const day = document.getElementById("subtask-day").value || null;
+  const titleInput = document.getElementById("subtask-new-title");
+  const title = titleInput.value.trim();
+  const msgEl = document.getElementById("subtask-msg");
+  if (!title) {
+    showMsg(msgEl, "Le titre est requis.", "error");
+    return;
+  }
+  try {
+    const body = { title };
+    if (day) body.day = day;
+    await apiCall(`/api/subjects/${subjectId}/subtasks`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    titleInput.value = "";
+    msgEl.innerHTML = "";
+    const color = document.getElementById("subtask-modal-subject-name").style
+      .color;
+    await renderSubtaskList(subjectId, color, day);
+    // Refresh the schedule grid so subtasks appear in blocks
+    await renderScheduleGrid();
+    await renderSubjectsPanel();
+  } catch (e) {
+    showMsg(msgEl, e.message, "error");
+  }
 }
 
 async function deleteSubtask(subtaskId) {
-    const subjectId = document.getElementById('subtask-subject-id').value;
-    const day = document.getElementById('subtask-day').value || null;
-    try {
-        await apiCall(`/api/subjects/${subjectId}/subtasks/${subtaskId}`, { method: 'DELETE' });
-        const color = document.getElementById('subtask-modal-subject-name').style.color;
-        await renderSubtaskList(subjectId, color, day);
-        await renderScheduleGrid();
-        await renderSubjectsPanel();
-        toast('Sous-titre supprimé', 'info');
-    } catch (e) {
-        toast(e.message, 'error');
-    }
+  const subjectId = document.getElementById("subtask-subject-id").value;
+  const day = document.getElementById("subtask-day").value || null;
+  try {
+    await apiCall(`/api/subjects/${subjectId}/subtasks/${subtaskId}`, {
+      method: "DELETE",
+    });
+    const color = document.getElementById("subtask-modal-subject-name").style
+      .color;
+    await renderSubtaskList(subjectId, color, day);
+    await renderScheduleGrid();
+    await renderSubjectsPanel();
+    toast("Sous-titre supprimé", "info");
+  } catch (e) {
+    toast(e.message, "error");
+  }
 }
 
 function editSubtaskInline(subtaskId, currentTitle) {
-    const titleEl = document.getElementById(`st-title-${subtaskId}`);
-    if (!titleEl) return;
-    const row = titleEl.closest('.subtask-row');
-    // Replace title span with an input
-    titleEl.outerHTML = `<input class="subtask-inline-input" id="st-input-${subtaskId}" value="${escHtml(currentTitle)}"
+  const titleEl = document.getElementById(`st-title-${subtaskId}`);
+  if (!titleEl) return;
+  const row = titleEl.closest(".subtask-row");
+  // Replace title span with an input
+  titleEl.outerHTML = `<input class="subtask-inline-input" id="st-input-${subtaskId}" value="${escHtml(currentTitle)}"
         onkeydown="if(event.key==='Enter')saveSubtaskInline(${subtaskId});if(event.key==='Escape')cancelSubtaskInline(${subtaskId},'${escApos(currentTitle)}')"
         onblur="saveSubtaskInline(${subtaskId})" />`;
-    const inp = document.getElementById(`st-input-${subtaskId}`);
-    if (inp) { inp.focus(); inp.select(); }
+  const inp = document.getElementById(`st-input-${subtaskId}`);
+  if (inp) {
+    inp.focus();
+    inp.select();
+  }
 }
 
 async function saveSubtaskInline(subtaskId) {
-    const inp = document.getElementById(`st-input-${subtaskId}`);
-    if (!inp) return;
-    const newTitle = inp.value.trim();
-    const subjectId = document.getElementById('subtask-subject-id').value;
-    const day = document.getElementById('subtask-day').value || null;
-    if (!newTitle) {
-        // Restore
-        inp.outerHTML = `<span class="subtask-row-title" id="st-title-${subtaskId}">${escHtml(inp.defaultValue)}</span>`;
-        return;
-    }
-    try {
-        await apiCall(`/api/subjects/${subjectId}/subtasks/${subtaskId}`, {
-            method: 'PUT',
-            body: JSON.stringify({ title: newTitle })
-        });
-        const color = document.getElementById('subtask-modal-subject-name').style.color;
-        await renderSubtaskList(subjectId, color, day);
-        await renderScheduleGrid();
-        await renderSubjectsPanel();
-    } catch (e) {
-        toast(e.message, 'error');
-    }
+  const inp = document.getElementById(`st-input-${subtaskId}`);
+  if (!inp) return;
+  const newTitle = inp.value.trim();
+  const subjectId = document.getElementById("subtask-subject-id").value;
+  const day = document.getElementById("subtask-day").value || null;
+  if (!newTitle) {
+    // Restore
+    inp.outerHTML = `<span class="subtask-row-title" id="st-title-${subtaskId}">${escHtml(inp.defaultValue)}</span>`;
+    return;
+  }
+  try {
+    await apiCall(`/api/subjects/${subjectId}/subtasks/${subtaskId}`, {
+      method: "PUT",
+      body: JSON.stringify({ title: newTitle }),
+    });
+    const color = document.getElementById("subtask-modal-subject-name").style
+      .color;
+    await renderSubtaskList(subjectId, color, day);
+    await renderScheduleGrid();
+    await renderSubjectsPanel();
+  } catch (e) {
+    toast(e.message, "error");
+  }
 }
 
 function cancelSubtaskInline(subtaskId, originalTitle) {
-    const inp = document.getElementById(`st-input-${subtaskId}`);
-    if (!inp) return;
-    inp.outerHTML = `<span class="subtask-row-title" id="st-title-${subtaskId}">${escHtml(originalTitle)}</span>`;
+  const inp = document.getElementById(`st-input-${subtaskId}`);
+  if (!inp) return;
+  inp.outerHTML = `<span class="subtask-row-title" id="st-title-${subtaskId}">${escHtml(originalTitle)}</span>`;
 }
 
 /* ── Subtask drag-to-reorder ── */
 function onSubtaskDragStart(e, id) {
-    _subtaskDragId = id;
-    e.dataTransfer.effectAllowed = 'move';
-    e.currentTarget.classList.add('subtask-dragging');
+  _subtaskDragId = id;
+  e.dataTransfer.effectAllowed = "move";
+  e.currentTarget.classList.add("subtask-dragging");
 }
 
 function onSubtaskDragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    e.currentTarget.classList.add('subtask-drag-over');
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  e.currentTarget.classList.add("subtask-drag-over");
 }
 
 function onSubtaskDragLeave(e) {
-    e.currentTarget.classList.remove('subtask-drag-over');
+  e.currentTarget.classList.remove("subtask-drag-over");
 }
 
 async function onSubtaskDrop(e, targetId) {
-    e.preventDefault();
-    e.currentTarget.classList.remove('subtask-drag-over');
-    if (_subtaskDragId === null || _subtaskDragId === targetId) return;
-    const subjectId = document.getElementById('subtask-subject-id').value;
+  e.preventDefault();
+  e.currentTarget.classList.remove("subtask-drag-over");
+  if (_subtaskDragId === null || _subtaskDragId === targetId) return;
+  const subjectId = document.getElementById("subtask-subject-id").value;
 
-    // Build new order from DOM
-    const rows = [...document.querySelectorAll('.subtask-row')];
-    const ids = rows.map(r => parseInt(r.dataset.id));
-    const dragIdx = ids.indexOf(_subtaskDragId);
-    const targetIdx = ids.indexOf(targetId);
-    if (dragIdx === -1 || targetIdx === -1) return;
-    ids.splice(dragIdx, 1);
-    ids.splice(targetIdx, 0, _subtaskDragId);
-    _subtaskDragId = null;
+  // Build new order from DOM
+  const rows = [...document.querySelectorAll(".subtask-row")];
+  const ids = rows.map((r) => parseInt(r.dataset.id));
+  const dragIdx = ids.indexOf(_subtaskDragId);
+  const targetIdx = ids.indexOf(targetId);
+  if (dragIdx === -1 || targetIdx === -1) return;
+  ids.splice(dragIdx, 1);
+  ids.splice(targetIdx, 0, _subtaskDragId);
+  _subtaskDragId = null;
 
-    const day = document.getElementById('subtask-day').value || null;
-    try {
-        await apiCall(`/api/subjects/${subjectId}/subtasks/reorder`, {
-            method: 'POST',
-            body: JSON.stringify({ order: ids })
-        });
-        const color = document.getElementById('subtask-modal-subject-name').style.color;
-        await renderSubtaskList(subjectId, color, day);
-        await renderScheduleGrid();
-    } catch (e) {
-        toast(e.message, 'error');
-    }
+  const day = document.getElementById("subtask-day").value || null;
+  try {
+    await apiCall(`/api/subjects/${subjectId}/subtasks/reorder`, {
+      method: "POST",
+      body: JSON.stringify({ order: ids }),
+    });
+    const color = document.getElementById("subtask-modal-subject-name").style
+      .color;
+    await renderSubtaskList(subjectId, color, day);
+    await renderScheduleGrid();
+  } catch (e) {
+    toast(e.message, "error");
+  }
 }
 
 async function renderSubjectsPanel() {
-    const [subjects, sched] = await Promise.all([
-        apiCall('/api/subjects'),
-        apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`)
-    ]);
+  const [subjects, sched] = await Promise.all([
+    apiCall("/api/subjects"),
+    apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`),
+  ]);
 
-    // Stats
-    const statsEl = document.getElementById('subj-stats');
-    const usedSet = new Set(Object.values(sched));
-    const assignedCount = Object.keys(sched).length;
-    const usageRate = subjects.length ? Math.round((usedSet.size / subjects.length) * 100) : 0;
-    statsEl.innerHTML = `
+  // Stats
+  const statsEl = document.getElementById("subj-stats");
+  const usedSet = new Set(Object.values(sched));
+  const assignedCount = Object.keys(sched).length;
+  const usageRate = subjects.length
+    ? Math.round((usedSet.size / subjects.length) * 100)
+    : 0;
+  statsEl.innerHTML = `
         <div class="stat-card">
             <div class="stat-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
             <div class="stat-num">${subjects.length}</div>
@@ -536,40 +885,45 @@ async function renderSubjectsPanel() {
         </div>
     `;
 
-    const grid = document.getElementById('subjects-grid');
-    if (!subjects.length) {
-        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+  const grid = document.getElementById("subjects-grid");
+  if (!subjects.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
             <div class="empty-icon">📚</div>
             <div class="empty-title">Aucune tâche</div>
             <div class="empty-sub">Cliquez sur "Ajouter une tâche" pour commencer</div>
         </div>`;
-        return;
-    }
-    const countMap = {};
-    Object.values(sched).forEach(id => countMap[id] = (countMap[id] || 0) + 1);
-    const maxCount = Math.max(1, ...Object.values(countMap));
+    return;
+  }
+  const countMap = {};
+  Object.values(sched).forEach(
+    (id) => (countMap[id] = (countMap[id] || 0) + 1),
+  );
+  const maxCount = Math.max(1, ...Object.values(countMap));
 
-    // Fetch all subtasks for all subjects in one pass
-    const subtasksMap = {};
-    await Promise.all(subjects.map(async s => {
-        try {
-            const sts = await apiCall(`/api/subjects/${s.id}/subtasks`);
-            subtasksMap[s.id] = sts;
-        } catch (_) {
-            subtasksMap[s.id] = [];
-        }
-    }));
+  // Fetch all subtasks for all subjects in one pass
+  const subtasksMap = {};
+  await Promise.all(
+    subjects.map(async (s) => {
+      try {
+        const sts = await apiCall(`/api/subjects/${s.id}/subtasks`);
+        subtasksMap[s.id] = sts;
+      } catch (_) {
+        subtasksMap[s.id] = [];
+      }
+    }),
+  );
 
-    grid.innerHTML = subjects.map(s => {
-        const cnt = countMap[s.id] || 0;
-        const pct = Math.round((cnt / maxCount) * 100);
-        const stCount = (subtasksMap[s.id] || []).length;
-        return `
+  grid.innerHTML = subjects
+    .map((s) => {
+      const cnt = countMap[s.id] || 0;
+      const pct = Math.round((cnt / maxCount) * 100);
+      const stCount = (subtasksMap[s.id] || []).length;
+      return `
         <div class="subject-card" style="border-left-color:${s.color}">
             <div class="subject-card-header">
                 <div class="subject-card-name" style="color:${s.color}">${s.name}</div>
                 <div class="subject-card-actions">
-                    <button class="icon-btn" onclick="openSubtaskModal('${s.id}','${s.name.replace(/'/g,"\\'")}','${s.color}')" aria-label="Gérer les sous-titres de ${s.name}" title="Gérer les sous-titres">
+                    <button class="icon-btn" onclick="openSubtaskModal('${s.id}','${s.name.replace(/'/g, "\\'")}','${s.color}')" aria-label="Gérer les sous-titres de ${s.name}" title="Gérer les sous-titres">
                         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                     </button>
                     <button class="icon-btn" onclick="openSubjectModal('${s.id}')" aria-label="Modifier ${s.name}" title="Modifier la tâche">
@@ -581,12 +935,14 @@ async function renderSubjectsPanel() {
                 </div>
             </div>
             <div class="subject-card-meta">
-                ${stCount > 0 ? `<span class="meta-subtitle" style="color:${s.color};opacity:0.85">📋 ${stCount} sous-titre${stCount > 1 ? 's' : ''}</span>` : ''}
-                <span class="meta-badge">${cnt} créneau${cnt !== 1 ? 'x' : ''}</span>
+                ${stCount > 0 ? `<span class="meta-subtitle" style="color:${s.color};opacity:0.85">📋 ${stCount} sous-titre${stCount > 1 ? "s" : ""}</span>` : ""}
+                <span class="meta-badge">${cnt} créneau${cnt !== 1 ? "x" : ""}</span>
             </div>
-            ${cnt > 0 ? `<div class="subject-usage-bar" aria-label="${pct}% d'utilisation"><div class="subject-usage-fill" style="width:${pct}%;background:${s.color}"></div></div>` : ''}
+            ${cnt > 0 ? `<div class="subject-usage-bar" aria-label="${pct}% d'utilisation"><div class="subject-usage-fill" style="width:${pct}%;background:${s.color}"></div></div>` : ""}
         </div>
-    `}).join('');
+    `;
+    })
+    .join("");
 }
 
 /* ══════════════════════════════════════════════
@@ -594,16 +950,20 @@ async function renderSubjectsPanel() {
 ══════════════════════════════════════════════ */
 
 async function renderPalette() {
-    const subjects = await apiCall('/api/subjects');
-    const el = document.getElementById('palette-chips');
-    const cellChips = document.getElementById('cell-modal-chips');
-    if (!subjects.length) {
-        if (el) el.innerHTML = `<span style="font-size:0.78rem;color:var(--text-muted)">Aucune tâche — allez dans "Mes Tâches" pour en ajouter</span>`;
-        if (cellChips) cellChips.innerHTML = '';
-        return;
-    }
-    const chipHtml = (forModal) => subjects.map(s => `
-        <div class="subject-chip ${!forModal && s.id === selectedSubjectId ? 'selected' : ''}"
+  const subjects = await apiCall("/api/subjects");
+  const el = document.getElementById("palette-chips");
+  const cellChips = document.getElementById("cell-modal-chips");
+  if (!subjects.length) {
+    if (el)
+      el.innerHTML = `<span style="font-size:0.78rem;color:var(--text-muted)">Aucune tâche — allez dans "Mes Tâches" pour en ajouter</span>`;
+    if (cellChips) cellChips.innerHTML = "";
+    return;
+  }
+  const chipHtml = (forModal) =>
+    subjects
+      .map(
+        (s) => `
+        <div class="subject-chip ${!forModal && s.id === selectedSubjectId ? "selected" : ""}"
              style="background:${hexAlpha(s.color, 0.18)};color:${s.color};border-left-color:${s.color}"
              draggable="true"
              role="button"
@@ -614,171 +974,227 @@ async function renderPalette() {
              onclick="${forModal ? `assignFromModal('${s.id}')` : `selectSubject('${s.id}', this)`}">
             <span class="chip-name">${s.name}</span>
         </div>
-    `).join('');
-    if (el) el.innerHTML = chipHtml(false);
-    if (cellChips) cellChips.innerHTML = chipHtml(true);
+    `,
+      )
+      .join("");
+  if (el) el.innerHTML = chipHtml(false);
+  if (cellChips) cellChips.innerHTML = chipHtml(true);
 }
 
 function selectSubject(id, el) {
-    if (selectedSubjectId === id) {
-        selectedSubjectId = null;
-        document.querySelectorAll('.subject-chip').forEach(c => c.classList.remove('selected'));
-    } else {
-        selectedSubjectId = id;
-        document.querySelectorAll('#palette-chips .subject-chip').forEach(c => c.classList.remove('selected'));
-        el && el.classList.add('selected');
-    }
+  if (selectedSubjectId === id) {
+    selectedSubjectId = null;
+    document
+      .querySelectorAll(".subject-chip")
+      .forEach((c) => c.classList.remove("selected"));
+  } else {
+    selectedSubjectId = id;
+    document
+      .querySelectorAll("#palette-chips .subject-chip")
+      .forEach((c) => c.classList.remove("selected"));
+    el && el.classList.add("selected");
+  }
 }
 
 function setMode(mode) {
-    interactionMode = mode;
-    document.getElementById('mode-click').classList.toggle('active', mode === 'click');
-    document.getElementById('mode-drag').classList.toggle('active', mode === 'drag');
+  interactionMode = mode;
+  document
+    .getElementById("mode-click")
+    .classList.toggle("active", mode === "click");
+  document
+    .getElementById("mode-drag")
+    .classList.toggle("active", mode === "drag");
 }
 
 /* ══════════════════════════════════════════════
    SCHEDULE GRID — Day-Card Timeline Layout
 ══════════════════════════════════════════════ */
 
-const ALL_DAYS_MAP = { 'Dim': 1, 'Lun': 2, 'Mar': 3, 'Mer': 4, 'Jeu': 5, 'Ven': 6, 'Sam': 7 };
+const ALL_DAYS_MAP = { Dim: 1, Lun: 2, Mar: 3, Mer: 4, Jeu: 5, Ven: 6, Sam: 7 };
 
 function getWeekDays() {
-    const days = window.currentActiveDays || ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-    const today = new Date();
-    today.setDate(today.getDate() + currentWeekOffset * 7);
-    const dayOfWeek = today.getDay();
-    const sunday = new Date(today);
-    sunday.setDate(today.getDate() - dayOfWeek);
+  const days = window.currentActiveDays || [
+    "Dim",
+    "Lun",
+    "Mar",
+    "Mer",
+    "Jeu",
+    "Ven",
+    "Sam",
+  ];
+  const today = new Date();
+  today.setDate(today.getDate() + currentWeekOffset * 7);
+  const dayOfWeek = today.getDay();
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() - dayOfWeek);
 
-    return days.map(dayAbbr => {
-        const dayIdx = ALL_DAYS_MAP[dayAbbr] || 1;
-        const d = new Date(sunday);
-        d.setDate(sunday.getDate() + (dayIdx - 1));
-        return { abbr: dayAbbr, date: d, dateStr: d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) };
-    });
+  return days.map((dayAbbr) => {
+    const dayIdx = ALL_DAYS_MAP[dayAbbr] || 1;
+    const d = new Date(sunday);
+    d.setDate(sunday.getDate() + (dayIdx - 1));
+    return {
+      abbr: dayAbbr,
+      date: d,
+      dateStr: d.toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+      }),
+    };
+  });
 }
 
 function renderScheduleLegend(subjects) {
-    const el = document.getElementById('schedule-legend');
-    if (!subjects.length) { el.innerHTML = ''; return; }
+  const el = document.getElementById("schedule-legend");
+  if (!subjects.length) {
+    el.innerHTML = "";
+    return;
+  }
 }
 
 async function renderScheduleGrid() {
-    const [timeslots, subjects, sched] = await Promise.all([
-        apiCall('/api/timeslots'),
-        apiCall('/api/subjects'),
-        apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`)
-    ]);
+  const [timeslots, subjects, sched] = await Promise.all([
+    apiCall("/api/timeslots"),
+    apiCall("/api/subjects"),
+    apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`),
+  ]);
 
-    // Pre-fetch subtasks for every (subject, day) pair that appears in the schedule
-    // Key format: "subjectId::dayAbbr"
-    const usedPairs = [...new Set(
-        Object.entries(sched).map(([key, sid]) => {
-            // key is "weekOffset_dayAbbr_tsId"
-            const parts = key.split('_');
-            // weekOffset may have sign, day is second segment
-            const dayAbbr = parts[1];
-            return `${sid}::${dayAbbr}`;
-        })
-    )];
-    const subtasksCache = {};
-    await Promise.all(usedPairs.map(async pair => {
-        const [sid, dayAbbr] = pair.split('::');
-        try {
-            subtasksCache[pair] = await apiCall(`/api/subjects/${sid}/subtasks?day=${encodeURIComponent(dayAbbr)}`);
-        } catch (_) {
-            subtasksCache[pair] = [];
-        }
-    }));
-    const weekDays = getWeekDays();
+  // Pre-fetch subtasks for every (subject, day) pair that appears in the schedule
+  // Key format: "subjectId::dayAbbr"
+  const usedPairs = [
+    ...new Set(
+      Object.entries(sched).map(([key, sid]) => {
+        // key is "weekOffset_dayAbbr_tsId"
+        const parts = key.split("_");
+        // weekOffset may have sign, day is second segment
+        const dayAbbr = parts[1];
+        return `${sid}::${dayAbbr}`;
+      }),
+    ),
+  ];
+  const subtasksCache = {};
+  await Promise.all(
+    usedPairs.map(async (pair) => {
+      const [sid, dayAbbr] = pair.split("::");
+      try {
+        subtasksCache[pair] = await apiCall(
+          `/api/subjects/${sid}/subtasks?day=${encodeURIComponent(dayAbbr)}`,
+        );
+      } catch (_) {
+        subtasksCache[pair] = [];
+      }
+    }),
+  );
+  const weekDays = getWeekDays();
 
-    if (weekDays.length) {
-        const first = weekDays[0].dateStr;
-        const last = weekDays[weekDays.length - 1].dateStr;
-        document.getElementById('week-label').textContent = `${first} – ${last}`;
-    }
+  if (weekDays.length) {
+    const first = weekDays[0].dateStr;
+    const last = weekDays[weekDays.length - 1].dateStr;
+    document.getElementById("week-label").textContent = `${first} – ${last}`;
+  }
 
-    // Fill progress bar
-    // Total slots = sum of timeslots active per day
-    const totalSlots = weekDays.reduce((acc, dayObj) => {
-        return acc + timeslots.filter(ts => !ts.days || ts.days.length === 0 || ts.days.includes(dayObj.abbr)).length;
-    }, 0);
-    const assignedSlots = Object.keys(sched).length;
-    const fillBarEl = document.getElementById('week-fill-bar');
-    const fillTrack = document.getElementById('fill-track-inner');
-    const fillLabel = document.getElementById('fill-label');
-    if (fillBarEl && totalSlots > 0) {
-        fillBarEl.style.display = 'flex';
-        const pct = Math.round((assignedSlots / totalSlots) * 100);
-        fillTrack.style.width = pct + '%';
-        fillTrack.style.background = pct >= 80 ? 'var(--green)' : pct >= 40 ? 'var(--gold)' : 'var(--blue)';
-        fillLabel.textContent = `${assignedSlots} / ${totalSlots} créneaux assignés (${pct}%)`;
-    } else if (fillBarEl) {
-        fillBarEl.style.display = 'none';
-    }
+  // Fill progress bar
+  // Total slots = sum of timeslots active per day
+  const totalSlots = weekDays.reduce((acc, dayObj) => {
+    return (
+      acc +
+      timeslots.filter(
+        (ts) =>
+          !ts.days || ts.days.length === 0 || ts.days.includes(dayObj.abbr),
+      ).length
+    );
+  }, 0);
+  const assignedSlots = Object.keys(sched).length;
+  const fillBarEl = document.getElementById("week-fill-bar");
+  const fillTrack = document.getElementById("fill-track-inner");
+  const fillLabel = document.getElementById("fill-label");
+  if (fillBarEl && totalSlots > 0) {
+    fillBarEl.style.display = "flex";
+    const pct = Math.round((assignedSlots / totalSlots) * 100);
+    fillTrack.style.width = pct + "%";
+    fillTrack.style.background =
+      pct >= 80 ? "var(--green)" : pct >= 40 ? "var(--gold)" : "var(--blue)";
+    fillLabel.textContent = `${assignedSlots} / ${totalSlots} créneaux assignés (${pct}%)`;
+  } else if (fillBarEl) {
+    fillBarEl.style.display = "none";
+  }
 
-    renderScheduleLegend(subjects);
+  renderScheduleLegend(subjects);
 
-    const grid = document.getElementById('schedule-grid');
+  const grid = document.getElementById("schedule-grid");
 
-    if (!timeslots.length) {
-        grid.innerHTML = `<div class="empty-state">
+  if (!timeslots.length) {
+    grid.innerHTML = `<div class="empty-state">
             <div class="empty-icon">🕐</div>
             <div class="empty-title">Aucun créneau horaire</div>
             <div class="empty-sub">Allez dans "Créneaux Horaires" pour en ajouter</div>
         </div>`;
-        checkConflicts();
-        return;
-    }
+    checkConflicts();
+    return;
+  }
 
-    const todayStr = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+  const todayStr = new Date().toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+  });
 
-    let html = '<div class="days-grid">';
+  let html = '<div class="days-grid">';
 
-    weekDays.forEach(dayObj => {
-        const dayAbbr = dayObj.abbr;
-        const isToday = dayObj.dateStr === todayStr;
+  weekDays.forEach((dayObj) => {
+    const dayAbbr = dayObj.abbr;
+    const isToday = dayObj.dateStr === todayStr;
 
-        // Count filled slots for this day (only timeslots active on this day)
-        const dayTimeslots = timeslots.filter(ts => !ts.days || ts.days.length === 0 || ts.days.includes(dayAbbr));
-        const dayFilled = dayTimeslots.filter(ts => sched[`${currentWeekOffset}_${dayAbbr}_${ts.id}`]).length;
-        const dayTotal = dayTimeslots.length;
-        const dayDone = dayTimeslots.filter(ts => {
-            const doneKey = `done_${currentWeekOffset}_${dayAbbr}_${ts.id}`;
-            return localStorage.getItem(doneKey) === '1';
-        }).length;
+    // Count filled slots for this day (only timeslots active on this day)
+    const dayTimeslots = timeslots.filter(
+      (ts) => !ts.days || ts.days.length === 0 || ts.days.includes(dayAbbr),
+    );
+    const dayFilled = dayTimeslots.filter(
+      (ts) => sched[`${currentWeekOffset}_${dayAbbr}_${ts.id}`],
+    ).length;
+    const dayTotal = dayTimeslots.length;
+    const dayDone = dayTimeslots.filter((ts) => {
+      const doneKey = `done_${currentWeekOffset}_${dayAbbr}_${ts.id}`;
+      return localStorage.getItem(doneKey) === "1";
+    }).length;
 
-        html += `<div class="day-card ${isToday ? 'day-card-today' : ''}">
+    html += `<div class="day-card ${isToday ? "day-card-today" : ""}">
             <div class="day-header">
                 <span class="day-name">${dayAbbr} <span class="day-date-badge">${dayObj.date.getDate()}</span></span>
                 <div class="day-tags">
-                    ${isToday ? '<span class="day-tag tag-today">Aujourd\'hui</span>' : ''}
+                    ${isToday ? '<span class="day-tag tag-today">Aujourd\'hui</span>' : ""}
                     <span class="day-fill-chip">${dayFilled}/${dayTotal}</span>
-                    ${dayDone > 0 ? `<span class="day-done-chip">✓ ${dayDone}</span>` : ''}
+                    ${dayDone > 0 ? `<span class="day-done-chip">✓ ${dayDone}</span>` : ""}
                     <button class="reset-day-btn" title="Réinitialiser la journée" aria-label="Réinitialiser ${dayAbbr}" onclick="resetDayDone('${dayAbbr}')">↺</button>
                 </div>
             </div>
             <div class="timeline">`;
 
-        timeslots.filter(ts => !ts.days || ts.days.length === 0 || ts.days.includes(dayAbbr)).forEach(ts => {
-            const key = `${currentWeekOffset}_${dayAbbr}_${ts.id}`;
-            const subjId = sched[key];
-            const subj = subjId ? subjects.find(s => s.id === subjId) : null;
-            const doneKey = `done_${currentWeekOffset}_${dayAbbr}_${ts.id}`;
-            const isDone = localStorage.getItem(doneKey) === '1';
-            const blockId = `blk_${currentWeekOffset}_${dayAbbr}_${ts.id}`;
+    timeslots
+      .filter(
+        (ts) => !ts.days || ts.days.length === 0 || ts.days.includes(dayAbbr),
+      )
+      .forEach((ts) => {
+        const key = `${currentWeekOffset}_${dayAbbr}_${ts.id}`;
+        const subjId = sched[key];
+        const subj = subjId ? subjects.find((s) => s.id === subjId) : null;
+        const doneKey = `done_${currentWeekOffset}_${dayAbbr}_${ts.id}`;
+        const isDone = localStorage.getItem(doneKey) === "1";
+        const blockId = `blk_${currentWeekOffset}_${dayAbbr}_${ts.id}`;
 
-            html += `<div class="block ${isDone ? 'completed' : ''}" id="${blockId}">
+        html += `<div class="block ${isDone ? "completed" : ""}" id="${blockId}">
                 <div class="block-time">${ts.start}<br>→ ${ts.end}</div>`;
 
-            if (subj) {
-                const blockSubtasks = subtasksCache[`${subj.id}::${dayAbbr}`] || [];
-                const subtasksHtml = blockSubtasks.length > 0
-                    ? `<div class="block-subtasks">${blockSubtasks.map(st =>
-                        `<span class="block-subtask-item" style="color:${subj.color}">• ${st.title}</span>`
-                      ).join('')}</div>`
-                    : '';
-                html += `<div class="block-content"
+        if (subj) {
+          const blockSubtasks = subtasksCache[`${subj.id}::${dayAbbr}`] || [];
+          const subtasksHtml =
+            blockSubtasks.length > 0
+              ? `<div class="block-subtasks">${blockSubtasks
+                  .map(
+                    (st) =>
+                      `<span class="block-subtask-item" style="color:${subj.color}">• ${st.title}</span>`,
+                  )
+                  .join("")}</div>`
+              : "";
+          html += `<div class="block-content"
                     style="background:${hexAlpha(subj.color, 0.18)};border-left:3px solid ${subj.color};color:${subj.color}"
                     ondragover="onDragOver(event)"
                     ondragleave="onDragLeave(event)"
@@ -790,17 +1206,17 @@ async function renderScheduleGrid() {
                     </div>
                     <div class="block-actions">
                         <button class="subtask-mgr-btn"
-                            onclick="event.stopPropagation();openSubtaskModal('${subj.id}','${subj.name.replace(/'/g,"\\'")}','${subj.color}','${dayAbbr}')"
+                            onclick="event.stopPropagation();openSubtaskModal('${subj.id}','${subj.name.replace(/'/g, "\\'")}','${subj.color}','${dayAbbr}')"
                             aria-label="Gérer les sous-titres"
                             title="Sous-titres (${blockSubtasks.length})">≡</button>
-                        <button class="done-btn ${isDone ? 'done' : ''}"
+                        <button class="done-btn ${isDone ? "done" : ""}"
                             onclick="event.stopPropagation();toggleDoneBlock('${currentWeekOffset}','${dayAbbr}','${ts.id}')"
-                            aria-label="${isDone ? 'Marquer comme non fait' : 'Marquer comme fait'}"
-                            title="Marquer comme fait">${isDone ? '✓' : '○'}</button>
+                            aria-label="${isDone ? "Marquer comme non fait" : "Marquer comme fait"}"
+                            title="Marquer comme fait">${isDone ? "✓" : "○"}</button>
                     </div>
                 </div>`;
-            } else {
-                html += `<div class="block-content block-empty"
+        } else {
+          html += `<div class="block-content block-empty"
                     ondragover="event.preventDefault();this.classList.add('drag-over')"
                     ondragleave="this.classList.remove('drag-over')"
                     ondrop="this.classList.remove('drag-over');onDrop(event,'${dayAbbr}','${ts.id}')"
@@ -811,92 +1227,113 @@ async function renderScheduleGrid() {
                     onkeydown="if(event.key==='Enter')handleCellClick('${dayAbbr}','${ts.id}')">
                     <span class="empty-slot-hint">+ Assigner</span>
                 </div>`;
-            }
+        }
 
-            html += `</div>`; // .block
-        });
+        html += `</div>`; // .block
+      });
 
-        html += `</div></div>`; // .timeline .day-card
-    });
+    html += `</div></div>`; // .timeline .day-card
+  });
 
-    html += '</div>'; // .days-grid
-    grid.innerHTML = html;
-    checkConflicts();
+  html += "</div>"; // .days-grid
+  grid.innerHTML = html;
+  checkConflicts();
 }
 
 function toggleDoneBlock(weekOffset, day, tsId) {
-    const doneKey = `done_${weekOffset}_${day}_${tsId}`;
-    const blockId = `blk_${weekOffset}_${day}_${tsId}`;
-    const block = document.getElementById(blockId);
-    if (!block) return;
-    const btn = block.querySelector('.done-btn');
-    const isDone = localStorage.getItem(doneKey) === '1';
-    if (isDone) {
-        localStorage.removeItem(doneKey);
-        block.classList.remove('completed');
-        if (btn) { btn.classList.remove('done'); btn.textContent = '○'; btn.setAttribute('aria-label', 'Marquer comme fait'); }
-    } else {
-        localStorage.setItem(doneKey, '1');
-        block.classList.add('completed');
-        if (btn) { btn.classList.add('done'); btn.textContent = '✓'; btn.setAttribute('aria-label', 'Marquer comme non fait'); }
+  const doneKey = `done_${weekOffset}_${day}_${tsId}`;
+  const blockId = `blk_${weekOffset}_${day}_${tsId}`;
+  const block = document.getElementById(blockId);
+  if (!block) return;
+  const btn = block.querySelector(".done-btn");
+  const isDone = localStorage.getItem(doneKey) === "1";
+  if (isDone) {
+    localStorage.removeItem(doneKey);
+    block.classList.remove("completed");
+    if (btn) {
+      btn.classList.remove("done");
+      btn.textContent = "○";
+      btn.setAttribute("aria-label", "Marquer comme fait");
     }
+  } else {
+    localStorage.setItem(doneKey, "1");
+    block.classList.add("completed");
+    if (btn) {
+      btn.classList.add("done");
+      btn.textContent = "✓";
+      btn.setAttribute("aria-label", "Marquer comme non fait");
+    }
+  }
 }
 
 function resetDayDone(dayAbbr) {
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k && k.startsWith(`done_${currentWeekOffset}_${dayAbbr}_`)) keysToRemove.push(k);
-    }
-    keysToRemove.forEach(k => localStorage.removeItem(k));
-    renderScheduleGrid();
+  const keysToRemove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith(`done_${currentWeekOffset}_${dayAbbr}_`))
+      keysToRemove.push(k);
+  }
+  keysToRemove.forEach((k) => localStorage.removeItem(k));
+  renderScheduleGrid();
 }
 
 async function handleCellClick(day, tsId) {
-    const ts = await apiCall('/api/timeslots').then(ts => ts.find(t => t.id === tsId));
-    document.getElementById('cell-modal-day').value = day;
-    document.getElementById('cell-modal-slot').value = tsId;
-    document.getElementById('cell-modal-title').textContent = `${day} · ${ts ? ts.start + '–' + ts.end : ''}`;
-    renderPalette();
-    document.getElementById('cell-modal').classList.add('open');
+  const ts = await apiCall("/api/timeslots").then((ts) =>
+    ts.find((t) => t.id === tsId),
+  );
+  document.getElementById("cell-modal-day").value = day;
+  document.getElementById("cell-modal-slot").value = tsId;
+  document.getElementById("cell-modal-title").textContent =
+    `${day} · ${ts ? ts.start + "–" + ts.end : ""}`;
+  renderPalette();
+  document.getElementById("cell-modal").classList.add("open");
 }
 
 async function assignFromModal(subjId) {
-    const day = document.getElementById('cell-modal-day').value;
-    const tsId = document.getElementById('cell-modal-slot').value;
-    await assignSubject(day, tsId, subjId);
-    closeModal('cell-modal');
+  const day = document.getElementById("cell-modal-day").value;
+  const tsId = document.getElementById("cell-modal-slot").value;
+  await assignSubject(day, tsId, subjId);
+  closeModal("cell-modal");
 }
 
 async function removeCellEvent() {
-    const day = document.getElementById('cell-modal-day').value;
-    const tsId = document.getElementById('cell-modal-slot').value;
-    await removeEvent(day, tsId);
-    closeModal('cell-modal');
+  const day = document.getElementById("cell-modal-day").value;
+  const tsId = document.getElementById("cell-modal-slot").value;
+  await removeEvent(day, tsId);
+  closeModal("cell-modal");
 }
 
 async function assignSubject(day, tsId, subjId) {
-    try {
-        await apiCall('/api/schedule/assign', {
-            method: 'POST',
-            body: JSON.stringify({ weekOffset: currentWeekOffset, day, timeslotId: tsId, subjectId: subjId })
-        });
-        await renderScheduleGrid();
-    } catch (e) {
-        toast(e.message, 'error');
-    }
+  try {
+    await apiCall("/api/schedule/assign", {
+      method: "POST",
+      body: JSON.stringify({
+        weekOffset: currentWeekOffset,
+        day,
+        timeslotId: tsId,
+        subjectId: subjId,
+      }),
+    });
+    await renderScheduleGrid();
+  } catch (e) {
+    toast(e.message, "error");
+  }
 }
 
 async function removeEvent(day, tsId) {
-    try {
-        await apiCall('/api/schedule/remove', {
-            method: 'POST',
-            body: JSON.stringify({ weekOffset: currentWeekOffset, day, timeslotId: tsId })
-        });
-        await renderScheduleGrid();
-    } catch (e) {
-        toast(e.message, 'error');
-    }
+  try {
+    await apiCall("/api/schedule/remove", {
+      method: "POST",
+      body: JSON.stringify({
+        weekOffset: currentWeekOffset,
+        day,
+        timeslotId: tsId,
+      }),
+    });
+    await renderScheduleGrid();
+  } catch (e) {
+    toast(e.message, "error");
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -904,99 +1341,113 @@ async function removeEvent(day, tsId) {
 ══════════════════════════════════════════════ */
 
 let dragSubjId = null;
-let dragFromDay = null, dragFromTs = null;
+let dragFromDay = null,
+  dragFromTs = null;
 
 function onChipDragStart(e, subjId) {
-    dragSubjId = subjId;
-    dragFromDay = null;
-    e.dataTransfer.effectAllowed = 'copy';
+  dragSubjId = subjId;
+  dragFromDay = null;
+  e.dataTransfer.effectAllowed = "copy";
 }
 
 function onEventDragStart(e, day, tsId, subjId) {
-    dragSubjId = subjId;
-    dragFromDay = day;
-    dragFromTs = tsId;
-    e.dataTransfer.effectAllowed = 'move';
-    e.stopPropagation();
+  dragSubjId = subjId;
+  dragFromDay = day;
+  dragFromTs = tsId;
+  e.dataTransfer.effectAllowed = "move";
+  e.stopPropagation();
 }
 
 function onDragOver(e) {
-    e.preventDefault();
-    e.currentTarget.classList.add('drag-over');
-    e.dataTransfer.dropEffect = 'copy';
+  e.preventDefault();
+  e.currentTarget.classList.add("drag-over");
+  e.dataTransfer.dropEffect = "copy";
 }
 
 function onDragLeave(e) {
-    e.currentTarget.classList.remove('drag-over');
+  e.currentTarget.classList.remove("drag-over");
 }
 
 async function onDrop(e, day, tsId) {
-    // Drag & drop assignment is disabled
-    e.preventDefault();
-    e.currentTarget.classList.remove('drag-over');
+  // Drag & drop assignment is disabled
+  e.preventDefault();
+  e.currentTarget.classList.remove("drag-over");
 }
 
 async function changeWeek(delta) {
-    const previousOffset = currentWeekOffset;
-    currentWeekOffset += delta;
+  const previousOffset = currentWeekOffset;
+  currentWeekOffset += delta;
 
-    // Check if new week is empty — if so, copy from previous week
-    const newSched = await apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`);
-    const isEmpty = !newSched || Object.keys(newSched).length === 0;
+  // Check if new week is empty — if so, copy from previous week
+  const newSched = await apiCall(
+    `/api/schedule?weekOffset=${currentWeekOffset}`,
+  );
+  const isEmpty = !newSched || Object.keys(newSched).length === 0;
 
-    if (isEmpty) {
-        const prevSched = await apiCall(`/api/schedule?weekOffset=${previousOffset}`);
-        if (prevSched && Object.keys(prevSched).length > 0) {
-            // Copy all assignments from previous week to new week
-            const assigns = [];
-            for (const key of Object.keys(prevSched)) {
-                const parts = key.split('_');
-                if (parts.length >= 3) {
-                    const day = parts[1];
-                    const tsId = parts.slice(2).join('_');
-                    const subjId = prevSched[key];
-                    assigns.push(
-                        apiCall('/api/schedule/assign', {
-                            method: 'POST',
-                            body: JSON.stringify({ weekOffset: currentWeekOffset, day, timeslotId: tsId, subjectId: subjId })
-                        }).catch(() => { })
-                    );
-                }
-            }
-            await Promise.all(assigns);
-            toast('Planning copié depuis la semaine précédente ✓', 'success');
+  if (isEmpty) {
+    const prevSched = await apiCall(
+      `/api/schedule?weekOffset=${previousOffset}`,
+    );
+    if (prevSched && Object.keys(prevSched).length > 0) {
+      // Copy all assignments from previous week to new week
+      const assigns = [];
+      for (const key of Object.keys(prevSched)) {
+        const parts = key.split("_");
+        if (parts.length >= 3) {
+          const day = parts[1];
+          const tsId = parts.slice(2).join("_");
+          const subjId = prevSched[key];
+          assigns.push(
+            apiCall("/api/schedule/assign", {
+              method: "POST",
+              body: JSON.stringify({
+                weekOffset: currentWeekOffset,
+                day,
+                timeslotId: tsId,
+                subjectId: subjId,
+              }),
+            }).catch(() => {}),
+          );
         }
+      }
+      await Promise.all(assigns);
+      toast("Planning copié depuis la semaine précédente ✓", "success");
     }
+  }
 
-    renderScheduleGrid();
+  renderScheduleGrid();
 }
 
 function goToday() {
-    currentWeekOffset = 0;
-    renderScheduleGrid();
+  currentWeekOffset = 0;
+  renderScheduleGrid();
 }
 
 async function clearAllSchedule() {
-    if (!confirm('Vider tout l\'emploi du temps de cette semaine ?')) return;
-    const sched = await apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`);
-    // Run all removals in parallel for speed
-    const removals = Object.keys(sched).map(key => {
-        const parts = key.split('_');
-        if (parts.length === 3) {
-            return apiCall('/api/schedule/remove', {
-                method: 'POST',
-                body: JSON.stringify({ weekOffset: currentWeekOffset, day: parts[1], timeslotId: parts[2] })
-            });
-        }
-        return Promise.resolve();
-    });
-    await Promise.all(removals);
-    await renderScheduleGrid();
-    toast('Emploi du temps vidé', 'info');
+  if (!confirm("Vider tout l'emploi du temps de cette semaine ?")) return;
+  const sched = await apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`);
+  // Run all removals in parallel for speed
+  const removals = Object.keys(sched).map((key) => {
+    const parts = key.split("_");
+    if (parts.length === 3) {
+      return apiCall("/api/schedule/remove", {
+        method: "POST",
+        body: JSON.stringify({
+          weekOffset: currentWeekOffset,
+          day: parts[1],
+          timeslotId: parts[2],
+        }),
+      });
+    }
+    return Promise.resolve();
+  });
+  await Promise.all(removals);
+  await renderScheduleGrid();
+  toast("Emploi du temps vidé", "info");
 }
 
 function checkConflicts() {
-    document.getElementById('conflict-badge').style.display = 'none';
+  document.getElementById("conflict-badge").style.display = "none";
 }
 
 /* ══════════════════════════════════════════════
@@ -1004,88 +1455,115 @@ function checkConflicts() {
 ══════════════════════════════════════════════ */
 
 function openTimeslotModal() {
-    document.getElementById('ts-msg').innerHTML = '';
-    const activeDays = window.currentActiveDays || ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-    document.querySelectorAll('#ts-days-picker input[type=checkbox]').forEach(cb => {
-        cb.checked = activeDays.includes(cb.value);
+  document.getElementById("ts-msg").innerHTML = "";
+  const activeDays = window.currentActiveDays || [
+    "Dim",
+    "Lun",
+    "Mar",
+    "Mer",
+    "Jeu",
+    "Ven",
+    "Sam",
+  ];
+  document
+    .querySelectorAll("#ts-days-picker input[type=checkbox]")
+    .forEach((cb) => {
+      cb.checked = activeDays.includes(cb.value);
     });
-    document.getElementById('timeslot-modal').classList.add('open');
-    requestAnimationFrame(() => document.getElementById('ts-start').focus());
+  document.getElementById("timeslot-modal").classList.add("open");
+  requestAnimationFrame(() => document.getElementById("ts-start").focus());
 }
 
 async function saveTimeslot() {
-    const start = document.getElementById('ts-start').value;
-    const end = document.getElementById('ts-end').value;
-    const msgEl = document.getElementById('ts-msg');
-    if (!start || !end) { showMsg(msgEl, 'Remplissez les deux champs.', 'error'); return; }
-    if (start >= end) { showMsg(msgEl, 'L\'heure de fin doit être après le début.', 'error'); return; }
+  const start = document.getElementById("ts-start").value;
+  const end = document.getElementById("ts-end").value;
+  const msgEl = document.getElementById("ts-msg");
+  if (!start || !end) {
+    showMsg(msgEl, "Remplissez les deux champs.", "error");
+    return;
+  }
+  if (start >= end) {
+    showMsg(msgEl, "L'heure de fin doit être après le début.", "error");
+    return;
+  }
 
-    const days = Array.from(document.querySelectorAll('#ts-days-picker input[type=checkbox]:checked'))
-        .map(cb => cb.value);
-    if (!days.length) { showMsg(msgEl, 'Sélectionnez au moins un jour.', 'error'); return; }
+  const days = Array.from(
+    document.querySelectorAll("#ts-days-picker input[type=checkbox]:checked"),
+  ).map((cb) => cb.value);
+  if (!days.length) {
+    showMsg(msgEl, "Sélectionnez au moins un jour.", "error");
+    return;
+  }
 
-    setLoading('ts-save', true);
-    try {
-        await apiCall('/api/timeslots', {
-            method: 'POST',
-            body: JSON.stringify({ start, end, days })
-        });
-        closeModal('timeslot-modal');
-        await Promise.all([renderTimeslots(), renderScheduleGrid()]);
-        toast('Créneau ajouté ✓', 'success');
-    } catch (e) {
-        showMsg(msgEl, e.message, 'error');
-    } finally {
-        setLoading('ts-save', false);
-    }
+  setLoading("ts-save", true);
+  try {
+    await apiCall("/api/timeslots", {
+      method: "POST",
+      body: JSON.stringify({ start, end, days }),
+    });
+    closeModal("timeslot-modal");
+    await Promise.all([renderTimeslots(), renderScheduleGrid()]);
+    toast("Créneau ajouté ✓", "success");
+  } catch (e) {
+    showMsg(msgEl, e.message, "error");
+  } finally {
+    setLoading("ts-save", false);
+  }
 }
 
 async function deleteTimeslot(id) {
-    try {
-        await apiCall(`/api/timeslots/${id}`, { method: 'DELETE' });
-        await Promise.all([renderTimeslots(), renderScheduleGrid()]);
-        toast('Créneau supprimé', 'info');
-    } catch (e) {
-        toast(e.message, 'error');
-    }
+  try {
+    await apiCall(`/api/timeslots/${id}`, { method: "DELETE" });
+    await Promise.all([renderTimeslots(), renderScheduleGrid()]);
+    toast("Créneau supprimé", "info");
+  } catch (e) {
+    toast(e.message, "error");
+  }
 }
 
 async function renderTimeslots() {
-    const ts = await apiCall('/api/timeslots');
-    const el = document.getElementById('timeslots-list');
-    const summaryEl = document.getElementById('timeslots-summary');
+  const ts = await apiCall("/api/timeslots");
+  const el = document.getElementById("timeslots-list");
+  const summaryEl = document.getElementById("timeslots-summary");
 
-    if (!ts.length) {
-        el.innerHTML = `<div class="empty-state"><div class="empty-title">Aucun créneau</div></div>`;
-        if (summaryEl) summaryEl.innerHTML = '';
-        return;
-    }
+  if (!ts.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-title">Aucun créneau</div></div>`;
+    if (summaryEl) summaryEl.innerHTML = "";
+    return;
+  }
 
-    const fmtH = m => m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? (m % 60) + 'min' : ''}` : `${m}min`;
-    const weeklyMins = ts.reduce((acc, t) => {
-        const [sh, sm] = t.start.split(':').map(Number);
-        const [eh, em] = t.end.split(':').map(Number);
-        const dur = (eh * 60 + em) - (sh * 60 + sm);
-        return acc + dur * (t.days ? t.days.length : 0);
-    }, 0);
-    const totalCells = ts.reduce((acc, t) => acc + (t.days ? t.days.length : 0), 0);
-    const uniqueDays = [...new Set(ts.flatMap(t => t.days || []))].length;
+  const fmtH = (m) =>
+    m >= 60
+      ? `${Math.floor(m / 60)}h${m % 60 ? (m % 60) + "min" : ""}`
+      : `${m}min`;
+  const weeklyMins = ts.reduce((acc, t) => {
+    const [sh, sm] = t.start.split(":").map(Number);
+    const [eh, em] = t.end.split(":").map(Number);
+    const dur = eh * 60 + em - (sh * 60 + sm);
+    return acc + dur * (t.days ? t.days.length : 0);
+  }, 0);
+  const totalCells = ts.reduce(
+    (acc, t) => acc + (t.days ? t.days.length : 0),
+    0,
+  );
+  const uniqueDays = [...new Set(ts.flatMap((t) => t.days || []))].length;
 
-    if (summaryEl) {
-        summaryEl.innerHTML = `
+  if (summaryEl) {
+    summaryEl.innerHTML = `
             <div class="ts-summary-grid">
                 <div class="ts-stat"><span class="ts-stat-num">${ts.length}</span><span class="ts-stat-label">Créneaux définis</span></div>
                 <div class="ts-stat"><span class="ts-stat-num">${totalCells}</span><span class="ts-stat-label">Cellules / semaine</span></div>
                 <div class="ts-stat"><span class="ts-stat-num">${fmtH(weeklyMins)}</span><span class="ts-stat-label">Heures / semaine</span></div>
                 <div class="ts-stat"><span class="ts-stat-num">${uniqueDays}</span><span class="ts-stat-label">Jours couverts</span></div>
             </div>`;
-    }
+  }
 
-    el.innerHTML = ts.map((t, i) => {
-        const dayTags = (t.days || []).map(d =>
-            `<span class="ts-day-tag">${d}</span>`
-        ).join('');
-        return `
+  el.innerHTML = ts
+    .map((t, i) => {
+      const dayTags = (t.days || [])
+        .map((d) => `<span class="ts-day-tag">${d}</span>`)
+        .join("");
+      return `
         <div class="timeslot-row">
             <span class="timeslot-index">${i + 1}</span>
             <span class="timeslot-time">${t.start} → ${t.end}</span>
@@ -1095,14 +1573,17 @@ async function renderTimeslots() {
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
             </button>
         </div>`;
-    }).join('');
+    })
+    .join("");
 }
 
 function durationStr(start, end) {
-    const [sh, sm] = start.split(':').map(Number);
-    const [eh, em] = end.split(':').map(Number);
-    const mins = (eh * 60 + em) - (sh * 60 + sm);
-    return mins >= 60 ? `${Math.floor(mins / 60)}h${mins % 60 ? (mins % 60) + 'm' : ''}` : `${mins}min`;
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  const mins = eh * 60 + em - (sh * 60 + sm);
+  return mins >= 60
+    ? `${Math.floor(mins / 60)}h${mins % 60 ? (mins % 60) + "m" : ""}`
+    : `${mins}min`;
 }
 
 /* ══════════════════════════════════════════════
@@ -1110,29 +1591,33 @@ function durationStr(start, end) {
 ══════════════════════════════════════════════ */
 
 async function renderDaysCheckboxes() {
-    const allDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-    const active = await apiCall('/api/days');
-    window.currentActiveDays = active;
-    const el = document.getElementById('days-checkboxes');
-    el.innerHTML = allDays.map(d => `
-        <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.82rem;padding:0.4rem 0.8rem;background:var(--surface);border:1px solid ${active.includes(d) ? 'var(--gold)' : 'var(--border)'};border-radius:6px;color:${active.includes(d) ? 'var(--gold-light)' : 'var(--text-muted)'}">
-            <input type="checkbox" ${active.includes(d) ? 'checked' : ''} onchange="toggleDay('${d}',this)" style="accent-color:var(--gold)">
+  const allDays = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+  const active = await apiCall("/api/days");
+  window.currentActiveDays = active;
+  const el = document.getElementById("days-checkboxes");
+  el.innerHTML = allDays
+    .map(
+      (d) => `
+        <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.82rem;padding:0.4rem 0.8rem;background:var(--surface);border:1px solid ${active.includes(d) ? "var(--gold)" : "var(--border)"};border-radius:6px;color:${active.includes(d) ? "var(--gold-light)" : "var(--text-muted)"}">
+            <input type="checkbox" ${active.includes(d) ? "checked" : ""} onchange="toggleDay('${d}',this)" style="accent-color:var(--gold)">
             ${d}
         </label>
-    `).join('');
+    `,
+    )
+    .join("");
 }
 
 async function toggleDay(day, cb) {
-    let active = await apiCall('/api/days');
-    if (cb.checked) {
-        if (!active.includes(day)) active.push(day);
-    } else {
-        active = active.filter(d => d !== day);
-    }
-    const order = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-    active.sort((a, b) => order.indexOf(a) - order.indexOf(b));
-    await apiCall('/api/days', { method: 'PUT', body: JSON.stringify(active) });
-    await Promise.all([renderDaysCheckboxes(), renderScheduleGrid()]);
+  let active = await apiCall("/api/days");
+  if (cb.checked) {
+    if (!active.includes(day)) active.push(day);
+  } else {
+    active = active.filter((d) => d !== day);
+  }
+  const order = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+  active.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  await apiCall("/api/days", { method: "PUT", body: JSON.stringify(active) });
+  await Promise.all([renderDaysCheckboxes(), renderScheduleGrid()]);
 }
 
 /* ══════════════════════════════════════════════
@@ -1140,47 +1625,53 @@ async function toggleDay(day, cb) {
 ══════════════════════════════════════════════ */
 
 function updateAutogenTotal() {
-    const inputs = document.querySelectorAll('#autogen-grid input[data-subj-id]');
-    let total = 0;
-    inputs.forEach(inp => { total += parseFloat(inp.value) || 0; });
-    const el = document.getElementById('autogen-total-display');
-    if (!el) return;
-    if (inputs.length === 0) { el.innerHTML = ''; return; }
-    const avail = (window.currentActiveDays?.length || 5);
-    const tsH = window._timeslotsHoursPerDay || 0;
-    const maxH = avail * tsH;
-    const over = maxH > 0 && total > maxH;
-    el.innerHTML = `
-        <div class="autogen-total-inner ${over ? 'autogen-over' : ''}">
+  const inputs = document.querySelectorAll("#autogen-grid input[data-subj-id]");
+  let total = 0;
+  inputs.forEach((inp) => {
+    total += parseFloat(inp.value) || 0;
+  });
+  const el = document.getElementById("autogen-total-display");
+  if (!el) return;
+  if (inputs.length === 0) {
+    el.innerHTML = "";
+    return;
+  }
+  const avail = window.currentActiveDays?.length || 5;
+  const tsH = window._timeslotsHoursPerDay || 0;
+  const maxH = avail * tsH;
+  const over = maxH > 0 && total > maxH;
+  el.innerHTML = `
+        <div class="autogen-total-inner ${over ? "autogen-over" : ""}">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             Total demandé : <strong>${total}h / semaine</strong>
-            ${maxH > 0 ? `<span class="autogen-capacity ${over ? 'over' : ''}">— capacité : ${maxH}h${over ? ' ⚠ dépassement' : ''}</span>` : ''}
+            ${maxH > 0 ? `<span class="autogen-capacity ${over ? "over" : ""}">— capacité : ${maxH}h${over ? " ⚠ dépassement" : ""}</span>` : ""}
         </div>`;
 }
 
 async function renderAutogenGrid() {
-    const [subjects, config, timeslots] = await Promise.all([
-        apiCall('/api/subjects'),
-        apiCall('/api/autogen'),
-        apiCall('/api/timeslots')
-    ]);
+  const [subjects, config, timeslots] = await Promise.all([
+    apiCall("/api/subjects"),
+    apiCall("/api/autogen"),
+    apiCall("/api/timeslots"),
+  ]);
 
-    window._timeslotsHoursPerDay = timeslots.reduce((acc, t) => {
-        const [sh, sm] = t.start.split(':').map(Number);
-        const [eh, em] = t.end.split(':').map(Number);
-        return acc + ((eh * 60 + em) - (sh * 60 + sm)) / 60;
-    }, 0);
+  window._timeslotsHoursPerDay = timeslots.reduce((acc, t) => {
+    const [sh, sm] = t.start.split(":").map(Number);
+    const [eh, em] = t.end.split(":").map(Number);
+    return acc + (eh * 60 + em - (sh * 60 + sm)) / 60;
+  }, 0);
 
-    const grid = document.getElementById('autogen-grid');
-    if (!subjects.length) {
-        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-title">Aucune tâche définie</div></div>`;
-        updateAutogenTotal();
-        return;
-    }
+  const grid = document.getElementById("autogen-grid");
+  if (!subjects.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-title">Aucune tâche définie</div></div>`;
+    updateAutogenTotal();
+    return;
+  }
 
-    grid.innerHTML = subjects.map(s => {
-        const hours = config[s.id] || 0;
-        return `
+  grid.innerHTML = subjects
+    .map((s) => {
+      const hours = config[s.id] || 0;
+      return `
             <div class="autogen-row" style="border-left:3px solid ${s.color}">
                 <div class="autogen-row-dot" style="background:${s.color}" aria-hidden="true"></div>
                 <span class="autogen-row-name" style="color:${s.color}">${s.name}</span>
@@ -1192,41 +1683,48 @@ async function renderAutogenGrid() {
                        oninput="updateAutogenTotal()">
             </div>
         `;
-    }).join('');
+    })
+    .join("");
 
-    updateAutogenTotal();
+  updateAutogenTotal();
 }
 
 async function autoGenerate() {
-    const rows = document.querySelectorAll('#autogen-grid .autogen-row');
-    const newConfig = {};
+  const rows = document.querySelectorAll("#autogen-grid .autogen-row");
+  const newConfig = {};
 
-    rows.forEach(row => {
-        const input = row.querySelector('input[data-subj-id]');
-        if (!input) return;
-        const subjId = input.dataset.subjId;
-        const hours = parseFloat(input.value) || 0;
-        if (hours > 0) newConfig[subjId] = hours;
+  rows.forEach((row) => {
+    const input = row.querySelector("input[data-subj-id]");
+    if (!input) return;
+    const subjId = input.dataset.subjId;
+    const hours = parseFloat(input.value) || 0;
+    if (hours > 0) newConfig[subjId] = hours;
+  });
+
+  setLoading("autogen-submit", true);
+  try {
+    await apiCall("/api/autogen", {
+      method: "PUT",
+      body: JSON.stringify(newConfig),
     });
 
-    setLoading('autogen-submit', true);
-    try {
-        await apiCall('/api/autogen', { method: 'PUT', body: JSON.stringify(newConfig) });
+    const result = await apiCall(
+      "/api/autogen/generate?weekOffset=" + currentWeekOffset,
+      {
+        method: "POST",
+      },
+    );
 
-        const result = await apiCall('/api/autogen/generate?weekOffset=' + currentWeekOffset, {
-            method: 'POST'
-        });
-
-        document.getElementById('autogen-result').textContent =
-            `✓ Planning généré : ${result.assigned} créneaux assignés.`;
-        toast('Planning généré ✓', 'success');
-        showPanel('schedule');
-        await renderScheduleGrid();
-    } catch (e) {
-        toast(e.message, 'error');
-    } finally {
-        setLoading('autogen-submit', false);
-    }
+    document.getElementById("autogen-result").textContent =
+      `✓ Planning généré : ${result.assigned} créneaux assignés.`;
+    toast("Planning généré ✓", "success");
+    showPanel("schedule");
+    await renderScheduleGrid();
+  } catch (e) {
+    toast(e.message, "error");
+  } finally {
+    setLoading("autogen-submit", false);
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -1236,80 +1734,112 @@ async function autoGenerate() {
 const exportCSS = `:root{--bg:#060a10;--surface:#0d1420;--surface2:#131c2e;--border:#1a2840;--border2:#243650;--text:#e4edf8;--muted:#5a6e85;--dim:#2e3f55;--gold:#c9972a;--gold-l:#e8b84b;}*{margin:0;padding:0;box-sizing:border-box;}body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;}.page{max-width:1000px;margin:0 auto;padding:2rem 1.5rem 4rem;}.export-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;padding-bottom:1.5rem;margin-bottom:1.75rem;border-bottom:1px solid var(--border);}.logo{font-family:'Amiri',serif;font-size:2.4rem;color:var(--gold-l);text-shadow:0 0 40px rgba(232,184,75,.25);line-height:1;}.logo-sub{font-size:.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;margin-top:.3rem;}.gold-line{width:40px;height:1.5px;background:linear-gradient(90deg,var(--gold),transparent);margin:.5rem 0;}.meta-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem;}.meta-chip{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.2rem .65rem;font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--muted);}.actions{display:flex;flex-direction:column;gap:.5rem;align-items:flex-end;}.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.1rem;border-radius:10px;font-size:.82rem;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;text-decoration:none;border:none;transition:all .2s;white-space:nowrap;}.btn-gold{background:linear-gradient(135deg,#c9972a,#e8b84b);color:#07090d;box-shadow:0 4px 14px rgba(201,151,42,.28);}.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(201,151,42,.38);}.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border);}.btn-ghost:hover{border-color:var(--gold);color:var(--gold-l);}.btn svg{flex-shrink:0;}.btn-hint{font-size:.65rem;color:var(--muted);text-align:right;font-family:'JetBrains Mono',monospace;margin-top:.2rem;}.legend{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.5rem;}.legend-item{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--muted);background:var(--surface);padding:.25rem .6rem;border-radius:6px;border:1px solid var(--border);}.legend-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}.days-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;}.day-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:box-shadow .2s;}.day-card:hover{box-shadow:0 4px 24px rgba(0,0,0,.35);}.day-header{padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);gap:.5rem;}.day-title{display:flex;align-items:center;gap:.6rem;}.day-abbr{font-weight:700;font-size:1rem;color:var(--text);}.day-date{font-family:'JetBrains Mono',monospace;font-size:.78rem;background:var(--surface2);color:var(--muted);padding:.1rem .4rem;border-radius:5px;border:1px solid var(--border);}.day-actions{display:flex;align-items:center;gap:.4rem;}.day-chip{font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:.1rem .4rem;border-radius:4px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);}.print-day-btn,.img-day-btn{display:inline-flex;align-items:center;gap:.3rem;padding:.28rem .6rem;border-radius:7px;font-size:.7rem;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .18s;white-space:nowrap;}.print-day-btn:hover{border-color:var(--gold);color:var(--gold-l);}.img-day-btn{border-color:rgba(31,111,235,.3);color:#58a6ff;background:rgba(31,111,235,.08);}.img-day-btn:hover{border-color:#58a6ff;background:rgba(31,111,235,.15);}.timeline{padding:.65rem;display:flex;flex-direction:column;gap:.3rem;}.block{display:grid;grid-template-columns:64px 1fr;gap:.4rem;align-items:start;}.block-time{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--muted);padding-top:.45rem;line-height:1.35;text-align:right;padding-right:.5rem;border-right:2px solid var(--border);}.block-content{border-radius:8px;padding:.45rem .65rem;font-size:.8rem;line-height:1.4;font-weight:600;}.block-sub{display:block;font-size:.65rem;font-weight:400;opacity:.75;margin-top:.1rem;}.block-empty{border-radius:8px;padding:.45rem .65rem;min-height:36px;background:rgba(26,40,64,.3)!important;border:1.5px dashed var(--border2)!important;color:var(--dim);font-size:.65rem;display:flex;align-items:center;}.export-footer{margin-top:3rem;text-align:center;font-size:.68rem;color:var(--dim);font-family:'JetBrains Mono',monospace;}@media print{body{background:#fff!important;color:#111!important;}.page{padding:.5rem!important;}.export-header .actions,.btn-hint,.print-day-btn,.img-day-btn{display:none!important;}.export-header{border-bottom:1px solid #ddd!important;}.logo{color:#c9972a!important;text-shadow:none!important;}.gold-line{background:#c9972a!important;}.meta-chip{background:#f5f5f5!important;border:1px solid #ddd!important;color:#666!important;}.legend-item{background:#f5f5f5!important;border:1px solid #ddd!important;color:#555!important;}.days-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))!important;gap:.75rem!important;}.day-card{background:#fff!important;border:1px solid #ddd!important;border-radius:10px!important;break-inside:avoid;}.day-header{border-bottom:1px solid #eee!important;}.day-abbr{color:#111!important;}.day-date{background:#f5f5f5!important;border:1px solid #ddd!important;color:#666!important;}.day-chip{background:#f5f5f5!important;border:1px solid #ddd!important;color:#888!important;}.block-time{color:#888!important;border-right:2px solid #ddd!important;}.block-empty{background:#fafafa!important;border:1.5px dashed #ddd!important;color:#bbb!important;}.export-footer{color:#aaa!important;}}@media(max-width:600px){.export-header{flex-direction:column;}.actions{align-items:stretch;width:100%;}.btn-hint{text-align:left;}.days-grid{grid-template-columns:1fr;}.day-actions{flex-wrap:wrap;}}`;
 
 async function exportSchedule() {
-    // Ferme la sidebar sur TOUS les écrans (mobile + desktop)
-    document.getElementById('sidebar').classList.remove('open');
-    document.body.classList.add('export-mode');
-    showPanel('export');
-    const exportLoading = document.getElementById('export-loading');
-    const exportFrame = document.getElementById('export-frame');
-    if (exportLoading) { exportLoading.style.display = 'flex'; }
-    if (exportFrame) { exportFrame.style.display = 'none'; }
-    const [subjects, sched, timeslots, days, user] = await Promise.all([
-        apiCall('/api/subjects'),
-        apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`),
-        apiCall('/api/timeslots'),
-        apiCall('/api/days'),
-        apiCall('/api/auth/me')
-    ]);
+  // Ferme la sidebar sur TOUS les écrans (mobile + desktop)
+  document.getElementById("sidebar").classList.remove("open");
+  document.body.classList.add("export-mode");
+  showPanel("export");
+  const exportLoading = document.getElementById("export-loading");
+  const exportFrame = document.getElementById("export-frame");
+  if (exportLoading) {
+    exportLoading.style.display = "flex";
+  }
+  if (exportFrame) {
+    exportFrame.style.display = "none";
+  }
+  const [subjects, sched, timeslots, days, user] = await Promise.all([
+    apiCall("/api/subjects"),
+    apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`),
+    apiCall("/api/timeslots"),
+    apiCall("/api/days"),
+    apiCall("/api/auth/me"),
+  ]);
 
-    const sortedSlots = timeslots.slice().sort((a, b) => a.start.localeCompare(b.start));
+  const sortedSlots = timeslots
+    .slice()
+    .sort((a, b) => a.start.localeCompare(b.start));
 
-    // Helper: hex to rgba
-    function hxAlpha(hex, alpha) {
-        const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r},${g},${b},${alpha})`;
-    }
+  // Helper: hex to rgba
+  function hxAlpha(hex, alpha) {
+    const r = parseInt(hex.slice(1, 3), 16),
+      g = parseInt(hex.slice(3, 5), 16),
+      b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
 
-    // Compute week dates like renderScheduleGrid does
-    const weekStart = new Date();
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay() + currentWeekOffset * 7);
-    const dayOrder = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-    const weekDays = days.map((abbr, i) => {
-        const idx = dayOrder.indexOf(abbr);
-        const d = new Date(weekStart);
-        d.setDate(weekStart.getDate() + (idx >= 0 ? idx : i));
-        const dateNum = d.getDate();
-        const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-        return { abbr, dateNum, monthStr: monthNames[d.getMonth()], dateObj: d };
-    });
+  // Compute week dates like renderScheduleGrid does
+  const weekStart = new Date();
+  weekStart.setDate(
+    weekStart.getDate() - weekStart.getDay() + currentWeekOffset * 7,
+  );
+  const dayOrder = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+  const weekDays = days.map((abbr, i) => {
+    const idx = dayOrder.indexOf(abbr);
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + (idx >= 0 ? idx : i));
+    const dateNum = d.getDate();
+    const monthNames = [
+      "Jan",
+      "Fév",
+      "Mar",
+      "Avr",
+      "Mai",
+      "Jun",
+      "Jul",
+      "Aoû",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Déc",
+    ];
+    return { abbr, dateNum, monthStr: monthNames[d.getMonth()], dateObj: d };
+  });
 
-    const exportDate = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    const fileName = `jadwal_${user.name.replace(/\s+/g, '_')}_semaine${currentWeekOffset >= 0 ? '+' : ''}${currentWeekOffset}`;
+  const exportDate = new Date().toLocaleDateString("fr-FR", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const fileName = `jadwal_${user.name.replace(/\s+/g, "_")}_semaine${currentWeekOffset >= 0 ? "+" : ""}${currentWeekOffset}`;
 
-    // Build day-card HTML for each day
-    let dayCardsHtml = '';
-    weekDays.forEach(({ abbr, dateNum, monthStr }) => {
-        const daySlots = sortedSlots.filter(ts => !ts.days || ts.days.length === 0 || ts.days.includes(abbr));
-        if (!daySlots.length) return;
+  // Build day-card HTML for each day
+  let dayCardsHtml = "";
+  weekDays.forEach(({ abbr, dateNum, monthStr }) => {
+    const daySlots = sortedSlots.filter(
+      (ts) => !ts.days || ts.days.length === 0 || ts.days.includes(abbr),
+    );
+    if (!daySlots.length) return;
 
-        const filled = daySlots.filter(ts => sched[`${currentWeekOffset}_${abbr}_${ts.id}`]).length;
-        const total = daySlots.length;
+    const filled = daySlots.filter(
+      (ts) => sched[`${currentWeekOffset}_${abbr}_${ts.id}`],
+    ).length;
+    const total = daySlots.length;
 
-        let blocks = '';
-        daySlots.forEach(ts => {
-            const key = `${currentWeekOffset}_${abbr}_${ts.id}`;
-            const subjId = sched[key];
-            const subj = subjId ? subjects.find(s => s.id === subjId) : null;
+    let blocks = "";
+    daySlots.forEach((ts) => {
+      const key = `${currentWeekOffset}_${abbr}_${ts.id}`;
+      const subjId = sched[key];
+      const subj = subjId ? subjects.find((s) => s.id === subjId) : null;
 
-            if (subj) {
-                blocks += `
+      if (subj) {
+        blocks += `
                 <div class="block">
                     <div class="block-time">${ts.start}<br>→ ${ts.end}</div>
                     <div class="block-content" style="background:${hxAlpha(subj.color, 0.18)};border-left:3px solid ${subj.color};color:${subj.color}">
                         <strong>${subj.name}</strong>
-                        ${subj.type ? `<span class="block-sub">${subj.type}</span>` : ''}
+                        ${subj.type ? `<span class="block-sub">${subj.type}</span>` : ""}
                     </div>
                 </div>`;
-            } else {
-                blocks += `
+      } else {
+        blocks += `
                 <div class="block">
                     <div class="block-time">${ts.start}<br>→ ${ts.end}</div>
                     <div class="block-empty">—</div>
                 </div>`;
-            }
-        });
+      }
+    });
 
-        dayCardsHtml += `
+    dayCardsHtml += `
         <div class="day-card" id="day-${abbr}">
             <div class="day-header">
                 <div class="day-title">
@@ -1326,108 +1856,110 @@ async function exportSchedule() {
             </div>
             <div class="timeline">${blocks}</div>
         </div>`;
-    });
+  });
 
-    // Build legend from used subjects
-    const usedSubjIds = new Set(Object.values(sched));
-    const usedSubjects = subjects.filter(s => usedSubjIds.has(s.id));
-    const legendHtml = usedSubjects.map(s =>
-        ``
-    ).join('');
+  // Build legend from used subjects
+  const usedSubjIds = new Set(Object.values(sched));
+  const usedSubjects = subjects.filter((s) => usedSubjIds.has(s.id));
+  const legendHtml = usedSubjects.map((s) => ``).join("");
 
-    const exportFrame2 = document.getElementById('export-frame');
-    const exportLoading2 = document.getElementById('export-loading');
-    if (exportFrame2) {
-        exportFrame2.srcdoc = `<!DOCTYPE html>\r\n<html lang="fr">\r\n<head>\r\n<meta charset="UTF-8">\r\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\r\n<title>Emploi du Temps — ${user.name}</title>\r\n<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\r\n<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>\r\n<style>${exportCSS}<\/style>\r\n</head>\r\n<body>\r\n<div class="page">\r\n\r\n  <div class="export-header">\r\n    <div>\r\n      <div class="logo">جدول<\/div>\r\n      <div class="gold-line"><\/div>\r\n      <div class="logo-sub">Jadwal — Emploi du Temps<\/div>\r\n      <div class="meta-row">\r\n        <span class="meta-chip">👤 ${user.name}<\/span>\r\n        <span class="meta-chip">📅 ${exportDate}<\/span>\r\n        <span class="meta-chip">Semaine ${currentWeekOffset >= 0 ? '+' : ''}${currentWeekOffset}<\/span>\r\n      <\/div>\r\n    <\/div>\r\n    <div class="actions">\r\n      <button class="btn btn-gold" onclick="window.print()">\r\n        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"\/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"\/><rect x="6" y="14" width="12" height="8"\/><\/svg>\r\n        Imprimer la semaine\r\n      <\/button>\r\n      <a id="dl-html" class="btn btn-ghost" download="${fileName}.html">\r\n        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"\/><polyline points="7 10 12 15 17 10"\/><line x1="12" y1="15" x2="12" y2="3"\/><\/svg>\r\n        Télécharger HTML\r\n      <\/a>\r\n      <div class="btn-hint">Chaque jour : bouton Image 👇<\/div>\r\n    <\/div>\r\n  <\/div>\r\n\r\n  ${legendHtml ? `<div class="legend">${legendHtml}<\/div>` : ''}\r\n\r\n  <div class="days-grid">\r\n    ${dayCardsHtml}\r\n  <\/div>\r\n\r\n  <div class="export-footer">Généré par Jadwal · ${exportDate}<\/div>\r\n<\/div>\r\n\r\n<script>\r\n(function() {\r\n  const htmlContent = '<!DOCTYPE html>' + document.documentElement.outerHTML;\r\n  const htmlBlob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });\r\n  document.getElementById('dl-html').href = URL.createObjectURL(htmlBlob);\r\n})();\r\n\r\nfunction printDay(abbr) {\r\n  const card = document.getElementById('day-' + abbr);\r\n  if (!card) return;\r\n  const printWin = window.open('', '_blank', 'width=480,height=700');\r\n  const cardHtml = card.outerHTML;\r\n  printWin.document.write(\`<!DOCTYPE html>\r\n<html><head><meta charset="UTF-8">\r\n<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\r\n<style>\r\n  *{margin:0;padding:0;box-sizing:border-box;}\r\n  body{background:#fff;color:#111;font-family:'DM Sans',sans-serif;padding:1.5rem;}\r\n  .day-card{border:1px solid #ddd;border-radius:12px;overflow:hidden;max-width:400px;margin:0 auto;}\r\n  .day-header{padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;gap:.5rem;}\r\n  .day-title{display:flex;align-items:center;gap:.6rem;}\r\n  .day-abbr{font-weight:700;font-size:1rem;color:#111;}\r\n  .day-date{font-family:'JetBrains Mono',monospace;font-size:.78rem;background:#f5f5f5;color:#666;padding:.1rem .4rem;border-radius:5px;border:1px solid #ddd;}\r\n  .day-actions{display:none;}\r\n  .day-chip{font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:.1rem .4rem;border-radius:4px;background:#f5f5f5;color:#888;border:1px solid #ddd;}\r\n  .timeline{padding:.65rem;display:flex;flex-direction:column;gap:.3rem;}\r\n  .block{display:grid;grid-template-columns:64px 1fr;gap:.4rem;align-items:start;}\r\n  .block-time{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#888;padding-top:.45rem;line-height:1.35;text-align:right;padding-right:.5rem;border-right:2px solid #eee;}\r\n  .block-content{border-radius:8px;padding:.45rem .65rem;font-size:.8rem;line-height:1.4;font-weight:600;}\r\n  .block-sub{display:block;font-size:.65rem;font-weight:400;opacity:.7;margin-top:.1rem;}\r\n  .block-empty{border-radius:8px;padding:.45rem .65rem;min-height:36px;background:#fafafa;border:1.5px dashed #ddd;color:#ccc;font-size:.65rem;display:flex;align-items:center;}\r\n  .footer{margin-top:1.5rem;text-align:center;font-size:.65rem;color:#bbb;font-family:'JetBrains Mono',monospace;}\r\n<\/style>\r\n<\/head><body>\r\n\${cardHtml}\r\n<div class="footer">Jadwal · \${new Date().toLocaleDateString('fr-FR')}<\/div>\r\n<\/body><\/html>\`);\r\n  printWin.document.close();\r\n  printWin.onload = () => { printWin.focus(); printWin.print(); };\r\n}\r\n\r\nasync function saveAsImage(abbr) {\r\n  const card = document.getElementById('day-' + abbr);\r\n  if (!card) return;\r\n  if (typeof html2canvas === 'undefined') {\r\n    alert('html2canvas non chargé, réessayez dans un instant.');\r\n    return;\r\n  }\r\n  const btn = card.querySelector('.img-day-btn');\r\n  if (btn) { btn.textContent = '…'; btn.disabled = true; }\r\n  try {\r\n    const canvas = await html2canvas(card, { backgroundColor: '#0d1420', scale: 2, useCORS: true, logging: false });\r\n    const link = document.createElement('a');\r\n    link.download = 'jadwal_' + abbr + '_${fileName}.png';\r\n    link.href = canvas.toDataURL('image/png');\r\n    link.click();\r\n  } catch(e) {\r\n    alert('Erreur lors de la capture : ' + e.message);\r\n  } finally {\r\n    if (btn) { btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"\/><circle cx="8.5" cy="8.5" r="1.5"\/><polyline points="21 15 16 10 5 21"\/><\/svg> Image'; btn.disabled = false; }\r\n  }\r\n}\r\n<\/script>\r\n<\/body>\r\n<\/html>`;
-        exportFrame2.onload = () => {
-            if (exportLoading2) exportLoading2.style.display = 'none';
-            exportFrame2.style.display = 'block';
-        };
-    }
+  const exportFrame2 = document.getElementById("export-frame");
+  const exportLoading2 = document.getElementById("export-loading");
+  if (exportFrame2) {
+    exportFrame2.srcdoc = `<!DOCTYPE html>\r\n<html lang="fr">\r\n<head>\r\n<meta charset="UTF-8">\r\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\r\n<title>Emploi du Temps — ${user.name}</title>\r\n<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\r\n<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>\r\n<style>${exportCSS}<\/style>\r\n</head>\r\n<body>\r\n<div class="page">\r\n\r\n  <div class="export-header">\r\n    <div>\r\n      <div class="logo">جدول<\/div>\r\n      <div class="gold-line"><\/div>\r\n      <div class="logo-sub">Jadwal — Emploi du Temps<\/div>\r\n      <div class="meta-row">\r\n        <span class="meta-chip">👤 ${user.name}<\/span>\r\n        <span class="meta-chip">📅 ${exportDate}<\/span>\r\n        <span class="meta-chip">Semaine ${currentWeekOffset >= 0 ? "+" : ""}${currentWeekOffset}<\/span>\r\n      <\/div>\r\n    <\/div>\r\n    <div class="actions">\r\n      <button class="btn btn-gold" onclick="window.print()">\r\n        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"\/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"\/><rect x="6" y="14" width="12" height="8"\/><\/svg>\r\n        Imprimer la semaine\r\n      <\/button>\r\n      <a id="dl-html" class="btn btn-ghost" download="${fileName}.html">\r\n        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"\/><polyline points="7 10 12 15 17 10"\/><line x1="12" y1="15" x2="12" y2="3"\/><\/svg>\r\n        Télécharger HTML\r\n      <\/a>\r\n      <div class="btn-hint">Chaque jour : bouton Image 👇<\/div>\r\n    <\/div>\r\n  <\/div>\r\n\r\n  ${legendHtml ? `<div class="legend">${legendHtml}<\/div>` : ""}\r\n\r\n  <div class="days-grid">\r\n    ${dayCardsHtml}\r\n  <\/div>\r\n\r\n  <div class="export-footer">Généré par Jadwal · ${exportDate}<\/div>\r\n<\/div>\r\n\r\n<script>\r\n(function() {\r\n  const htmlContent = '<!DOCTYPE html>' + document.documentElement.outerHTML;\r\n  const htmlBlob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });\r\n  document.getElementById('dl-html').href = URL.createObjectURL(htmlBlob);\r\n})();\r\n\r\nfunction printDay(abbr) {\r\n  const card = document.getElementById('day-' + abbr);\r\n  if (!card) return;\r\n  const printWin = window.open('', '_blank', 'width=480,height=700');\r\n  const cardHtml = card.outerHTML;\r\n  printWin.document.write(\`<!DOCTYPE html>\r\n<html><head><meta charset="UTF-8">\r\n<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\r\n<style>\r\n  *{margin:0;padding:0;box-sizing:border-box;}\r\n  body{background:#fff;color:#111;font-family:'DM Sans',sans-serif;padding:1.5rem;}\r\n  .day-card{border:1px solid #ddd;border-radius:12px;overflow:hidden;max-width:400px;margin:0 auto;}\r\n  .day-header{padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;gap:.5rem;}\r\n  .day-title{display:flex;align-items:center;gap:.6rem;}\r\n  .day-abbr{font-weight:700;font-size:1rem;color:#111;}\r\n  .day-date{font-family:'JetBrains Mono',monospace;font-size:.78rem;background:#f5f5f5;color:#666;padding:.1rem .4rem;border-radius:5px;border:1px solid #ddd;}\r\n  .day-actions{display:none;}\r\n  .day-chip{font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:.1rem .4rem;border-radius:4px;background:#f5f5f5;color:#888;border:1px solid #ddd;}\r\n  .timeline{padding:.65rem;display:flex;flex-direction:column;gap:.3rem;}\r\n  .block{display:grid;grid-template-columns:64px 1fr;gap:.4rem;align-items:start;}\r\n  .block-time{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#888;padding-top:.45rem;line-height:1.35;text-align:right;padding-right:.5rem;border-right:2px solid #eee;}\r\n  .block-content{border-radius:8px;padding:.45rem .65rem;font-size:.8rem;line-height:1.4;font-weight:600;}\r\n  .block-sub{display:block;font-size:.65rem;font-weight:400;opacity:.7;margin-top:.1rem;}\r\n  .block-empty{border-radius:8px;padding:.45rem .65rem;min-height:36px;background:#fafafa;border:1.5px dashed #ddd;color:#ccc;font-size:.65rem;display:flex;align-items:center;}\r\n  .footer{margin-top:1.5rem;text-align:center;font-size:.65rem;color:#bbb;font-family:'JetBrains Mono',monospace;}\r\n<\/style>\r\n<\/head><body>\r\n\${cardHtml}\r\n<div class="footer">Jadwal · \${new Date().toLocaleDateString('fr-FR')}<\/div>\r\n<\/body><\/html>\`);\r\n  printWin.document.close();\r\n  printWin.onload = () => { printWin.focus(); printWin.print(); };\r\n}\r\n\r\nasync function saveAsImage(abbr) {\r\n  const card = document.getElementById('day-' + abbr);\r\n  if (!card) return;\r\n  if (typeof html2canvas === 'undefined') {\r\n    alert('html2canvas non chargé, réessayez dans un instant.');\r\n    return;\r\n  }\r\n  const btn = card.querySelector('.img-day-btn');\r\n  if (btn) { btn.textContent = '…'; btn.disabled = true; }\r\n  try {\r\n    const canvas = await html2canvas(card, { backgroundColor: '#0d1420', scale: 2, useCORS: true, logging: false });\r\n    const link = document.createElement('a');\r\n    link.download = 'jadwal_' + abbr + '_${fileName}.png';\r\n    link.href = canvas.toDataURL('image/png');\r\n    link.click();\r\n  } catch(e) {\r\n    alert('Erreur lors de la capture : ' + e.message);\r\n  } finally {\r\n    if (btn) { btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"\/><circle cx="8.5" cy="8.5" r="1.5"\/><polyline points="21 15 16 10 5 21"\/><\/svg> Image'; btn.disabled = false; }\r\n  }\r\n}\r\n<\/script>\r\n<\/body>\r\n<\/html>`;
+    exportFrame2.onload = () => {
+      if (exportLoading2) exportLoading2.style.display = "none";
+      exportFrame2.style.display = "block";
+    };
+  }
 }
 /* ══════════════════════════════════════════════
    UTILS
 ══════════════════════════════════════════════ */
 
 function hexAlpha(hex, alpha) {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r},${g},${b},${alpha})`;
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
 }
 
 function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
+  document.getElementById(id).classList.remove("open");
 }
 
-function toast(msg, type = 'info') {
-    const el = document.createElement('div');
-    el.className = `toast ${type}`;
+function toast(msg, type = "info") {
+  const el = document.createElement("div");
+  el.className = `toast ${type}`;
 
-    const text = document.createElement('span');
-    text.textContent = msg;
+  const text = document.createElement("span");
+  text.textContent = msg;
 
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'toast-close';
-    closeBtn.innerHTML = '×';
-    closeBtn.setAttribute('aria-label', 'Fermer');
-    closeBtn.onclick = () => el.remove();
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "toast-close";
+  closeBtn.innerHTML = "×";
+  closeBtn.setAttribute("aria-label", "Fermer");
+  closeBtn.onclick = () => el.remove();
 
-    el.appendChild(text);
-    el.appendChild(closeBtn);
-    document.getElementById('toasts').appendChild(el);
-    setTimeout(() => el.classList.add('toast-hide'), 2700);
-    setTimeout(() => el.remove(), 3000);
+  el.appendChild(text);
+  el.appendChild(closeBtn);
+  document.getElementById("toasts").appendChild(el);
+  setTimeout(() => el.classList.add("toast-hide"), 2700);
+  setTimeout(() => el.remove(), 3000);
 }
 
 // Close modals with Escape key
 // (Focus Mode has its own ESC handler registered via registerFocusShortcuts)
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-        // Let focus-mode.js handle ESC when overlay is active
-        if (document.getElementById('focus-overlay')) return;
-        document.querySelectorAll('.modal-overlay.open').forEach(o => o.classList.remove('open'));
-    }
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    // Let focus-mode.js handle ESC when overlay is active
+    if (document.getElementById("focus-overlay")) return;
+    document
+      .querySelectorAll(".modal-overlay.open")
+      .forEach((o) => o.classList.remove("open"));
+  }
 });
 
 // Click outside modal to close
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', e => {
-        if (e.target === overlay) overlay.classList.remove('open');
-    });
+document.querySelectorAll(".modal-overlay").forEach((overlay) => {
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) overlay.classList.remove("open");
+  });
 });
 
 /* ══════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════ */
 
-window.addEventListener('DOMContentLoaded', async () => {
-    showLoader();
+window.addEventListener("DOMContentLoaded", async () => {
+  showLoader();
 
-    // Check for password reset token in URL
-    const params = new URLSearchParams(window.location.search);
-    const resetToken = params.get('reset_token');
-    if (resetToken) {
-        window.history.replaceState({}, '', window.location.pathname);
-        hideLoader();
-        showResetForm(resetToken);
-        return;
-    }
+  // Check for password reset token in URL
+  const params = new URLSearchParams(window.location.search);
+  const resetToken = params.get("reset_token");
+  if (resetToken) {
+    window.history.replaceState({}, "", window.location.pathname);
+    hideLoader();
+    showResetForm(resetToken);
+    return;
+  }
 
-    try {
-        const user = await apiCall('/api/auth/me');
-        hideLoader();
-        if (user) {
-            await startApp();
-        } else {
-            document.getElementById('auth-page').style.display = 'flex';
-            requestAnimationFrame(() => document.getElementById('login-email').focus());
-        }
-    } catch (e) {
-        hideLoader();
-        document.getElementById('auth-page').style.display = 'flex';
-        requestAnimationFrame(() => document.getElementById('login-email').focus());
+  try {
+    const user = await apiCall("/api/auth/me");
+    hideLoader();
+    if (user) {
+      await startApp();
+    } else {
+      document.getElementById("auth-page").style.display = "flex";
+      requestAnimationFrame(() =>
+        document.getElementById("login-email").focus(),
+      );
     }
+  } catch (e) {
+    hideLoader();
+    document.getElementById("auth-page").style.display = "flex";
+    requestAnimationFrame(() => document.getElementById("login-email").focus());
+  }
 });
 
 /* ══════════════════════════════════════════════
@@ -1435,93 +1967,119 @@ window.addEventListener('DOMContentLoaded', async () => {
 ══════════════════════════════════════════════ */
 
 function showForgotForm(e) {
-    if (e) e.preventDefault();
-    document.getElementById('login-form').style.display = 'none';
-    document.getElementById('register-form').style.display = 'none';
-    document.getElementById('reset-form').style.display = 'none';
-    document.getElementById('forgot-form').style.display = 'flex';
-    document.querySelector('.auth-tabs').style.display = 'none';
-    document.querySelector('.auth-card-heading h2').textContent = 'Mot de passe oublié';
-    document.querySelector('.auth-card-heading p').textContent = 'Nous vous enverrons un lien de réinitialisation';
-    document.getElementById('forgot-email').value = '';
-    document.getElementById('forgot-msg').innerHTML = '';
-    requestAnimationFrame(() => document.getElementById('forgot-email').focus());
+  if (e) e.preventDefault();
+  document.getElementById("login-form").style.display = "none";
+  document.getElementById("register-form").style.display = "none";
+  document.getElementById("reset-form").style.display = "none";
+  document.getElementById("forgot-form").style.display = "flex";
+  document.querySelector(".auth-tabs").style.display = "none";
+  document.querySelector(".auth-card-heading h2").textContent =
+    "Mot de passe oublié";
+  document.querySelector(".auth-card-heading p").textContent =
+    "Nous vous enverrons un lien de réinitialisation";
+  document.getElementById("forgot-email").value = "";
+  document.getElementById("forgot-msg").innerHTML = "";
+  requestAnimationFrame(() => document.getElementById("forgot-email").focus());
 }
 
 function showLoginForm(e) {
-    if (e) e.preventDefault();
-    document.getElementById('forgot-form').style.display = 'none';
-    document.getElementById('reset-form').style.display = 'none';
-    document.getElementById('register-form').style.display = 'none';
-    document.getElementById('login-form').style.display = 'flex';
-    document.querySelector('.auth-tabs').style.display = 'flex';
-    document.querySelector('.auth-card-heading h2').textContent = 'Bienvenue';
-    document.querySelector('.auth-card-heading p').textContent = 'Connectez-vous ou créez votre compte';
-    document.querySelectorAll('.auth-tab').forEach((t, i) => {
-        t.classList.toggle('active', i === 0);
-        t.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
-    });
-    requestAnimationFrame(() => document.getElementById('login-email').focus());
+  if (e) e.preventDefault();
+  document.getElementById("forgot-form").style.display = "none";
+  document.getElementById("reset-form").style.display = "none";
+  document.getElementById("register-form").style.display = "none";
+  document.getElementById("login-form").style.display = "flex";
+  document.querySelector(".auth-tabs").style.display = "flex";
+  document.querySelector(".auth-card-heading h2").textContent = "Bienvenue";
+  document.querySelector(".auth-card-heading p").textContent =
+    "Connectez-vous ou créez votre compte";
+  document.querySelectorAll(".auth-tab").forEach((t, i) => {
+    t.classList.toggle("active", i === 0);
+    t.setAttribute("aria-selected", i === 0 ? "true" : "false");
+  });
+  requestAnimationFrame(() => document.getElementById("login-email").focus());
 }
 
 function showResetForm(token) {
-    document.getElementById('auth-page').style.display = 'flex';
-    document.getElementById('app-page').style.display = 'none';
-    document.getElementById('login-form').style.display = 'none';
-    document.getElementById('register-form').style.display = 'none';
-    document.getElementById('forgot-form').style.display = 'none';
-    document.getElementById('reset-form').style.display = 'flex';
-    document.querySelector('.auth-tabs').style.display = 'none';
-    document.querySelector('.auth-card-heading h2').textContent = 'Nouveau mot de passe';
-    document.querySelector('.auth-card-heading p').textContent = 'Choisissez un nouveau mot de passe sécurisé';
-    document.getElementById('reset-token').value = token;
-    document.getElementById('reset-password').value = '';
-    document.getElementById('reset-confirm').value = '';
-    document.getElementById('reset-msg').innerHTML = '';
-    requestAnimationFrame(() => document.getElementById('reset-password').focus());
+  document.getElementById("auth-page").style.display = "flex";
+  document.getElementById("app-page").style.display = "none";
+  document.getElementById("login-form").style.display = "none";
+  document.getElementById("register-form").style.display = "none";
+  document.getElementById("forgot-form").style.display = "none";
+  document.getElementById("reset-form").style.display = "flex";
+  document.querySelector(".auth-tabs").style.display = "none";
+  document.querySelector(".auth-card-heading h2").textContent =
+    "Nouveau mot de passe";
+  document.querySelector(".auth-card-heading p").textContent =
+    "Choisissez un nouveau mot de passe sécurisé";
+  document.getElementById("reset-token").value = token;
+  document.getElementById("reset-password").value = "";
+  document.getElementById("reset-confirm").value = "";
+  document.getElementById("reset-msg").innerHTML = "";
+  requestAnimationFrame(() =>
+    document.getElementById("reset-password").focus(),
+  );
 }
 
 async function doForgotPassword() {
-    const email = document.getElementById('forgot-email').value.trim().toLowerCase();
-    const msgEl = document.getElementById('forgot-msg');
-    if (!email) { showMsg(msgEl, 'Entrez votre adresse email.', 'error'); return; }
+  const email = document
+    .getElementById("forgot-email")
+    .value.trim()
+    .toLowerCase();
+  const msgEl = document.getElementById("forgot-msg");
+  if (!email) {
+    showMsg(msgEl, "Entrez votre adresse email.", "error");
+    return;
+  }
 
-    setLoading('forgot-submit', true);
-    try {
-        const res = await apiCall('/api/auth/forgot-password', {
-            method: 'POST',
-            body: JSON.stringify({ email })
-        });
-        showMsg(msgEl, res.message || 'Si cet email existe, un lien a été envoyé.', 'success');
-    } catch (e) {
-        showMsg(msgEl, e.message, 'error');
-    } finally {
-        setLoading('forgot-submit', false);
-    }
+  setLoading("forgot-submit", true);
+  try {
+    const res = await apiCall("/api/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+    showMsg(
+      msgEl,
+      res.message || "Si cet email existe, un lien a été envoyé.",
+      "success",
+    );
+  } catch (e) {
+    showMsg(msgEl, e.message, "error");
+  } finally {
+    setLoading("forgot-submit", false);
+  }
 }
 
 async function doResetPassword() {
-    const token = document.getElementById('reset-token').value;
-    const pwd = document.getElementById('reset-password').value;
-    const confirm = document.getElementById('reset-confirm').value;
-    const msgEl = document.getElementById('reset-msg');
-    if (!pwd || !confirm) { showMsg(msgEl, 'Remplissez tous les champs.', 'error'); return; }
-    if (pwd.length < 6) { showMsg(msgEl, 'Minimum 6 caractères.', 'error'); return; }
-    if (pwd !== confirm) { showMsg(msgEl, 'Les mots de passe ne correspondent pas.', 'error'); return; }
+  const token = document.getElementById("reset-token").value;
+  const pwd = document.getElementById("reset-password").value;
+  const confirm = document.getElementById("reset-confirm").value;
+  const msgEl = document.getElementById("reset-msg");
+  if (!pwd || !confirm) {
+    showMsg(msgEl, "Remplissez tous les champs.", "error");
+    return;
+  }
+  if (pwd.length < 6) {
+    showMsg(msgEl, "Minimum 6 caractères.", "error");
+    return;
+  }
+  if (pwd !== confirm) {
+    showMsg(msgEl, "Les mots de passe ne correspondent pas.", "error");
+    return;
+  }
 
-    setLoading('reset-submit', true);
-    try {
-        const res = await apiCall('/api/auth/reset-password', {
-            method: 'POST',
-            body: JSON.stringify({ token, password: pwd })
-        });
-        showMsg(msgEl, res.message || 'Mot de passe mis à jour !', 'success');
-        setTimeout(() => showLoginForm(null), 2000);
-    } catch (e) {
-        showMsg(msgEl, e.message, 'error');
-    } finally {
-        setLoading('reset-submit', false);
-    }
+  setLoading("reset-submit", true);
+  try {
+    const res = await apiCall("/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, password: pwd }),
+    });
+    showMsg(msgEl, res.message || "Mot de passe mis à jour !", "success");
+    setTimeout(() => showLoginForm(null), 2000);
+  } catch (e) {
+    showMsg(msgEl, e.message, "error");
+  } finally {
+    setLoading("reset-submit", false);
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -1529,108 +2087,137 @@ async function doResetPassword() {
 ══════════════════════════════════════════════ */
 
 async function doChangePassword() {
-    const currentPwd = document.getElementById('settings-current-password').value;
-    const newPwd = document.getElementById('settings-new-password').value;
-    const confirmPwd = document.getElementById('settings-confirm-password').value;
-    const msgEl = document.getElementById('settings-password-msg');
+  const currentPwd = document.getElementById("settings-current-password").value;
+  const newPwd = document.getElementById("settings-new-password").value;
+  const confirmPwd = document.getElementById("settings-confirm-password").value;
+  const msgEl = document.getElementById("settings-password-msg");
 
-    if (!currentPwd || !newPwd || !confirmPwd) {
-        showMsg(msgEl, 'Remplissez tous les champs.', 'error'); return;
-    }
-    if (newPwd.length < 6) {
-        showMsg(msgEl, 'Nouveau mot de passe trop court (min 6 caractères).', 'error'); return;
-    }
-    if (newPwd !== confirmPwd) {
-        showMsg(msgEl, 'Les mots de passe ne correspondent pas.', 'error'); return;
-    }
+  if (!currentPwd || !newPwd || !confirmPwd) {
+    showMsg(msgEl, "Remplissez tous les champs.", "error");
+    return;
+  }
+  if (newPwd.length < 6) {
+    showMsg(
+      msgEl,
+      "Nouveau mot de passe trop court (min 6 caractères).",
+      "error",
+    );
+    return;
+  }
+  if (newPwd !== confirmPwd) {
+    showMsg(msgEl, "Les mots de passe ne correspondent pas.", "error");
+    return;
+  }
 
-    setLoading('settings-password-submit', true);
-    try {
-        const res = await apiCall('/api/auth/change-password', {
-            method: 'PUT',
-            body: JSON.stringify({ currentPassword: currentPwd, newPassword: newPwd })
-        });
-        showMsg(msgEl, res.message || 'Mot de passe modifié avec succès !', 'success');
-        document.getElementById('settings-current-password').value = '';
-        document.getElementById('settings-new-password').value = '';
-        document.getElementById('settings-confirm-password').value = '';
-        toast('Mot de passe modifié', 'success');
-    } catch (e) {
-        showMsg(msgEl, e.message, 'error');
-    } finally {
-        setLoading('settings-password-submit', false);
-    }
+  setLoading("settings-password-submit", true);
+  try {
+    const res = await apiCall("/api/auth/change-password", {
+      method: "PUT",
+      body: JSON.stringify({
+        currentPassword: currentPwd,
+        newPassword: newPwd,
+      }),
+    });
+    showMsg(
+      msgEl,
+      res.message || "Mot de passe modifié avec succès !",
+      "success",
+    );
+    document.getElementById("settings-current-password").value = "";
+    document.getElementById("settings-new-password").value = "";
+    document.getElementById("settings-confirm-password").value = "";
+    toast("Mot de passe modifié", "success");
+  } catch (e) {
+    showMsg(msgEl, e.message, "error");
+  } finally {
+    setLoading("settings-password-submit", false);
+  }
 }
 
 function openDeleteAccountModal() {
-    document.getElementById('delete-account-password').value = '';
-    document.getElementById('delete-account-msg').innerHTML = '';
-    document.getElementById('delete-account-modal').classList.add('open');
-    requestAnimationFrame(() => document.getElementById('delete-account-password').focus());
+  document.getElementById("delete-account-password").value = "";
+  document.getElementById("delete-account-msg").innerHTML = "";
+  document.getElementById("delete-account-modal").classList.add("open");
+  requestAnimationFrame(() =>
+    document.getElementById("delete-account-password").focus(),
+  );
 }
 
 async function doDeleteAccount() {
-    const pwd = document.getElementById('delete-account-password').value;
-    const msgEl = document.getElementById('delete-account-msg');
-    if (!pwd) { showMsg(msgEl, 'Entrez votre mot de passe.', 'error'); return; }
+  const pwd = document.getElementById("delete-account-password").value;
+  const msgEl = document.getElementById("delete-account-msg");
+  if (!pwd) {
+    showMsg(msgEl, "Entrez votre mot de passe.", "error");
+    return;
+  }
 
-    setLoading('delete-account-submit', true);
-    try {
-        await apiCall('/api/auth/account', {
-            method: 'DELETE',
-            body: JSON.stringify({ password: pwd })
-        });
-        closeModal('delete-account-modal');
-        document.getElementById('app-page').style.display = 'none';
-        document.getElementById('auth-page').style.display = 'flex';
-        toast('Votre compte a été supprimé', 'info');
-    } catch (e) {
-        showMsg(msgEl, e.message, 'error');
-        setLoading('delete-account-submit', false);
-    }
+  setLoading("delete-account-submit", true);
+  try {
+    await apiCall("/api/auth/account", {
+      method: "DELETE",
+      body: JSON.stringify({ password: pwd }),
+    });
+    closeModal("delete-account-modal");
+    document.getElementById("app-page").style.display = "none";
+    document.getElementById("auth-page").style.display = "flex";
+    toast("Votre compte a été supprimé", "info");
+  } catch (e) {
+    showMsg(msgEl, e.message, "error");
+    setLoading("delete-account-submit", false);
+  }
 }
 
 /* ── Mobile nav helpers ── */
 function updateMobileNav(panel) {
-    document.querySelectorAll('.mobile-bottom-nav .nav-item').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.panel === panel);
-    });
+  document.querySelectorAll(".mobile-bottom-nav .nav-item").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.panel === panel);
+  });
 }
 
 /* Sync avatar initial from sidebar to mobile top bar */
-const _origShowApp = typeof showApp === 'function' ? showApp : null;
+const _origShowApp = typeof showApp === "function" ? showApp : null;
 function syncMobileAvatar() {
-    const sAvatar = document.getElementById('sidebar-avatar');
-    const mAvatar = document.getElementById('mobile-avatar');
-    if (sAvatar && mAvatar) {
-        const observer = new MutationObserver(() => {
-            mAvatar.textContent = sAvatar.textContent;
-        });
-        observer.observe(sAvatar, { childList: true, subtree: true, characterData: true });
-        mAvatar.textContent = sAvatar.textContent;
-    }
-}
-document.addEventListener('DOMContentLoaded', () => {
-    syncMobileAvatar();
-    // Sync bottom nav when sidebar nav changes
-    document.querySelectorAll('.sidebar-nav .nav-item').forEach(btn => {
-        const origClick = btn.onclick;
-        btn.addEventListener('click', () => {
-            const panel = btn.getAttribute('onclick')?.match(/showPanel\('(\w+)'\)/)?.[1];
-            if (panel) updateMobileNav(panel);
-        });
+  const sAvatar = document.getElementById("sidebar-avatar");
+  const mAvatar = document.getElementById("mobile-avatar");
+  if (sAvatar && mAvatar) {
+    const observer = new MutationObserver(() => {
+      mAvatar.textContent = sAvatar.textContent;
     });
+    observer.observe(sAvatar, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+    mAvatar.textContent = sAvatar.textContent;
+  }
+}
+document.addEventListener("DOMContentLoaded", () => {
+  syncMobileAvatar();
+  // Sync bottom nav when sidebar nav changes
+  document.querySelectorAll(".sidebar-nav .nav-item").forEach((btn) => {
+    const origClick = btn.onclick;
+    btn.addEventListener("click", () => {
+      const panel = btn
+        .getAttribute("onclick")
+        ?.match(/showPanel\('(\w+)'\)/)?.[1];
+      if (panel) updateMobileNav(panel);
+    });
+  });
 });
 
 /* Close sidebar when tapping outside on mobile */
-document.addEventListener('click', (e) => {
-    const sidebar = document.getElementById('sidebar');
-    const topBar = document.getElementById('mobile-top-bar');
-    if (sidebar && sidebar.classList.contains('open') && window.innerWidth <= 768) {
-        if (!sidebar.contains(e.target) && !topBar?.contains(e.target)) {
-            sidebar.classList.remove('open');
-        }
+document.addEventListener("click", (e) => {
+  const sidebar = document.getElementById("sidebar");
+  const topBar = document.getElementById("mobile-top-bar");
+  if (
+    sidebar &&
+    sidebar.classList.contains("open") &&
+    window.innerWidth <= 768
+  ) {
+    if (!sidebar.contains(e.target) && !topBar?.contains(e.target)) {
+      sidebar.classList.remove("open");
     }
+  }
 });
 
 /* ══════════════════════════════════════════════
@@ -1638,199 +2225,201 @@ document.addEventListener('click', (e) => {
 ══════════════════════════════════════════════ */
 
 async function renderAll() {
-    await Promise.all([
-        renderSubjectsPanel(),
-        renderPalette(),
-        renderScheduleGrid(),
-        renderTimeslots(),
-        renderDaysCheckboxes(),
-        renderAutogenGrid()
-    ]);
+  await Promise.all([
+    renderSubjectsPanel(),
+    renderPalette(),
+    renderScheduleGrid(),
+    renderTimeslots(),
+    renderDaysCheckboxes(),
+    renderAutogenGrid(),
+  ]);
 }
 /* ══════════════════════════════════════════════
    GUIDE D'UTILISATION — Données & Logique
 ══════════════════════════════════════════════ */
 
 const GUIDE_STEPS = [
-    {
-        id: 'welcome',
-        icon: '👋',
-        title: 'Bienvenue sur Jadwal !',
-        subtitle: 'Votre assistant de planning hebdomadaire.',
-        actions: [
-            {
-                title: 'Qu\'est-ce que Jadwal ?',
-                desc: 'Une application pour organiser votre semaine. Définissez vos tâches, vos créneaux horaires, puis générez votre emploi du temps automatiquement. Tout est sauvegardé en temps réel.'
-            },
-            {
-                title: 'Par où commencer ?',
-                desc: '① Activez vos jours → ② Créez vos créneaux horaires → ③ Ajoutez vos tâches → ④ Générez votre planning.'
-            }
-        ],
-        tip: '<strong>Important :</strong> Commencez toujours par créer vos créneaux horaires. Sans eux, impossible d\'assigner des tâches.'
-    },
-    {
-        id: 'days',
-        icon: '📅',
-        title: 'Étape 1 — Jours actifs',
-        subtitle: 'Choisissez les jours qui apparaissent dans votre planning.',
-        actions: [
-            {
-                title: 'Où configurer ?',
-                desc: 'Dans "Créneaux Horaires", section "Jours affichés" en bas. Cochez les jours souhaités (Lun–Ven, ou plus si besoin).'
-            },
-            {
-                title: 'Effet immédiat',
-                desc: 'Seuls les jours cochés s\'affichent dans votre emploi du temps. La modification est sauvegardée instantanément.'
-            }
-        ],
-        tip: '<strong>Exemple :</strong> Pour un étudiant Lun–Ven, cochez uniquement ces cinq jours.'
-    },
-    {
-        id: 'timeslots',
-        icon: '🕐',
-        title: 'Étape 2 — Créneaux horaires',
-        subtitle: 'Définissez vos plages de temps disponibles.',
-        actions: [
-            {
-                title: 'Créer un créneau',
-                desc: 'Dans "Créneaux Horaires", cliquez "+ Ajouter un créneau". Renseignez l\'heure de début, l\'heure de fin, et cochez les jours concernés.'
-            },
-            {
-                title: 'Exemple pratique',
-                desc: '"08h–10h" sur Lun, Mar, Jeu ; "14h–16h" sur Mer, Ven. Créez un créneau séparé pour chaque plage unique.'
-            }
-        ],
-        tip: '<strong>Conseil :</strong> Plus vos créneaux sont précis, plus le planning généré sera fidèle à la réalité.',
-        warn: '<strong>Attention :</strong> Supprimer un créneau efface toutes ses assignations sur toutes les semaines.'
-    },
-    {
-        id: 'subjects',
-        icon: '📚',
-        title: 'Étape 3 — Tâches / Matières',
-        subtitle: 'Créez les activités à placer dans votre planning.',
-        actions: [
-            {
-                title: 'Ajouter une tâche',
-                desc: 'Dans "Mes Tâches", cliquez "+ Ajouter une tâche". Donnez-lui un nom (ex: "Maths"), un sous-titre optionnel (ex: "TD") et choisissez une couleur.'
-            },
-            {
-                title: 'Modifier ou supprimer',
-                desc: 'Cliquez sur l\'icône ✏️ d\'une tâche pour la modifier. La couleur est mise à jour partout dans l\'emploi du temps immédiatement.'
-            }
-        ],
-        tip: '<strong>Astuce couleurs :</strong> Utilisez des couleurs contrastées pour distinguer rapidement vos tâches d\'un coup d\'œil.'
-    },
-    {
-        id: 'autogen',
-        icon: '⚡',
-        title: 'Étape 4 — Génération automatique',
-        subtitle: 'Laissez Jadwal remplir votre planning.',
-        actions: [
-            {
-                title: 'Définir les heures par tâche',
-                desc: 'Dans "Génération Auto", saisissez le nombre d\'heures par semaine souhaité pour chaque tâche. Le total s\'affiche en temps réel. Ne dépassez pas la capacité disponible.'
-            },
-            {
-                title: 'Lancer la génération',
-                desc: 'Cliquez "⚡ Générer automatiquement". Jadwal remplit les créneaux libres et bascule vers la vue emploi du temps. Les cellules déjà assignées ne sont pas écrasées.'
-            }
-        ],
-        tip: '<strong>Exemple :</strong> 3h Maths + 2h Anglais + 1h Sport → Jadwal remplit 6 créneaux dans l\'ordre.',
-        warn: '<strong>Note :</strong> La génération ne tient pas compte de vos préférences de jours. Pour un contrôle fin, ajustez manuellement après.'
-    },
-    {
-        id: 'schedule',
-        icon: '🗓️',
-        title: 'Étape 5 — Emploi du temps',
-        subtitle: 'Visualisez et suivez votre semaine.',
-        actions: [
-            {
-                title: 'Naviguer entre les semaines',
-                desc: 'Utilisez les flèches ← → en haut du planning pour changer de semaine. Le bouton "Aujourd\'hui" ramène à la semaine en cours. Chaque semaine est indépendante.'
-            },
-            {
-                title: 'Marquer une tâche comme faite',
-                desc: 'Cliquez le bouton ○ dans une cellule pour la cocher ✓. Le bouton ↺ en haut d\'une colonne remet toute la journée à zéro.'
-            },
-            {
-                title: 'Vider la semaine',
-                desc: 'Dans "Génération Auto", le bouton "🗑 Vider l\'emploi du temps" efface toutes les assignations de la semaine affichée.'
-            }
-        ],
-        tip: '<strong>Barre de progression :</strong> Elle indique le taux de remplissage de votre semaine. Visez 100% !'
-    },
-    {
-        id: 'export',
-        icon: '📤',
-        title: 'Étape 6 — Exporter',
-        subtitle: 'Sauvegardez ou partagez votre planning.',
-        actions: [
-            {
-                title: 'Accéder à l\'export',
-                desc: 'Dans "Emploi du Temps", cliquez sur "⬇ Exporter" en haut à droite. Votre planning s\'affiche mis en forme.'
-            },
-            {
-                title: 'Formats disponibles',
-                desc: '<strong>HTML</strong> — fichier à ouvrir dans un navigateur, sans connexion. <strong>CSV</strong> — compatible Excel / Google Sheets. <strong>Imprimer</strong> — ou "Imprimer vers PDF" depuis votre navigateur.'
-            }
-        ],
-        tip: '<strong>Partage :</strong> Envoyez le fichier HTML par email ou WhatsApp. Le destinataire l\'ouvre directement sans compte Jadwal.'
-    },
-    {
-        id: 'tips',
-        icon: '💡',
-        title: 'Astuces & raccourcis',
-        subtitle: 'Pour aller plus vite.',
-        shortcuts: [
-            { key: 'Échap', desc: 'Fermer un modal' },
-            { key: 'Clic extérieur', desc: 'Fermer un modal' },
-            { key: 'Entrée', desc: 'Valider un formulaire' },
-        ],
-        actions: [
-            {
-                title: 'Mot de passe oublié ?',
-                desc: 'Sur la page de connexion, cliquez "Mot de passe oublié ?". Un lien valable 1h sera envoyé à votre adresse email.'
-            },
-            {
-                title: 'Application mobile',
-                desc: 'Sur téléphone, la navigation est en bas de l\'écran. L\'interface est entièrement optimisée pour les écrans tactiles.'
-            }
-        ],
-        tip: '<strong>En cas de problème :</strong> Rafraîchissez la page (F5). Vos données sont toujours sauvegardées.'
-    }
+  {
+    id: "welcome",
+    icon: "👋",
+    title: "Bienvenue sur Jadwal !",
+    subtitle: "Votre assistant de planning hebdomadaire.",
+    actions: [
+      {
+        title: "Qu'est-ce que Jadwal ?",
+        desc: "Une application pour organiser votre semaine. Définissez vos tâches, vos créneaux horaires, puis générez votre emploi du temps automatiquement. Tout est sauvegardé en temps réel.",
+      },
+      {
+        title: "Par où commencer ?",
+        desc: "① Activez vos jours → ② Créez vos créneaux horaires → ③ Ajoutez vos tâches → ④ Générez votre planning.",
+      },
+    ],
+    tip: "<strong>Important :</strong> Commencez toujours par créer vos créneaux horaires. Sans eux, impossible d'assigner des tâches.",
+  },
+  {
+    id: "days",
+    icon: "📅",
+    title: "Étape 1 — Jours actifs",
+    subtitle: "Choisissez les jours qui apparaissent dans votre planning.",
+    actions: [
+      {
+        title: "Où configurer ?",
+        desc: 'Dans "Créneaux Horaires", section "Jours affichés" en bas. Cochez les jours souhaités (Lun–Ven, ou plus si besoin).',
+      },
+      {
+        title: "Effet immédiat",
+        desc: "Seuls les jours cochés s'affichent dans votre emploi du temps. La modification est sauvegardée instantanément.",
+      },
+    ],
+    tip: "<strong>Exemple :</strong> Pour un étudiant Lun–Ven, cochez uniquement ces cinq jours.",
+  },
+  {
+    id: "timeslots",
+    icon: "🕐",
+    title: "Étape 2 — Créneaux horaires",
+    subtitle: "Définissez vos plages de temps disponibles.",
+    actions: [
+      {
+        title: "Créer un créneau",
+        desc: 'Dans "Créneaux Horaires", cliquez "+ Ajouter un créneau". Renseignez l\'heure de début, l\'heure de fin, et cochez les jours concernés.',
+      },
+      {
+        title: "Exemple pratique",
+        desc: '"08h–10h" sur Lun, Mar, Jeu ; "14h–16h" sur Mer, Ven. Créez un créneau séparé pour chaque plage unique.',
+      },
+    ],
+    tip: "<strong>Conseil :</strong> Plus vos créneaux sont précis, plus le planning généré sera fidèle à la réalité.",
+    warn: "<strong>Attention :</strong> Supprimer un créneau efface toutes ses assignations sur toutes les semaines.",
+  },
+  {
+    id: "subjects",
+    icon: "📚",
+    title: "Étape 3 — Tâches / Matières",
+    subtitle: "Créez les activités à placer dans votre planning.",
+    actions: [
+      {
+        title: "Ajouter une tâche",
+        desc: 'Dans "Mes Tâches", cliquez "+ Ajouter une tâche". Donnez-lui un nom (ex: "Maths"), un sous-titre optionnel (ex: "TD") et choisissez une couleur.',
+      },
+      {
+        title: "Modifier ou supprimer",
+        desc: "Cliquez sur l'icône ✏️ d'une tâche pour la modifier. La couleur est mise à jour partout dans l'emploi du temps immédiatement.",
+      },
+    ],
+    tip: "<strong>Astuce couleurs :</strong> Utilisez des couleurs contrastées pour distinguer rapidement vos tâches d'un coup d'œil.",
+  },
+  {
+    id: "autogen",
+    icon: "⚡",
+    title: "Étape 4 — Génération automatique",
+    subtitle: "Laissez Jadwal remplir votre planning.",
+    actions: [
+      {
+        title: "Définir les heures par tâche",
+        desc: "Dans \"Génération Auto\", saisissez le nombre d'heures par semaine souhaité pour chaque tâche. Le total s'affiche en temps réel. Ne dépassez pas la capacité disponible.",
+      },
+      {
+        title: "Lancer la génération",
+        desc: 'Cliquez "⚡ Générer automatiquement". Jadwal remplit les créneaux libres et bascule vers la vue emploi du temps. Les cellules déjà assignées ne sont pas écrasées.',
+      },
+    ],
+    tip: "<strong>Exemple :</strong> 3h Maths + 2h Anglais + 1h Sport → Jadwal remplit 6 créneaux dans l'ordre.",
+    warn: "<strong>Note :</strong> La génération ne tient pas compte de vos préférences de jours. Pour un contrôle fin, ajustez manuellement après.",
+  },
+  {
+    id: "schedule",
+    icon: "🗓️",
+    title: "Étape 5 — Emploi du temps",
+    subtitle: "Visualisez et suivez votre semaine.",
+    actions: [
+      {
+        title: "Naviguer entre les semaines",
+        desc: 'Utilisez les flèches ← → en haut du planning pour changer de semaine. Le bouton "Aujourd\'hui" ramène à la semaine en cours. Chaque semaine est indépendante.',
+      },
+      {
+        title: "Marquer une tâche comme faite",
+        desc: "Cliquez le bouton ○ dans une cellule pour la cocher ✓. Le bouton ↺ en haut d'une colonne remet toute la journée à zéro.",
+      },
+      {
+        title: "Vider la semaine",
+        desc: 'Dans "Génération Auto", le bouton "🗑 Vider l\'emploi du temps" efface toutes les assignations de la semaine affichée.',
+      },
+    ],
+    tip: "<strong>Barre de progression :</strong> Elle indique le taux de remplissage de votre semaine. Visez 100% !",
+  },
+  {
+    id: "export",
+    icon: "📤",
+    title: "Étape 6 — Exporter",
+    subtitle: "Sauvegardez ou partagez votre planning.",
+    actions: [
+      {
+        title: "Accéder à l'export",
+        desc: 'Dans "Emploi du Temps", cliquez sur "⬇ Exporter" en haut à droite. Votre planning s\'affiche mis en forme.',
+      },
+      {
+        title: "Formats disponibles",
+        desc: '<strong>HTML</strong> — fichier à ouvrir dans un navigateur, sans connexion. <strong>CSV</strong> — compatible Excel / Google Sheets. <strong>Imprimer</strong> — ou "Imprimer vers PDF" depuis votre navigateur.',
+      },
+    ],
+    tip: "<strong>Partage :</strong> Envoyez le fichier HTML par email ou WhatsApp. Le destinataire l'ouvre directement sans compte Jadwal.",
+  },
+  {
+    id: "tips",
+    icon: "💡",
+    title: "Astuces & raccourcis",
+    subtitle: "Pour aller plus vite.",
+    shortcuts: [
+      { key: "Échap", desc: "Fermer un modal" },
+      { key: "Clic extérieur", desc: "Fermer un modal" },
+      { key: "Entrée", desc: "Valider un formulaire" },
+    ],
+    actions: [
+      {
+        title: "Mot de passe oublié ?",
+        desc: 'Sur la page de connexion, cliquez "Mot de passe oublié ?". Un lien valable 1h sera envoyé à votre adresse email.',
+      },
+      {
+        title: "Application mobile",
+        desc: "Sur téléphone, la navigation est en bas de l'écran. L'interface est entièrement optimisée pour les écrans tactiles.",
+      },
+    ],
+    tip: "<strong>En cas de problème :</strong> Rafraîchissez la page (F5). Vos données sont toujours sauvegardées.",
+  },
 ];
 
 let currentGuideStep = 0;
 let completedGuideSteps = new Set();
 
 function renderGuideStepsNav() {
-    const nav = document.getElementById('guide-steps-nav');
-    if (!nav) return;
-    nav.innerHTML = GUIDE_STEPS.map((step, i) => `
-        <button class="guide-step-pill ${i === currentGuideStep ? 'active' : ''} ${completedGuideSteps.has(i) && i !== currentGuideStep ? 'completed' : ''}"
+  const nav = document.getElementById("guide-steps-nav");
+  if (!nav) return;
+  nav.innerHTML = GUIDE_STEPS.map(
+    (step, i) => `
+        <button class="guide-step-pill ${i === currentGuideStep ? "active" : ""} ${completedGuideSteps.has(i) && i !== currentGuideStep ? "completed" : ""}"
                 onclick="goToGuideStep(${i})"
                 aria-label="Étape ${i + 1} : ${step.title}">
-            <span class="pill-num">${completedGuideSteps.has(i) && i !== currentGuideStep ? '✓' : i + 1}</span>
+            <span class="pill-num">${completedGuideSteps.has(i) && i !== currentGuideStep ? "✓" : i + 1}</span>
             ${step.icon}
-            <span style="display:none;font-size:0.7rem">${step.title.split('—')[0].trim()}</span>
+            <span style="display:none;font-size:0.7rem">${step.title.split("—")[0].trim()}</span>
         </button>
-    `).join('');
+    `,
+  ).join("");
 }
 
 function renderGuideStepContent() {
-    const el = document.getElementById('guide-step-content');
-    if (!el) return;
-    const step = GUIDE_STEPS[currentGuideStep];
+  const el = document.getElementById("guide-step-content");
+  if (!el) return;
+  const step = GUIDE_STEPS[currentGuideStep];
 
-    let bodyHtml = '';
+  let bodyHtml = "";
 
-    // Actions list
-    if (step.actions && step.actions.length) {
-        bodyHtml += `<div class="guide-section-label">Comment faire</div>`;
-        bodyHtml += `<div class="guide-actions">`;
-        step.actions.forEach((action, i) => {
-            bodyHtml += `
+  // Actions list
+  if (step.actions && step.actions.length) {
+    bodyHtml += `<div class="guide-section-label">Comment faire</div>`;
+    bodyHtml += `<div class="guide-actions">`;
+    step.actions.forEach((action, i) => {
+      bodyHtml += `
                 <div class="guide-action">
                     <div class="guide-action-num">${i + 1}</div>
                     <div class="guide-action-content">
@@ -1838,41 +2427,41 @@ function renderGuideStepContent() {
                         <div class="guide-action-desc">${action.desc}</div>
                     </div>
                 </div>`;
-        });
-        bodyHtml += `</div>`;
-    }
+    });
+    bodyHtml += `</div>`;
+  }
 
-    // Shortcuts
-    if (step.shortcuts && step.shortcuts.length) {
-        bodyHtml += `<div class="guide-section-label">Raccourcis clavier</div>`;
-        bodyHtml += `<div class="guide-shortcuts">`;
-        step.shortcuts.forEach(sc => {
-            bodyHtml += `<div class="guide-shortcut"><kbd>${sc.key}</kbd><span>${sc.desc}</span></div>`;
-        });
-        bodyHtml += `</div>`;
-    }
+  // Shortcuts
+  if (step.shortcuts && step.shortcuts.length) {
+    bodyHtml += `<div class="guide-section-label">Raccourcis clavier</div>`;
+    bodyHtml += `<div class="guide-shortcuts">`;
+    step.shortcuts.forEach((sc) => {
+      bodyHtml += `<div class="guide-shortcut"><kbd>${sc.key}</kbd><span>${sc.desc}</span></div>`;
+    });
+    bodyHtml += `</div>`;
+  }
 
-    // Tip
-    if (step.tip) {
-        bodyHtml += `
+  // Tip
+  if (step.tip) {
+    bodyHtml += `
             <div class="guide-tip-box">
                 <div class="guide-tip-icon">💡</div>
                 <div class="guide-tip-text">${step.tip}</div>
             </div>`;
-    }
+  }
 
-    // Warning
-    if (step.warn) {
-        bodyHtml += `
+  // Warning
+  if (step.warn) {
+    bodyHtml += `
             <div class="guide-warn-box">
                 <div class="guide-tip-icon">⚠️</div>
                 <div class="guide-warn-text">${step.warn}</div>
             </div>`;
-    }
+  }
 
-    // Last step: quick nav summary
-    if (currentGuideStep === GUIDE_STEPS.length - 1) {
-        bodyHtml += `
+  // Last step: quick nav summary
+  if (currentGuideStep === GUIDE_STEPS.length - 1) {
+    bodyHtml += `
             <div class="guide-section-label" style="margin-top:0.5rem">Accès rapide aux sections</div>
             <div class="guide-summary-grid">
                 <div class="guide-summary-card" onclick="showPanel('schedule');updateMobileNav('schedule')">
@@ -1896,12 +2485,12 @@ function renderGuideStepContent() {
                     <div class="guide-summary-desc">Planning automatique</div>
                 </div>
             </div>`;
-    }
+  }
 
-    const stepNum = currentGuideStep + 1;
-    const totalSteps = GUIDE_STEPS.length;
+  const stepNum = currentGuideStep + 1;
+  const totalSteps = GUIDE_STEPS.length;
 
-    el.innerHTML = `
+  el.innerHTML = `
         <div class="guide-step-card">
             <div class="guide-step-header">
                 <div class="guide-step-icon">${step.icon}</div>
@@ -1914,46 +2503,52 @@ function renderGuideStepContent() {
             <div class="guide-step-body">${bodyHtml}</div>
         </div>`;
 
-    // Update nav buttons
-    const prevBtn = document.getElementById('guide-prev-btn');
-    const nextBtn = document.getElementById('guide-next-btn');
-    if (prevBtn) prevBtn.style.display = currentGuideStep === 0 ? 'none' : '';
-    if (nextBtn) {
-        if (currentGuideStep === GUIDE_STEPS.length - 1) {
-            nextBtn.textContent = '✓ Terminer le guide';
-            nextBtn.onclick = () => { showPanel('schedule'); updateMobileNav('schedule'); toast('Guide terminé — bon planning ! 🗓️', 'success'); };
-        } else {
-            nextBtn.textContent = 'Suivant →';
-            nextBtn.onclick = guideNext;
-        }
+  // Update nav buttons
+  const prevBtn = document.getElementById("guide-prev-btn");
+  const nextBtn = document.getElementById("guide-next-btn");
+  if (prevBtn) prevBtn.style.display = currentGuideStep === 0 ? "none" : "";
+  if (nextBtn) {
+    if (currentGuideStep === GUIDE_STEPS.length - 1) {
+      nextBtn.textContent = "✓ Terminer le guide";
+      nextBtn.onclick = () => {
+        showPanel("schedule");
+        updateMobileNav("schedule");
+        toast("Guide terminé — bon planning ! 🗓️", "success");
+      };
+    } else {
+      nextBtn.textContent = "Suivant →";
+      nextBtn.onclick = guideNext;
     }
+  }
 }
 
 function goToGuideStep(index) {
-    completedGuideSteps.add(currentGuideStep);
-    currentGuideStep = index;
-    renderGuideStepsNav();
-    renderGuideStepContent();
-    document.getElementById('guide-step-content')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  completedGuideSteps.add(currentGuideStep);
+  currentGuideStep = index;
+  renderGuideStepsNav();
+  renderGuideStepContent();
+  document
+    .getElementById("guide-step-content")
+    ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function guideNext() {
-    if (currentGuideStep < GUIDE_STEPS.length - 1) {
-        goToGuideStep(currentGuideStep + 1);
-    }
+  if (currentGuideStep < GUIDE_STEPS.length - 1) {
+    goToGuideStep(currentGuideStep + 1);
+  }
 }
 
 function guidePrev() {
-    if (currentGuideStep > 0) {
-        goToGuideStep(currentGuideStep - 1);
-    }
+  if (currentGuideStep > 0) {
+    goToGuideStep(currentGuideStep - 1);
+  }
 }
 
 // ── Invocation overlay for the guide ──────────────────────────────────────
 function showGuideInvocation(callback) {
-    const overlay = document.createElement('div');
-    overlay.id = 'guide-invocation-overlay';
-    overlay.innerHTML = `
+  const overlay = document.createElement("div");
+  overlay.id = "guide-invocation-overlay";
+  overlay.innerHTML = `
         <div class="giv-card">
             <div class="giv-bismillah">أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ</div>
             <div class="giv-dua-block">
@@ -1967,72 +2562,80 @@ function showGuideInvocation(callback) {
             </div>
             <button class="giv-btn" id="giv-start-btn">Commencer le guide →</button>
         </div>`;
-    document.body.appendChild(overlay);
+  document.body.appendChild(overlay);
 
-    // Animate in
-    requestAnimationFrame(() => overlay.classList.add('giv-visible'));
+  // Animate in
+  requestAnimationFrame(() => overlay.classList.add("giv-visible"));
 
-    document.getElementById('giv-start-btn').addEventListener('click', () => {
-        overlay.classList.remove('giv-visible');
-        overlay.classList.add('giv-hiding');
-        setTimeout(() => { overlay.remove(); callback(); }, 500);
-    });
+  document.getElementById("giv-start-btn").addEventListener("click", () => {
+    overlay.classList.remove("giv-visible");
+    overlay.classList.add("giv-hiding");
+    setTimeout(() => {
+      overlay.remove();
+      callback();
+    }, 500);
+  });
 }
 
 // Override showPanel to init guide when opened
 const _origShowPanel = window.showPanel;
 window.showPanel = function (name) {
-    _origShowPanel(name);
-    if (name === 'guide') {
-        currentGuideStep = 0;
-        completedGuideSteps = new Set();
-        showGuideInvocation(() => {
-            renderGuideStepsNav();
-            renderGuideStepContent();
-        });
-    }
+  _origShowPanel(name);
+  if (name === "guide") {
+    currentGuideStep = 0;
+    completedGuideSteps = new Set();
+    showGuideInvocation(() => {
+      renderGuideStepsNav();
+      renderGuideStepContent();
+    });
+  }
 };
 // ── Contact Panel (Backend API) ─────────────────────────────────────────────
 function sendContactEmail() {
-    const name = document.getElementById('contact-name').value.trim();
-    const email = document.getElementById('contact-email').value.trim();
-    const message = document.getElementById('contact-message').value.trim();
-    const msgEl = document.getElementById('contact-msg');
-    const btn = document.getElementById('contact-submit');
-    const btnText = document.getElementById('contact-btn-text');
+  const name = document.getElementById("contact-name").value.trim();
+  const email = document.getElementById("contact-email").value.trim();
+  const message = document.getElementById("contact-message").value.trim();
+  const msgEl = document.getElementById("contact-msg");
+  const btn = document.getElementById("contact-submit");
+  const btnText = document.getElementById("contact-btn-text");
 
-    msgEl.innerHTML = '';
+  msgEl.innerHTML = "";
 
-    if (!name || !email || !message) {
-        msgEl.innerHTML = '<span style="color:var(--danger);font-size:0.83rem;">Veuillez remplir tous les champs.</span>';
-        return;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        msgEl.innerHTML = '<span style="color:var(--danger);font-size:0.83rem;">Email invalide.</span>';
-        return;
-    }
+  if (!name || !email || !message) {
+    msgEl.innerHTML =
+      '<span style="color:var(--danger);font-size:0.83rem;">Veuillez remplir tous les champs.</span>';
+    return;
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    msgEl.innerHTML =
+      '<span style="color:var(--danger);font-size:0.83rem;">Email invalide.</span>';
+    return;
+  }
 
-    btn.disabled = true;
-    btnText.textContent = 'Envoi en cours…';
+  btn.disabled = true;
+  btnText.textContent = "Envoi en cours…";
 
-    apiCall('/api/contact', {
-        method: 'POST',
-        body: JSON.stringify({ name, email, message })
-    }).then(() => {
-        msgEl.innerHTML = '<span style="color:#22c55e;font-size:0.83rem;">✅ Message envoyé avec succès ! Merci.</span>';
-        btnText.textContent = 'Envoyé ✓';
-        document.getElementById('contact-message').value = '';
-        setTimeout(() => {
-            btn.disabled = false;
-            btnText.textContent = 'Envoyer →';
-            msgEl.innerHTML = '';
-        }, 4000);
-    }).catch(err => {
-        console.error('Contact API error:', err);
-        msgEl.innerHTML = `<span style="color:var(--danger);font-size:0.83rem;">${err.message || "Erreur lors de l'envoi. Veuillez réessayer."}</span>`;
+  apiCall("/api/contact", {
+    method: "POST",
+    body: JSON.stringify({ name, email, message }),
+  })
+    .then(() => {
+      msgEl.innerHTML =
+        '<span style="color:#22c55e;font-size:0.83rem;">✅ Message envoyé avec succès ! Merci.</span>';
+      btnText.textContent = "Envoyé ✓";
+      document.getElementById("contact-message").value = "";
+      setTimeout(() => {
         btn.disabled = false;
-        btnText.textContent = 'Envoyer →';
+        btnText.textContent = "Envoyer →";
+        msgEl.innerHTML = "";
+      }, 4000);
+    })
+    .catch((err) => {
+      console.error("Contact API error:", err);
+      msgEl.innerHTML = `<span style="color:var(--danger);font-size:0.83rem;">${err.message || "Erreur lors de l'envoi. Veuillez réessayer."}</span>`;
+      btn.disabled = false;
+      btnText.textContent = "Envoyer →";
     });
 }
 /* ═══════════════════════════════════════════════════
@@ -2040,171 +2643,770 @@ function sendContactEmail() {
 ═══════════════════════════════════════════════════ */
 
 const EMOJI_CATEGORIES = [
-    {
-        icon: '😊', label: 'Visages',
-        emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙',
-            '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬',
-            '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤧', '🥵', '🥶', '😵', '🤯', '🤠', '🥳', '😎', '🤓',
-            '🧐', '😕', '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖',
-            '😣', '😞', '😓', '😩', '😫', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡', '👹', '👺', '👻', '👽', '🤖']
-    },
-    {
-        icon: '👋', label: 'Gestes',
-        emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️',
-            '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦵', '🦶', '👂', '🦻',
-            '👃', '🫀', '🫁', '🧠', '🦷', '🦴', '👀', '👁️', '👅', '👄', '🫦', '💋', '💌']
-    },
-    {
-        icon: '📚', label: 'Objets',
-        emojis: ['📚', '📖', '📝', '✏️', '🖊️', '🖋️', '📌', '📍', '📎', '🖇️', '📐', '📏', '✂️', '🗂️', '📁', '📂', '🗃️', '🗄️', '🗑️',
-            '💼', '📋', '📊', '📈', '📉', '🗒️', '🗓️', '📅', '📆', '📇', '🔒', '🔓', '🔏', '🔐', '🔑', '🗝️', '🔨', '⚒️', '🛠️',
-            '⛏️', '🔧', '🔩', '⚙️', '🧲', '🔫', '💣', '🧨', '🪓', '🔪', '🗡️', '⚔️', '🛡️', '🪚', '🔬', '🔭', '🩺', '💊', '🩹',
-            '🩼', '🩻', '🩸', '💉', '🧬', '🦠', '🧫', '🧪', '🌡️', '🔋', '💡', '🔦', '🕯️', '🧯', '🛢️', '💰', '💳', '💎', '⚖️']
-    },
-    {
-        icon: '🌸', label: 'Nature',
-        emojis: ['🌸', '🌺', '🌻', '🌹', '🥀', '🌷', '🌱', '🌿', '☘️', '🍀', '🎋', '🎍', '🌾', '🍁', '🍂', '🍃', '🍄', '🌰', '🦔',
-            '🐾', '🌵', '🌴', '🌲', '🌳', '🌼', '💐', '🌾', '🍇', '🍈', '🍉', '🍊', '🍋', '🍌', '🍍', '🥭', '🍎', '🍏', '🍐',
-            '🍑', '🍒', '🍓', '🫐', '🥝', '🍅', '🫒', '🥥', '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🫑', '🥒', '🥬', '🥦',
-            '🧄', '🧅', '🍄', '🥜', '🫘', '🌰', '🍞', '🥐', '🥖', '🫓', '🥨', '🧀', '🥚', '🍳', '🧈', '🥞', '🧇', '🥓']
-    },
-    {
-        icon: '⚽', label: 'Activités',
-        emojis: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🏓', '🏸', '🏒', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁',
-            '🎣', '🤿', '🎽', '🎿', '🛷', '🥌', '🎯', '🪀', '🪆', '🎮', '🕹️', '🎰', '🎲', '🧩', '🧸', '🪅', '🎭', '🖼️', '🎨',
-            '🧵', '🪡', '🧶', '🪢', '♟️', '🎪', '🎤', '🎧', '🎼', '🎹', '🥁', '🪘', '🎷', '🎺', '🎸', '🪕', '🎻', '🎬', '🏆',
-            '🥇', '🥈', '🥉', '🏅', '🎖️', '🏵️', '🎗️', '🎫', '🎟️', '🎪', '🤹', '🎭', '🎨', '🖼️', '🎠', '🎡', '🎢', '🎪']
-    },
-    {
-        icon: '🚀', label: 'Voyage',
-        emojis: ['🚀', '✈️', '🛸', '🚂', '🚃', '🚄', '🚅', '🚆', '🚇', '🚈', '🚉', '🚊', '🚝', '🚞', '🚋', '🚌', '🚍', '🚎', '🚐',
-            '🚑', '🚒', '🚓', '🚔', '🚕', '🚖', '🚗', '🚘', '🚙', '🛻', '🚚', '🚛', '🚜', '🏎️', '🏍️', '🛵', '🦽', '🦼', '🛺',
-            '🚲', '🛴', '🛹', '🛼', '🚏', '🛣️', '🛤️', '⛽', '🚨', '🚥', '🚦', '🛑', '🚧', '⚓', '🛟', '⛵', '🚤', '🛥️', '🛳️',
-            '⛴️', '🚢', '🛶', '🪝', '🗺️', '🏔️', '⛰️', '🌋', '🗻', '🏕️', '🏖️', '🏜️', '🏝️', '🏞️', '🏟️', '🏛️', '🏗️', '🧱']
-    },
-    {
-        icon: '⭐', label: 'Symboles',
-        emojis: ['⭐', '🌟', '✨', '💫', '⚡', '🔥', '💥', '❄️', '🌈', '☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '⛈️', '🌩️', '🌨️',
-            '❄️', '🌬️', '🌀', '🌁', '🌫️', '🌊', '💧', '💦', '☔', '⛱️', '⚡', '❗', '❓', '‼️', '⁉️', '🔴', '🟠', '🟡', '🟢',
-            '🔵', '🟣', '⚫', '⚪', '🟤', '🔶', '🔷', '🔸', '🔹', '🔺', '🔻', '💠', '🔘', '🔲', '🔳', '▪️', '▫️', '◾', '◽',
-            '◼️', '◻️', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '⬛', '⬜', '🔑', '💡', '✅', '❌', '⚠️', '🚫', '✔️', '➕', '➖', '➗']
-    },
-    {
-        icon: '💌', label: 'Amour',
-        emojis: ['💌', '💘', '💝', '💖', '💗', '💓', '💞', '💕', '💟', '❣️', '💔', '❤️', '🧡', '💛', '💚', '💙', '💜', '🤎', '🖤',
-            '🤍', '❤️‍🔥', '❤️‍🩹', '💯', '💢', '💬', '💭', '💤', '💮', '♨️', '🌐', '💲', '♻️', '🔱', '📛', '🔰', '⭕', '🆚',
-            '🆒', '🆕', '🆙', '🆓', '🔝', '🆖', '🅰️', '🅱️', '🆎', '🅾️', '🆑', '🅿️', '🈳', '🈹', '🈵', '🈺', '🈶', '🈚',
-            '🎦', '🔞', '📵', '🚭', '🚯', '🚱', '🚳', '🚷', '📳', '📴', '🔕', '🔇', '🔉', '🔊', '📢', '📣', '📡', '🔔', '🔕']
-    }
+  {
+    icon: "😊",
+    label: "Visages",
+    emojis: [
+      "😀",
+      "😃",
+      "😄",
+      "😁",
+      "😆",
+      "😅",
+      "🤣",
+      "😂",
+      "🙂",
+      "🙃",
+      "😉",
+      "😊",
+      "😇",
+      "🥰",
+      "😍",
+      "🤩",
+      "😘",
+      "😗",
+      "😚",
+      "😙",
+      "😋",
+      "😛",
+      "😜",
+      "🤪",
+      "😝",
+      "🤑",
+      "🤗",
+      "🤭",
+      "🤫",
+      "🤔",
+      "🤐",
+      "🤨",
+      "😐",
+      "😑",
+      "😶",
+      "😏",
+      "😒",
+      "🙄",
+      "😬",
+      "🤥",
+      "😌",
+      "😔",
+      "😪",
+      "🤤",
+      "😴",
+      "😷",
+      "🤒",
+      "🤕",
+      "🤢",
+      "🤧",
+      "🥵",
+      "🥶",
+      "😵",
+      "🤯",
+      "🤠",
+      "🥳",
+      "😎",
+      "🤓",
+      "🧐",
+      "😕",
+      "😟",
+      "🙁",
+      "☹️",
+      "😮",
+      "😯",
+      "😲",
+      "😳",
+      "🥺",
+      "😦",
+      "😧",
+      "😨",
+      "😰",
+      "😥",
+      "😢",
+      "😭",
+      "😱",
+      "😖",
+      "😣",
+      "😞",
+      "😓",
+      "😩",
+      "😫",
+      "😤",
+      "😡",
+      "😠",
+      "🤬",
+      "😈",
+      "👿",
+      "💀",
+      "☠️",
+      "💩",
+      "🤡",
+      "👹",
+      "👺",
+      "👻",
+      "👽",
+      "🤖",
+    ],
+  },
+  {
+    icon: "👋",
+    label: "Gestes",
+    emojis: [
+      "👋",
+      "🤚",
+      "🖐️",
+      "✋",
+      "🖖",
+      "👌",
+      "🤌",
+      "🤏",
+      "✌️",
+      "🤞",
+      "🤟",
+      "🤘",
+      "🤙",
+      "👈",
+      "👉",
+      "👆",
+      "🖕",
+      "👇",
+      "☝️",
+      "👍",
+      "👎",
+      "✊",
+      "👊",
+      "🤛",
+      "🤜",
+      "👏",
+      "🙌",
+      "🤲",
+      "🤝",
+      "🙏",
+      "✍️",
+      "💅",
+      "🤳",
+      "💪",
+      "🦵",
+      "🦶",
+      "👂",
+      "🦻",
+      "👃",
+      "🫀",
+      "🫁",
+      "🧠",
+      "🦷",
+      "🦴",
+      "👀",
+      "👁️",
+      "👅",
+      "👄",
+      "🫦",
+      "💋",
+      "💌",
+    ],
+  },
+  {
+    icon: "📚",
+    label: "Objets",
+    emojis: [
+      "📚",
+      "📖",
+      "📝",
+      "✏️",
+      "🖊️",
+      "🖋️",
+      "📌",
+      "📍",
+      "📎",
+      "🖇️",
+      "📐",
+      "📏",
+      "✂️",
+      "🗂️",
+      "📁",
+      "📂",
+      "🗃️",
+      "🗄️",
+      "🗑️",
+      "💼",
+      "📋",
+      "📊",
+      "📈",
+      "📉",
+      "🗒️",
+      "🗓️",
+      "📅",
+      "📆",
+      "📇",
+      "🔒",
+      "🔓",
+      "🔏",
+      "🔐",
+      "🔑",
+      "🗝️",
+      "🔨",
+      "⚒️",
+      "🛠️",
+      "⛏️",
+      "🔧",
+      "🔩",
+      "⚙️",
+      "🧲",
+      "🔫",
+      "💣",
+      "🧨",
+      "🪓",
+      "🔪",
+      "🗡️",
+      "⚔️",
+      "🛡️",
+      "🪚",
+      "🔬",
+      "🔭",
+      "🩺",
+      "💊",
+      "🩹",
+      "🩼",
+      "🩻",
+      "🩸",
+      "💉",
+      "🧬",
+      "🦠",
+      "🧫",
+      "🧪",
+      "🌡️",
+      "🔋",
+      "💡",
+      "🔦",
+      "🕯️",
+      "🧯",
+      "🛢️",
+      "💰",
+      "💳",
+      "💎",
+      "⚖️",
+    ],
+  },
+  {
+    icon: "🌸",
+    label: "Nature",
+    emojis: [
+      "🌸",
+      "🌺",
+      "🌻",
+      "🌹",
+      "🥀",
+      "🌷",
+      "🌱",
+      "🌿",
+      "☘️",
+      "🍀",
+      "🎋",
+      "🎍",
+      "🌾",
+      "🍁",
+      "🍂",
+      "🍃",
+      "🍄",
+      "🌰",
+      "🦔",
+      "🐾",
+      "🌵",
+      "🌴",
+      "🌲",
+      "🌳",
+      "🌼",
+      "💐",
+      "🌾",
+      "🍇",
+      "🍈",
+      "🍉",
+      "🍊",
+      "🍋",
+      "🍌",
+      "🍍",
+      "🥭",
+      "🍎",
+      "🍏",
+      "🍐",
+      "🍑",
+      "🍒",
+      "🍓",
+      "🫐",
+      "🥝",
+      "🍅",
+      "🫒",
+      "🥥",
+      "🥑",
+      "🍆",
+      "🥔",
+      "🥕",
+      "🌽",
+      "🌶️",
+      "🫑",
+      "🥒",
+      "🥬",
+      "🥦",
+      "🧄",
+      "🧅",
+      "🍄",
+      "🥜",
+      "🫘",
+      "🌰",
+      "🍞",
+      "🥐",
+      "🥖",
+      "🫓",
+      "🥨",
+      "🧀",
+      "🥚",
+      "🍳",
+      "🧈",
+      "🥞",
+      "🧇",
+      "🥓",
+    ],
+  },
+  {
+    icon: "⚽",
+    label: "Activités",
+    emojis: [
+      "⚽",
+      "🏀",
+      "🏈",
+      "⚾",
+      "🥎",
+      "🎾",
+      "🏐",
+      "🏉",
+      "🥏",
+      "🎱",
+      "🏓",
+      "🏸",
+      "🏒",
+      "🥍",
+      "🏏",
+      "🪃",
+      "🥅",
+      "⛳",
+      "🪁",
+      "🎣",
+      "🤿",
+      "🎽",
+      "🎿",
+      "🛷",
+      "🥌",
+      "🎯",
+      "🪀",
+      "🪆",
+      "🎮",
+      "🕹️",
+      "🎰",
+      "🎲",
+      "🧩",
+      "🧸",
+      "🪅",
+      "🎭",
+      "🖼️",
+      "🎨",
+      "🧵",
+      "🪡",
+      "🧶",
+      "🪢",
+      "♟️",
+      "🎪",
+      "🎤",
+      "🎧",
+      "🎼",
+      "🎹",
+      "🥁",
+      "🪘",
+      "🎷",
+      "🎺",
+      "🎸",
+      "🪕",
+      "🎻",
+      "🎬",
+      "🏆",
+      "🥇",
+      "🥈",
+      "🥉",
+      "🏅",
+      "🎖️",
+      "🏵️",
+      "🎗️",
+      "🎫",
+      "🎟️",
+      "🎪",
+      "🤹",
+      "🎭",
+      "🎨",
+      "🖼️",
+      "🎠",
+      "🎡",
+      "🎢",
+      "🎪",
+    ],
+  },
+  {
+    icon: "🚀",
+    label: "Voyage",
+    emojis: [
+      "🚀",
+      "✈️",
+      "🛸",
+      "🚂",
+      "🚃",
+      "🚄",
+      "🚅",
+      "🚆",
+      "🚇",
+      "🚈",
+      "🚉",
+      "🚊",
+      "🚝",
+      "🚞",
+      "🚋",
+      "🚌",
+      "🚍",
+      "🚎",
+      "🚐",
+      "🚑",
+      "🚒",
+      "🚓",
+      "🚔",
+      "🚕",
+      "🚖",
+      "🚗",
+      "🚘",
+      "🚙",
+      "🛻",
+      "🚚",
+      "🚛",
+      "🚜",
+      "🏎️",
+      "🏍️",
+      "🛵",
+      "🦽",
+      "🦼",
+      "🛺",
+      "🚲",
+      "🛴",
+      "🛹",
+      "🛼",
+      "🚏",
+      "🛣️",
+      "🛤️",
+      "⛽",
+      "🚨",
+      "🚥",
+      "🚦",
+      "🛑",
+      "🚧",
+      "⚓",
+      "🛟",
+      "⛵",
+      "🚤",
+      "🛥️",
+      "🛳️",
+      "⛴️",
+      "🚢",
+      "🛶",
+      "🪝",
+      "🗺️",
+      "🏔️",
+      "⛰️",
+      "🌋",
+      "🗻",
+      "🏕️",
+      "🏖️",
+      "🏜️",
+      "🏝️",
+      "🏞️",
+      "🏟️",
+      "🏛️",
+      "🏗️",
+      "🧱",
+    ],
+  },
+  {
+    icon: "⭐",
+    label: "Symboles",
+    emojis: [
+      "⭐",
+      "🌟",
+      "✨",
+      "💫",
+      "⚡",
+      "🔥",
+      "💥",
+      "❄️",
+      "🌈",
+      "☀️",
+      "🌤️",
+      "⛅",
+      "🌥️",
+      "☁️",
+      "🌦️",
+      "🌧️",
+      "⛈️",
+      "🌩️",
+      "🌨️",
+      "❄️",
+      "🌬️",
+      "🌀",
+      "🌁",
+      "🌫️",
+      "🌊",
+      "💧",
+      "💦",
+      "☔",
+      "⛱️",
+      "⚡",
+      "❗",
+      "❓",
+      "‼️",
+      "⁉️",
+      "🔴",
+      "🟠",
+      "🟡",
+      "🟢",
+      "🔵",
+      "🟣",
+      "⚫",
+      "⚪",
+      "🟤",
+      "🔶",
+      "🔷",
+      "🔸",
+      "🔹",
+      "🔺",
+      "🔻",
+      "💠",
+      "🔘",
+      "🔲",
+      "🔳",
+      "▪️",
+      "▫️",
+      "◾",
+      "◽",
+      "◼️",
+      "◻️",
+      "🟥",
+      "🟧",
+      "🟨",
+      "🟩",
+      "🟦",
+      "🟪",
+      "⬛",
+      "⬜",
+      "🔑",
+      "💡",
+      "✅",
+      "❌",
+      "⚠️",
+      "🚫",
+      "✔️",
+      "➕",
+      "➖",
+      "➗",
+    ],
+  },
+  {
+    icon: "💌",
+    label: "Amour",
+    emojis: [
+      "💌",
+      "💘",
+      "💝",
+      "💖",
+      "💗",
+      "💓",
+      "💞",
+      "💕",
+      "💟",
+      "❣️",
+      "💔",
+      "❤️",
+      "🧡",
+      "💛",
+      "💚",
+      "💙",
+      "💜",
+      "🤎",
+      "🖤",
+      "🤍",
+      "❤️‍🔥",
+      "❤️‍🩹",
+      "💯",
+      "💢",
+      "💬",
+      "💭",
+      "💤",
+      "💮",
+      "♨️",
+      "🌐",
+      "💲",
+      "♻️",
+      "🔱",
+      "📛",
+      "🔰",
+      "⭕",
+      "🆚",
+      "🆒",
+      "🆕",
+      "🆙",
+      "🆓",
+      "🔝",
+      "🆖",
+      "🅰️",
+      "🅱️",
+      "🆎",
+      "🅾️",
+      "🆑",
+      "🅿️",
+      "🈳",
+      "🈹",
+      "🈵",
+      "🈺",
+      "🈶",
+      "🈚",
+      "🎦",
+      "🔞",
+      "📵",
+      "🚭",
+      "🚯",
+      "🚱",
+      "🚳",
+      "🚷",
+      "📳",
+      "📴",
+      "🔕",
+      "🔇",
+      "🔉",
+      "🔊",
+      "📢",
+      "📣",
+      "📡",
+      "🔔",
+      "🔕",
+    ],
+  },
 ];
 
 let _emojiActiveInput = null;
 let _emojiActiveCat = 0;
 
 function initEmojiPicker() {
-    const catsEl = document.getElementById('emoji-cats');
-    if (!catsEl || catsEl.children.length > 0) return;
-    EMOJI_CATEGORIES.forEach((cat, i) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'emoji-cat-btn' + (i === 0 ? ' active' : '');
-        btn.textContent = cat.icon;
-        btn.title = cat.label;
-        btn.onclick = () => selectEmojiCat(i);
-        catsEl.appendChild(btn);
-    });
-    renderEmojiGrid(0);
+  const catsEl = document.getElementById("emoji-cats");
+  if (!catsEl || catsEl.children.length > 0) return;
+  EMOJI_CATEGORIES.forEach((cat, i) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "emoji-cat-btn" + (i === 0 ? " active" : "");
+    btn.textContent = cat.icon;
+    btn.title = cat.label;
+    btn.onclick = () => selectEmojiCat(i);
+    catsEl.appendChild(btn);
+  });
+  renderEmojiGrid(0);
 }
 
 function selectEmojiCat(idx) {
-    _emojiActiveCat = idx;
-    document.querySelectorAll('.emoji-cat-btn').forEach((b, i) => {
-        b.classList.toggle('active', i === idx);
-    });
-    renderEmojiGrid(idx);
+  _emojiActiveCat = idx;
+  document.querySelectorAll(".emoji-cat-btn").forEach((b, i) => {
+    b.classList.toggle("active", i === idx);
+  });
+  renderEmojiGrid(idx);
 }
 
 function renderEmojiGrid(idx) {
-    const grid = document.getElementById('emoji-grid');
-    grid.innerHTML = '';
-    EMOJI_CATEGORIES[idx].emojis.forEach(emoji => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'emoji-btn';
-        btn.textContent = emoji;
-        btn.onclick = () => insertEmoji(emoji);
-        grid.appendChild(btn);
-    });
+  const grid = document.getElementById("emoji-grid");
+  grid.innerHTML = "";
+  EMOJI_CATEGORIES[idx].emojis.forEach((emoji) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "emoji-btn";
+    btn.textContent = emoji;
+    btn.onclick = () => insertEmoji(emoji);
+    grid.appendChild(btn);
+  });
 }
 
 function toggleEmojiPicker(event, inputId) {
-    event.stopPropagation();
-    initEmojiPicker();
-    const picker = document.getElementById('emoji-picker');
-    const btn = event.currentTarget;
-    const isOpen = picker.style.display !== 'none' && _emojiActiveInput === inputId;
+  event.stopPropagation();
+  initEmojiPicker();
+  const picker = document.getElementById("emoji-picker");
+  const btn = event.currentTarget;
+  const isOpen =
+    picker.style.display !== "none" && _emojiActiveInput === inputId;
 
-    // Close if same button clicked again
-    if (isOpen) { closeEmojiPicker(); return; }
+  // Close if same button clicked again
+  if (isOpen) {
+    closeEmojiPicker();
+    return;
+  }
 
-    _emojiActiveInput = inputId;
+  _emojiActiveInput = inputId;
 
-    // Mark button active
-    document.querySelectorAll('.emoji-toggle-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+  // Mark button active
+  document
+    .querySelectorAll(".emoji-toggle-btn")
+    .forEach((b) => b.classList.remove("active"));
+  btn.classList.add("active");
 
-    // Position picker near the button
-    picker.style.display = 'flex';
-    const rect = btn.getBoundingClientRect();
-    const pickerW = 300;
-    const pickerH = 320;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+  // Position picker near the button
+  picker.style.display = "flex";
+  const rect = btn.getBoundingClientRect();
+  const pickerW = 300;
+  const pickerH = 320;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
 
-    let left = rect.right - pickerW;
-    let top = rect.bottom + 6;
+  let left = rect.right - pickerW;
+  let top = rect.bottom + 6;
 
-    if (left < 8) left = 8;
-    if (left + pickerW > vw - 8) left = vw - pickerW - 8;
-    if (top + pickerH > vh - 8) top = rect.top - pickerH - 6;
+  if (left < 8) left = 8;
+  if (left + pickerW > vw - 8) left = vw - pickerW - 8;
+  if (top + pickerH > vh - 8) top = rect.top - pickerH - 6;
 
-    picker.style.left = left + 'px';
-    picker.style.top = top + 'px';
+  picker.style.left = left + "px";
+  picker.style.top = top + "px";
 }
 
 function closeEmojiPicker() {
-    const picker = document.getElementById('emoji-picker');
-    if (picker) picker.style.display = 'none';
-    document.querySelectorAll('.emoji-toggle-btn').forEach(b => b.classList.remove('active'));
-    _emojiActiveInput = null;
+  const picker = document.getElementById("emoji-picker");
+  if (picker) picker.style.display = "none";
+  document
+    .querySelectorAll(".emoji-toggle-btn")
+    .forEach((b) => b.classList.remove("active"));
+  _emojiActiveInput = null;
 }
 
 function insertEmoji(emoji) {
-    if (!_emojiActiveInput) return;
-    const input = document.getElementById(_emojiActiveInput);
-    if (!input) return;
-    const start = input.selectionStart ?? input.value.length;
-    const end = input.selectionEnd ?? input.value.length;
-    input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
-    const newPos = start + emoji.length;
-    input.focus();
-    input.setSelectionRange(newPos, newPos);
-    // trigger input event so any listeners update
-    input.dispatchEvent(new Event('input', { bubbles: true }));
+  if (!_emojiActiveInput) return;
+  const input = document.getElementById(_emojiActiveInput);
+  if (!input) return;
+  const start = input.selectionStart ?? input.value.length;
+  const end = input.selectionEnd ?? input.value.length;
+  input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
+  const newPos = start + emoji.length;
+  input.focus();
+  input.setSelectionRange(newPos, newPos);
+  // trigger input event so any listeners update
+  input.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
 // Close picker when clicking outside
-document.addEventListener('click', function (e) {
-    const picker = document.getElementById('emoji-picker');
-    if (!picker || picker.style.display === 'none') return;
-    if (!picker.contains(e.target) && !e.target.closest('.emoji-toggle-btn')) {
-        closeEmojiPicker();
-    }
+document.addEventListener("click", function (e) {
+  const picker = document.getElementById("emoji-picker");
+  if (!picker || picker.style.display === "none") return;
+  if (!picker.contains(e.target) && !e.target.closest(".emoji-toggle-btn")) {
+    closeEmojiPicker();
+  }
 });
 
 // Close on Escape
-document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') closeEmojiPicker();
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") closeEmojiPicker();
 });
 /* ══════════════════════════════════════════════════════
    📈 PRODUCTIVITY SCORE
@@ -2215,22 +3417,22 @@ document.addEventListener('keydown', function (e) {
 
 /** Max scores per factor — must mirror backend constants */
 const PROD_MAX = {
-    hours:        25,
-    consistency:  20,
-    distribution: 20,
-    efficiency:   15,
-    variety:      10,
-    balance:      10,
+  hours: 25,
+  consistency: 20,
+  distribution: 20,
+  efficiency: 15,
+  variety: 10,
+  balance: 10,
 };
 
 /** Human-readable French labels for each factor */
 const PROD_LABELS = {
-    hours:        'Heures',
-    consistency:  'Régularité',
-    distribution: 'Distribution',
-    efficiency:   'Efficacité',
-    variety:      'Variété',
-    balance:      'Équilibre',
+  hours: "Heures",
+  consistency: "Régularité",
+  distribution: "Distribution",
+  efficiency: "Efficacité",
+  variety: "Variété",
+  balance: "Équilibre",
 };
 
 /**
@@ -2238,121 +3440,139 @@ const PROD_LABELS = {
  * Called automatically after every schedule mutation and on panel show.
  */
 async function renderProductivityCard() {
-    const card = document.getElementById('productivity-card');
-    if (!card) return;
+  const card = document.getElementById("productivity-card");
+  if (!card) return;
 
-    // Show card with skeleton while loading
-    card.style.display = '';
-    _prodShowSkeleton();
+  // Show card with skeleton while loading
+  card.style.display = "";
+  _prodShowSkeleton();
 
-    let data;
-    try {
-        data = await apiCall(`/api/productivity/${currentWeekOffset}`);
-    } catch (e) {
-        // Silently hide card on error (e.g. not logged in, server down)
-        card.style.display = 'none';
-        return;
-    }
+  let data;
+  try {
+    data = await apiCall(`/api/productivity/${currentWeekOffset}`);
+  } catch (e) {
+    // Silently hide card on error (e.g. not logged in, server down)
+    card.style.display = "none";
+    return;
+  }
 
-    _prodRenderScore(data);
+  _prodRenderScore(data);
 }
 
 /** Inject skeleton placeholders while the API call is in flight */
 function _prodShowSkeleton() {
-    const barsEl  = document.getElementById('prod-bars');
-    const scoreEl = document.getElementById('prod-gauge-score');
-    const levelEl = document.getElementById('prod-card-level');
-    if (scoreEl) scoreEl.textContent = '…';
-    if (levelEl) levelEl.textContent = '';
-    if (barsEl)  barsEl.innerHTML = Object.keys(PROD_MAX).map(() =>
-        `<div class="prod-bar-row">
+  const barsEl = document.getElementById("prod-bars");
+  const scoreEl = document.getElementById("prod-gauge-score");
+  const levelEl = document.getElementById("prod-card-level");
+  if (scoreEl) scoreEl.textContent = "…";
+  if (levelEl) levelEl.textContent = "";
+  if (barsEl)
+    barsEl.innerHTML = Object.keys(PROD_MAX)
+      .map(
+        () =>
+          `<div class="prod-bar-row">
             <div class="prod-skeleton" style="height:10px;width:60px;border-radius:4px"></div>
             <div class="prod-skeleton prod-bar-track" style="height:6px"></div>
             <div class="prod-skeleton" style="height:10px;width:32px;border-radius:4px;margin-left:auto"></div>
-         </div>`
-    ).join('');
+         </div>`,
+      )
+      .join("");
 }
 
 /** Full render once data is available */
 function _prodRenderScore(data) {
-    const score   = data.score   ?? 0;
-    const level   = data.level   ?? '';
-    const details = data.details ?? {};
-    const tips    = data.tips    ?? [];
-    const max     = data.max     ?? PROD_MAX;
+  const score = data.score ?? 0;
+  const level = data.level ?? "";
+  const details = data.details ?? {};
+  const tips = data.tips ?? [];
+  const max = data.max ?? PROD_MAX;
 
-    // ── Gauge ──────────────────────────────────────────────────────────────
-    const scoreEl = document.getElementById('prod-gauge-score');
-    const fillEl  = document.getElementById('prod-gauge-fill');
-    const levelEl = document.getElementById('prod-card-level');
+  // ── Gauge ──────────────────────────────────────────────────────────────
+  const scoreEl = document.getElementById("prod-gauge-score");
+  const fillEl = document.getElementById("prod-gauge-fill");
+  const levelEl = document.getElementById("prod-card-level");
 
-    if (scoreEl) scoreEl.textContent = score;
-    if (levelEl) levelEl.textContent = level;
+  if (scoreEl) scoreEl.textContent = score;
+  if (levelEl) levelEl.textContent = level;
 
-    if (fillEl) {
-        const circumference = 2 * Math.PI * 50; // r=50 → 314.16
-        const offset = circumference - (score / 100) * circumference;
-        // Use requestAnimationFrame so CSS transition triggers
-        requestAnimationFrame(() => {
-            fillEl.style.strokeDashoffset = offset;
-        });
+  if (fillEl) {
+    const circumference = 2 * Math.PI * 50; // r=50 → 314.16
+    const offset = circumference - (score / 100) * circumference;
+    // Use requestAnimationFrame so CSS transition triggers
+    requestAnimationFrame(() => {
+      fillEl.style.strokeDashoffset = offset;
+    });
 
-        // Colour tier
-        const tier = score >= 90 ? 'excellent'
-                   : score >= 75 ? 'productive'
-                   : score >= 60 ? 'good'
-                   : score >= 40 ? 'needs-work'
-                   :               'poor';
-        fillEl.setAttribute('data-score-tier', tier);
+    // Colour tier
+    const tier =
+      score >= 90
+        ? "excellent"
+        : score >= 75
+          ? "productive"
+          : score >= 60
+            ? "good"
+            : score >= 40
+              ? "needs-work"
+              : "poor";
+    fillEl.setAttribute("data-score-tier", tier);
 
-        // Also colour the level badge
-        const levelEl2 = document.getElementById('prod-card-level');
-        if (levelEl2) {
-            levelEl2.style.color =
-                tier === 'excellent'  ? 'var(--green-light)' :
-                tier === 'productive' ? 'var(--blue-light)'  :
-                tier === 'good'       ? 'var(--gold-light)'  :
-                tier === 'needs-work' ? '#e07b2a'            :
-                                        'var(--red-light)';
-        }
+    // Also colour the level badge
+    const levelEl2 = document.getElementById("prod-card-level");
+    if (levelEl2) {
+      levelEl2.style.color =
+        tier === "excellent"
+          ? "var(--green-light)"
+          : tier === "productive"
+            ? "var(--blue-light)"
+            : tier === "good"
+              ? "var(--gold-light)"
+              : tier === "needs-work"
+                ? "#e07b2a"
+                : "var(--red-light)";
     }
+  }
 
-    // ── Breakdown bars ─────────────────────────────────────────────────────
-    const barsEl = document.getElementById('prod-bars');
-    if (barsEl) {
-        barsEl.innerHTML = Object.keys(PROD_LABELS).map(key => {
-            const val    = details[key] ?? 0;
-            const maxVal = max[key]     ?? PROD_MAX[key] ?? 10;
-            const pct    = maxVal > 0 ? (val / maxVal) * 100 : 0;
-            const label  = PROD_LABELS[key];
+  // ── Breakdown bars ─────────────────────────────────────────────────────
+  const barsEl = document.getElementById("prod-bars");
+  if (barsEl) {
+    barsEl.innerHTML = Object.keys(PROD_LABELS)
+      .map((key) => {
+        const val = details[key] ?? 0;
+        const maxVal = max[key] ?? PROD_MAX[key] ?? 10;
+        const pct = maxVal > 0 ? (val / maxVal) * 100 : 0;
+        const label = PROD_LABELS[key];
 
-            // Bar colour reflects fill level
-            const barColor =
-                pct >= 80 ? 'var(--green)'      :
-                pct >= 50 ? 'var(--blue)'        :
-                pct >= 30 ? 'var(--gold)'        :
-                            'var(--red-light)';
+        // Bar colour reflects fill level
+        const barColor =
+          pct >= 80
+            ? "var(--green)"
+            : pct >= 50
+              ? "var(--blue)"
+              : pct >= 30
+                ? "var(--gold)"
+                : "var(--red-light)";
 
-            return `<div class="prod-bar-row">
+        return `<div class="prod-bar-row">
                 <span class="prod-bar-label" title="${label}">${label}</span>
                 <div class="prod-bar-track">
                     <div class="prod-bar-fill" style="width:${pct}%;background:${barColor}"></div>
                 </div>
                 <span class="prod-bar-value">${Math.round(val)}/${maxVal}</span>
             </div>`;
-        }).join('');
-    }
+      })
+      .join("");
+  }
 
-    // ── Tips ───────────────────────────────────────────────────────────────
-    const tipsWrap = document.getElementById('prod-tips');
-    const tipsList = document.getElementById('prod-tips-list');
+  // ── Tips ───────────────────────────────────────────────────────────────
+  const tipsWrap = document.getElementById("prod-tips");
+  const tipsList = document.getElementById("prod-tips-list");
 
-    if (tipsWrap && tipsList && tips.length) {
-        tipsList.innerHTML = tips.map(t => `<li>${t}</li>`).join('');
-        tipsWrap.style.display = '';
-    } else if (tipsWrap) {
-        tipsWrap.style.display = 'none';
-    }
+  if (tipsWrap && tipsList && tips.length) {
+    tipsList.innerHTML = tips.map((t) => `<li>${t}</li>`).join("");
+    tipsWrap.style.display = "";
+  } else if (tipsWrap) {
+    tipsWrap.style.display = "none";
+  }
 }
 
 /* ── Hook into existing schedule mutations ────────────────────────────────
@@ -2361,14 +3581,14 @@ function _prodRenderScore(data) {
    ─────────────────────────────────────────────────────────────────────── */
 
 (function _hookProductivity() {
-    // Wrap renderScheduleGrid — it's the single convergence point for all
-    // schedule changes (assign, remove, auto-gen, week change, day toggle…)
-    const _origRenderScheduleGrid = window.renderScheduleGrid;
+  // Wrap renderScheduleGrid — it's the single convergence point for all
+  // schedule changes (assign, remove, auto-gen, week change, day toggle…)
+  const _origRenderScheduleGrid = window.renderScheduleGrid;
 
-    window.renderScheduleGrid = async function (...args) {
-        const result = await _origRenderScheduleGrid.apply(this, args);
-        // Refresh productivity score in parallel after grid renders
-        renderProductivityCard();
-        return result;
-    };
+  window.renderScheduleGrid = async function (...args) {
+    const result = await _origRenderScheduleGrid.apply(this, args);
+    // Refresh productivity score in parallel after grid renders
+    renderProductivityCard();
+    return result;
+  };
 })();

@@ -800,7 +800,12 @@
               >
             </div>
             <!-- ── Productivity Score Card ── -->
-            <div class="productivity-card" id="productivity-card" aria-label="Score de productivité" style="display:none">
+            <div
+              class="productivity-card"
+              id="productivity-card"
+              aria-label="Score de productivité"
+              style="display: none"
+            >
               <div class="prod-card-header">
                 <span class="prod-card-title">📈 Score de Productivité</span>
                 <span class="prod-card-level" id="prod-level"></span>
@@ -808,12 +813,22 @@
               <div class="prod-card-body">
                 <!-- Circular gauge -->
                 <div class="prod-gauge-wrap" aria-hidden="true">
-                  <svg class="prod-gauge" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                  <svg
+                    class="prod-gauge"
+                    viewBox="0 0 120 120"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <circle class="prod-gauge-track" cx="60" cy="60" r="50" />
-                    <circle class="prod-gauge-fill" id="prod-gauge-fill" cx="60" cy="60" r="50"
+                    <circle
+                      class="prod-gauge-fill"
+                      id="prod-gauge-fill"
+                      cx="60"
+                      cy="60"
+                      r="50"
                       stroke-dasharray="314.16"
                       stroke-dashoffset="314.16"
-                      stroke-linecap="round" />
+                      stroke-linecap="round"
+                    />
                   </svg>
                   <div class="prod-gauge-center">
                     <div class="prod-gauge-score" id="prod-gauge-score">—</div>
@@ -831,7 +846,7 @@
               </div>
 
               <!-- Tips -->
-              <div class="prod-tips" id="prod-tips" style="display:none">
+              <div class="prod-tips" id="prod-tips" style="display: none">
                 <div class="prod-tips-title">💡 Suggestions</div>
                 <ul class="prod-tips-list" id="prod-tips-list"></ul>
               </div>
@@ -1299,8 +1314,8 @@
                 <p class="settings-danger-text">
                   La suppression de votre compte est
                   <strong>définitive</strong> : votre emploi du temps, vos
-                  tâches, vos créneaux et toutes vos données seront
-                  supprimés sans possibilité de récupération.
+                  tâches, vos créneaux et toutes vos données seront supprimés
+                  sans possibilité de récupération.
                 </p>
                 <button
                   class="btn-danger"
@@ -1518,9 +1533,33 @@
             <div
               class="color-picker-grid"
               id="color-grid"
-              role="listbox"
               aria-label="Choisir une couleur"
-            ></div>
+            >
+              <div class="wheel-picker">
+                <div class="wheel-row">
+                  <canvas id="color-wheel" width="180" height="180"></canvas>
+                  <div class="wheel-right">
+                    <canvas
+                      id="brightness-bar"
+                      width="24"
+                      height="180"
+                    ></canvas>
+                    <div class="wheel-preview-wrap">
+                      <div class="wheel-preview" id="wheel-preview"></div>
+                      <input
+                        type="text"
+                        class="wheel-hex-input"
+                        id="wheel-hex"
+                        maxlength="7"
+                        placeholder="#RRGGBB"
+                        oninput="onWheelHexInput(this.value)"
+                        onblur="onWheelHexBlur()"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div id="subj-msg" role="alert" aria-live="polite"></div>
         </div>
@@ -1549,7 +1588,10 @@
         </div>
         <input type="hidden" id="subtask-subject-id" />
         <input type="hidden" id="subtask-day" />
-        <div class="subtask-modal-subject-name" id="subtask-modal-subject-name"></div>
+        <div
+          class="subtask-modal-subject-name"
+          id="subtask-modal-subject-name"
+        ></div>
 
         <!-- Add new subtask -->
         <div class="subtask-add-row">
@@ -1559,19 +1601,31 @@
             type="text"
             placeholder="Nouveau sous-titre..."
             onkeydown="if (event.key === 'Enter') addSubtaskFromModal();"
-            style="flex:1; min-width:0; margin:0"
+            style="flex: 1; min-width: 0; margin: 0"
           />
-          <button class="btn-primary subtask-add-btn" onclick="addSubtaskFromModal()">
+          <button
+            class="btn-primary subtask-add-btn"
+            onclick="addSubtaskFromModal()"
+          >
             + Ajouter
           </button>
         </div>
 
         <!-- Subtask list -->
-        <div id="subtask-list" class="subtask-list" aria-label="Liste des sous-titres">
+        <div
+          id="subtask-list"
+          class="subtask-list"
+          aria-label="Liste des sous-titres"
+        >
           <!-- injected by JS -->
         </div>
 
-        <div id="subtask-msg" role="alert" aria-live="polite" style="margin-top:0.5rem"></div>
+        <div
+          id="subtask-msg"
+          role="alert"
+          aria-live="polite"
+          style="margin-top: 0.5rem"
+        ></div>
 
         <div class="modal-footer">
           <button class="btn-secondary" onclick="closeModal('subtask-modal')">
