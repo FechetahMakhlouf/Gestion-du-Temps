@@ -314,25 +314,29 @@ async function deleteSubject(id) {
 
 let _subtaskDragId = null;
 let _subtaskSubjectId = null;
+let _subtaskDay = null;
 
-async function openSubtaskModal(subjectId, subjectName, subjectColor) {
+async function openSubtaskModal(subjectId, subjectName, subjectColor, day) {
     _subtaskSubjectId = subjectId;
+    _subtaskDay = day || null;
     document.getElementById('subtask-subject-id').value = subjectId;
+    document.getElementById('subtask-day').value = day || '';
     const nameEl = document.getElementById('subtask-modal-subject-name');
     nameEl.textContent = subjectName;
     nameEl.style.color = subjectColor;
     document.getElementById('subtask-new-title').value = '';
     document.getElementById('subtask-msg').innerHTML = '';
-    await renderSubtaskList(subjectId, subjectColor);
+    await renderSubtaskList(subjectId, subjectColor, day);
     document.getElementById('subtask-modal').classList.add('open');
     requestAnimationFrame(() => document.getElementById('subtask-new-title').focus());
 }
 
-async function renderSubtaskList(subjectId, color) {
+async function renderSubtaskList(subjectId, color, day) {
     const listEl = document.getElementById('subtask-list');
     let subtasks = [];
+    const dayParam = day ? `?day=${encodeURIComponent(day)}` : '';
     try {
-        subtasks = await apiCall(`/api/subjects/${subjectId}/subtasks`);
+        subtasks = await apiCall(`/api/subjects/${subjectId}/subtasks${dayParam}`);
     } catch (_) { subtasks = []; }
 
     if (!subtasks.length) {
@@ -369,19 +373,22 @@ function escApos(str) {
 
 async function addSubtaskFromModal() {
     const subjectId = document.getElementById('subtask-subject-id').value;
+    const day = document.getElementById('subtask-day').value || null;
     const titleInput = document.getElementById('subtask-new-title');
     const title = titleInput.value.trim();
     const msgEl = document.getElementById('subtask-msg');
     if (!title) { showMsg(msgEl, 'Le titre est requis.', 'error'); return; }
     try {
+        const body = { title };
+        if (day) body.day = day;
         await apiCall(`/api/subjects/${subjectId}/subtasks`, {
             method: 'POST',
-            body: JSON.stringify({ title })
+            body: JSON.stringify(body)
         });
         titleInput.value = '';
         msgEl.innerHTML = '';
         const color = document.getElementById('subtask-modal-subject-name').style.color;
-        await renderSubtaskList(subjectId, color);
+        await renderSubtaskList(subjectId, color, day);
         // Refresh the schedule grid so subtasks appear in blocks
         await renderScheduleGrid();
         await renderSubjectsPanel();
@@ -392,10 +399,11 @@ async function addSubtaskFromModal() {
 
 async function deleteSubtask(subtaskId) {
     const subjectId = document.getElementById('subtask-subject-id').value;
+    const day = document.getElementById('subtask-day').value || null;
     try {
         await apiCall(`/api/subjects/${subjectId}/subtasks/${subtaskId}`, { method: 'DELETE' });
         const color = document.getElementById('subtask-modal-subject-name').style.color;
-        await renderSubtaskList(subjectId, color);
+        await renderSubtaskList(subjectId, color, day);
         await renderScheduleGrid();
         await renderSubjectsPanel();
         toast('Sous-titre supprimé', 'info');
@@ -421,6 +429,7 @@ async function saveSubtaskInline(subtaskId) {
     if (!inp) return;
     const newTitle = inp.value.trim();
     const subjectId = document.getElementById('subtask-subject-id').value;
+    const day = document.getElementById('subtask-day').value || null;
     if (!newTitle) {
         // Restore
         inp.outerHTML = `<span class="subtask-row-title" id="st-title-${subtaskId}">${escHtml(inp.defaultValue)}</span>`;
@@ -432,7 +441,7 @@ async function saveSubtaskInline(subtaskId) {
             body: JSON.stringify({ title: newTitle })
         });
         const color = document.getElementById('subtask-modal-subject-name').style.color;
-        await renderSubtaskList(subjectId, color);
+        await renderSubtaskList(subjectId, color, day);
         await renderScheduleGrid();
         await renderSubjectsPanel();
     } catch (e) {
@@ -479,13 +488,14 @@ async function onSubtaskDrop(e, targetId) {
     ids.splice(targetIdx, 0, _subtaskDragId);
     _subtaskDragId = null;
 
+    const day = document.getElementById('subtask-day').value || null;
     try {
         await apiCall(`/api/subjects/${subjectId}/subtasks/reorder`, {
             method: 'POST',
             body: JSON.stringify({ order: ids })
         });
         const color = document.getElementById('subtask-modal-subject-name').style.color;
-        await renderSubtaskList(subjectId, color);
+        await renderSubtaskList(subjectId, color, day);
         await renderScheduleGrid();
     } catch (e) {
         toast(e.message, 'error');
@@ -660,14 +670,24 @@ async function renderScheduleGrid() {
         apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`)
     ]);
 
-    // Pre-fetch subtasks for all subjects that appear in this week's schedule
-    const usedSubjectIds = [...new Set(Object.values(sched))];
+    // Pre-fetch subtasks for every (subject, day) pair that appears in the schedule
+    // Key format: "subjectId::dayAbbr"
+    const usedPairs = [...new Set(
+        Object.entries(sched).map(([key, sid]) => {
+            // key is "weekOffset_dayAbbr_tsId"
+            const parts = key.split('_');
+            // weekOffset may have sign, day is second segment
+            const dayAbbr = parts[1];
+            return `${sid}::${dayAbbr}`;
+        })
+    )];
     const subtasksCache = {};
-    await Promise.all(usedSubjectIds.map(async sid => {
+    await Promise.all(usedPairs.map(async pair => {
+        const [sid, dayAbbr] = pair.split('::');
         try {
-            subtasksCache[sid] = await apiCall(`/api/subjects/${sid}/subtasks`);
+            subtasksCache[pair] = await apiCall(`/api/subjects/${sid}/subtasks?day=${encodeURIComponent(dayAbbr)}`);
         } catch (_) {
-            subtasksCache[sid] = [];
+            subtasksCache[pair] = [];
         }
     }));
     const weekDays = getWeekDays();
@@ -752,7 +772,7 @@ async function renderScheduleGrid() {
                 <div class="block-time">${ts.start}<br>→ ${ts.end}</div>`;
 
             if (subj) {
-                const blockSubtasks = subtasksCache[subj.id] || [];
+                const blockSubtasks = subtasksCache[`${subj.id}::${dayAbbr}`] || [];
                 const subtasksHtml = blockSubtasks.length > 0
                     ? `<div class="block-subtasks">${blockSubtasks.map(st =>
                         `<span class="block-subtask-item" style="color:${subj.color}">• ${st.title}</span>`
@@ -770,7 +790,7 @@ async function renderScheduleGrid() {
                     </div>
                     <div class="block-actions">
                         <button class="subtask-mgr-btn"
-                            onclick="event.stopPropagation();openSubtaskModal('${subj.id}','${subj.name.replace(/'/g,"\\'")}','${subj.color}')"
+                            onclick="event.stopPropagation();openSubtaskModal('${subj.id}','${subj.name.replace(/'/g,"\\'")}','${subj.color}','${dayAbbr}')"
                             aria-label="Gérer les sous-titres"
                             title="Sous-titres (${blockSubtasks.length})">≡</button>
                         <button class="done-btn ${isDone ? 'done' : ''}"

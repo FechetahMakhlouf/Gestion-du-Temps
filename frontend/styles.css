@@ -3798,9 +3798,17 @@ textarea.form-input:not(:placeholder-shown)~.form-label {
 /* Add-subtask row */
 .subtask-add-row {
     display: flex;
-    gap: 0.6rem;
+    gap: 0.5rem;
     align-items: center;
     margin-bottom: 1rem;
+}
+
+.subtask-add-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.78rem;
+    line-height: 1.4;
 }
 
 /* Subtask list container */
@@ -3922,7 +3930,7 @@ textarea.form-input:not(:placeholder-shown)~.form-label {
         flex-direction: column;
         align-items: stretch;
     }
-    .subtask-add-row .btn-primary {
+    .subtask-add-btn {
         width: 100%;
         justify-content: center;
     }
