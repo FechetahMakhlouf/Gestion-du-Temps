@@ -256,7 +256,6 @@ function openSubjectModal(id) {
     } else {
         document.getElementById('subject-modal-title').textContent = 'Ajouter une tâche';
         document.getElementById('subj-name').value = '';
-        document.getElementById('subj-type').value = '';
         selectedColor = COLORS[Math.floor(Math.random() * COLORS.length)];
         buildColorGrid();
     }
@@ -270,19 +269,17 @@ async function loadSubjectsForEdit(id) {
     if (!subj) return;
     document.getElementById('subject-modal-title').textContent = 'Modifier la tâche';
     document.getElementById('subj-name').value = subj.name;
-    document.getElementById('subj-type').value = subj.type;
     selectedColor = subj.color;
     buildColorGrid();
 }
 
 async function saveSubject() {
     const name = document.getElementById('subj-name').value.trim();
-    const type = document.getElementById('subj-type').value;
     const id = document.getElementById('subj-edit-id').value;
     const msgEl = document.getElementById('subj-msg');
     if (!name) { showMsg(msgEl, 'Le nom est requis.', 'error'); return; }
 
-    const payload = { name, type, color: selectedColor };
+    const payload = { name, color: selectedColor };
     setLoading('subj-save', true);
     try {
         if (id) {
@@ -306,6 +303,190 @@ async function deleteSubject(id) {
         await apiCall(`/api/subjects/${id}`, { method: 'DELETE' });
         await renderAll();
         toast('Tâche supprimée', 'info');
+    } catch (e) {
+        toast(e.message, 'error');
+    }
+}
+
+/* ══════════════════════════════════════════════
+   SUBTASK MANAGEMENT
+══════════════════════════════════════════════ */
+
+let _subtaskDragId = null;
+let _subtaskSubjectId = null;
+
+async function openSubtaskModal(subjectId, subjectName, subjectColor) {
+    _subtaskSubjectId = subjectId;
+    document.getElementById('subtask-subject-id').value = subjectId;
+    const nameEl = document.getElementById('subtask-modal-subject-name');
+    nameEl.textContent = subjectName;
+    nameEl.style.color = subjectColor;
+    document.getElementById('subtask-new-title').value = '';
+    document.getElementById('subtask-msg').innerHTML = '';
+    await renderSubtaskList(subjectId, subjectColor);
+    document.getElementById('subtask-modal').classList.add('open');
+    requestAnimationFrame(() => document.getElementById('subtask-new-title').focus());
+}
+
+async function renderSubtaskList(subjectId, color) {
+    const listEl = document.getElementById('subtask-list');
+    let subtasks = [];
+    try {
+        subtasks = await apiCall(`/api/subjects/${subjectId}/subtasks`);
+    } catch (_) { subtasks = []; }
+
+    if (!subtasks.length) {
+        listEl.innerHTML = `<div class="subtask-empty">Aucun sous-titre — ajoutez-en un ci-dessus.</div>`;
+        return;
+    }
+
+    listEl.innerHTML = subtasks.map((st, idx) => `
+        <div class="subtask-row" draggable="true" data-id="${st.id}"
+             ondragstart="onSubtaskDragStart(event,${st.id})"
+             ondragover="onSubtaskDragOver(event)"
+             ondragleave="onSubtaskDragLeave(event)"
+             ondrop="onSubtaskDrop(event,${st.id})">
+            <span class="subtask-drag-handle" aria-hidden="true" title="Réordonner">⠿</span>
+            <span class="subtask-row-title" id="st-title-${st.id}">${escHtml(st.title)}</span>
+            <div class="subtask-row-actions">
+                <button class="icon-btn" onclick="editSubtaskInline(${st.id},'${escApos(st.title)}')" aria-label="Modifier" title="Modifier">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="icon-btn danger" onclick="deleteSubtask(${st.id})" aria-label="Supprimer" title="Supprimer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escApos(str) {
+    return String(str).replace(/'/g,"\\'");
+}
+
+async function addSubtaskFromModal() {
+    const subjectId = document.getElementById('subtask-subject-id').value;
+    const titleInput = document.getElementById('subtask-new-title');
+    const title = titleInput.value.trim();
+    const msgEl = document.getElementById('subtask-msg');
+    if (!title) { showMsg(msgEl, 'Le titre est requis.', 'error'); return; }
+    try {
+        await apiCall(`/api/subjects/${subjectId}/subtasks`, {
+            method: 'POST',
+            body: JSON.stringify({ title })
+        });
+        titleInput.value = '';
+        msgEl.innerHTML = '';
+        const color = document.getElementById('subtask-modal-subject-name').style.color;
+        await renderSubtaskList(subjectId, color);
+        // Refresh the schedule grid so subtasks appear in blocks
+        await renderScheduleGrid();
+        await renderSubjectsPanel();
+    } catch (e) {
+        showMsg(msgEl, e.message, 'error');
+    }
+}
+
+async function deleteSubtask(subtaskId) {
+    const subjectId = document.getElementById('subtask-subject-id').value;
+    try {
+        await apiCall(`/api/subjects/${subjectId}/subtasks/${subtaskId}`, { method: 'DELETE' });
+        const color = document.getElementById('subtask-modal-subject-name').style.color;
+        await renderSubtaskList(subjectId, color);
+        await renderScheduleGrid();
+        await renderSubjectsPanel();
+        toast('Sous-titre supprimé', 'info');
+    } catch (e) {
+        toast(e.message, 'error');
+    }
+}
+
+function editSubtaskInline(subtaskId, currentTitle) {
+    const titleEl = document.getElementById(`st-title-${subtaskId}`);
+    if (!titleEl) return;
+    const row = titleEl.closest('.subtask-row');
+    // Replace title span with an input
+    titleEl.outerHTML = `<input class="subtask-inline-input" id="st-input-${subtaskId}" value="${escHtml(currentTitle)}"
+        onkeydown="if(event.key==='Enter')saveSubtaskInline(${subtaskId});if(event.key==='Escape')cancelSubtaskInline(${subtaskId},'${escApos(currentTitle)}')"
+        onblur="saveSubtaskInline(${subtaskId})" />`;
+    const inp = document.getElementById(`st-input-${subtaskId}`);
+    if (inp) { inp.focus(); inp.select(); }
+}
+
+async function saveSubtaskInline(subtaskId) {
+    const inp = document.getElementById(`st-input-${subtaskId}`);
+    if (!inp) return;
+    const newTitle = inp.value.trim();
+    const subjectId = document.getElementById('subtask-subject-id').value;
+    if (!newTitle) {
+        // Restore
+        inp.outerHTML = `<span class="subtask-row-title" id="st-title-${subtaskId}">${escHtml(inp.defaultValue)}</span>`;
+        return;
+    }
+    try {
+        await apiCall(`/api/subjects/${subjectId}/subtasks/${subtaskId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ title: newTitle })
+        });
+        const color = document.getElementById('subtask-modal-subject-name').style.color;
+        await renderSubtaskList(subjectId, color);
+        await renderScheduleGrid();
+        await renderSubjectsPanel();
+    } catch (e) {
+        toast(e.message, 'error');
+    }
+}
+
+function cancelSubtaskInline(subtaskId, originalTitle) {
+    const inp = document.getElementById(`st-input-${subtaskId}`);
+    if (!inp) return;
+    inp.outerHTML = `<span class="subtask-row-title" id="st-title-${subtaskId}">${escHtml(originalTitle)}</span>`;
+}
+
+/* ── Subtask drag-to-reorder ── */
+function onSubtaskDragStart(e, id) {
+    _subtaskDragId = id;
+    e.dataTransfer.effectAllowed = 'move';
+    e.currentTarget.classList.add('subtask-dragging');
+}
+
+function onSubtaskDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    e.currentTarget.classList.add('subtask-drag-over');
+}
+
+function onSubtaskDragLeave(e) {
+    e.currentTarget.classList.remove('subtask-drag-over');
+}
+
+async function onSubtaskDrop(e, targetId) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('subtask-drag-over');
+    if (_subtaskDragId === null || _subtaskDragId === targetId) return;
+    const subjectId = document.getElementById('subtask-subject-id').value;
+
+    // Build new order from DOM
+    const rows = [...document.querySelectorAll('.subtask-row')];
+    const ids = rows.map(r => parseInt(r.dataset.id));
+    const dragIdx = ids.indexOf(_subtaskDragId);
+    const targetIdx = ids.indexOf(targetId);
+    if (dragIdx === -1 || targetIdx === -1) return;
+    ids.splice(dragIdx, 1);
+    ids.splice(targetIdx, 0, _subtaskDragId);
+    _subtaskDragId = null;
+
+    try {
+        await apiCall(`/api/subjects/${subjectId}/subtasks/reorder`, {
+            method: 'POST',
+            body: JSON.stringify({ order: ids })
+        });
+        const color = document.getElementById('subtask-modal-subject-name').style.color;
+        await renderSubtaskList(subjectId, color);
+        await renderScheduleGrid();
     } catch (e) {
         toast(e.message, 'error');
     }
@@ -357,24 +538,40 @@ async function renderSubjectsPanel() {
     const countMap = {};
     Object.values(sched).forEach(id => countMap[id] = (countMap[id] || 0) + 1);
     const maxCount = Math.max(1, ...Object.values(countMap));
+
+    // Fetch all subtasks for all subjects in one pass
+    const subtasksMap = {};
+    await Promise.all(subjects.map(async s => {
+        try {
+            const sts = await apiCall(`/api/subjects/${s.id}/subtasks`);
+            subtasksMap[s.id] = sts;
+        } catch (_) {
+            subtasksMap[s.id] = [];
+        }
+    }));
+
     grid.innerHTML = subjects.map(s => {
         const cnt = countMap[s.id] || 0;
         const pct = Math.round((cnt / maxCount) * 100);
+        const stCount = (subtasksMap[s.id] || []).length;
         return `
         <div class="subject-card" style="border-left-color:${s.color}">
             <div class="subject-card-header">
                 <div class="subject-card-name" style="color:${s.color}">${s.name}</div>
                 <div class="subject-card-actions">
-                    <button class="icon-btn" onclick="openSubjectModal('${s.id}')" aria-label="Modifier ${s.name}">
+                    <button class="icon-btn" onclick="openSubtaskModal('${s.id}','${s.name.replace(/'/g,"\\'")}','${s.color}')" aria-label="Gérer les sous-titres de ${s.name}" title="Gérer les sous-titres">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    </button>
+                    <button class="icon-btn" onclick="openSubjectModal('${s.id}')" aria-label="Modifier ${s.name}" title="Modifier la tâche">
                         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </button>
-                    <button class="icon-btn danger" onclick="deleteSubject('${s.id}')" aria-label="Supprimer ${s.name}">
+                    <button class="icon-btn danger" onclick="deleteSubject('${s.id}')" aria-label="Supprimer ${s.name}" title="Supprimer la tâche">
                         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                     </button>
                 </div>
             </div>
             <div class="subject-card-meta">
-                ${s.type ? `<span class="meta-subtitle" style="color:${s.color};opacity:0.85">📝 ${s.type}</span>` : ''}
+                ${stCount > 0 ? `<span class="meta-subtitle" style="color:${s.color};opacity:0.85">📋 ${stCount} sous-titre${stCount > 1 ? 's' : ''}</span>` : ''}
                 <span class="meta-badge">${cnt} créneau${cnt !== 1 ? 'x' : ''}</span>
             </div>
             ${cnt > 0 ? `<div class="subject-usage-bar" aria-label="${pct}% d'utilisation"><div class="subject-usage-fill" style="width:${pct}%;background:${s.color}"></div></div>` : ''}
@@ -406,7 +603,6 @@ async function renderPalette() {
              onkeydown="if(event.key==='Enter'||event.key===' ')${forModal ? `assignFromModal('${s.id}')` : `selectSubject('${s.id}', this)`}"
              onclick="${forModal ? `assignFromModal('${s.id}')` : `selectSubject('${s.id}', this)`}">
             <span class="chip-name">${s.name}</span>
-            ${s.type ? `<span class="chip-subtitle" style="color:${s.color}">${s.type}</span>` : ''}
         </div>
     `).join('');
     if (el) el.innerHTML = chipHtml(false);
@@ -463,6 +659,17 @@ async function renderScheduleGrid() {
         apiCall('/api/subjects'),
         apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`)
     ]);
+
+    // Pre-fetch subtasks for all subjects that appear in this week's schedule
+    const usedSubjectIds = [...new Set(Object.values(sched))];
+    const subtasksCache = {};
+    await Promise.all(usedSubjectIds.map(async sid => {
+        try {
+            subtasksCache[sid] = await apiCall(`/api/subjects/${sid}/subtasks`);
+        } catch (_) {
+            subtasksCache[sid] = [];
+        }
+    }));
     const weekDays = getWeekDays();
 
     if (weekDays.length) {
@@ -545,6 +752,12 @@ async function renderScheduleGrid() {
                 <div class="block-time">${ts.start}<br>→ ${ts.end}</div>`;
 
             if (subj) {
+                const blockSubtasks = subtasksCache[subj.id] || [];
+                const subtasksHtml = blockSubtasks.length > 0
+                    ? `<div class="block-subtasks">${blockSubtasks.map(st =>
+                        `<span class="block-subtask-item" style="color:${subj.color}">• ${st.title}</span>`
+                      ).join('')}</div>`
+                    : '';
                 html += `<div class="block-content"
                     style="background:${hexAlpha(subj.color, 0.18)};border-left:3px solid ${subj.color};color:${subj.color}"
                     ondragover="onDragOver(event)"
@@ -553,9 +766,13 @@ async function renderScheduleGrid() {
                     onclick="handleCellClick('${dayAbbr}','${ts.id}')">
                     <div class="block-content-inner">
                         <span>${subj.name}</span>
-                        ${subj.type ? `<span class="block-subtitle" style="color:${subj.color}">${subj.type}</span>` : ''}
+                        ${subtasksHtml}
                     </div>
                     <div class="block-actions">
+                        <button class="subtask-mgr-btn"
+                            onclick="event.stopPropagation();openSubtaskModal('${subj.id}','${subj.name.replace(/'/g,"\\'")}','${subj.color}')"
+                            aria-label="Gérer les sous-titres"
+                            title="Sous-titres (${blockSubtasks.length})">≡</button>
                         <button class="done-btn ${isDone ? 'done' : ''}"
                             onclick="event.stopPropagation();toggleDoneBlock('${currentWeekOffset}','${dayAbbr}','${ts.id}')"
                             aria-label="${isDone ? 'Marquer comme non fait' : 'Marquer comme fait'}"

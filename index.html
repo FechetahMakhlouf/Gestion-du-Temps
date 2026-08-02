@@ -1515,43 +1515,6 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label" for="subj-type">Sous-titre</label>
-            <div class="input-emoji-wrap">
-              <input
-                class="form-input"
-                id="subj-type"
-                type="text"
-                placeholder=""
-                onkeydown="if (event.key === 'Enter') saveSubject();"
-              />
-              <button
-                type="button"
-                class="emoji-toggle-btn"
-                aria-label="Choisir un emoji"
-                onclick="toggleEmojiPicker(event, 'subj-type')"
-              >
-                <span class="emoji-toggle-icon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M8 13s1.5 2 4 2 4-2 4-2" />
-                    <line x1="9" y1="9" x2="9.01" y2="9" />
-                    <line x1="15" y1="9" x2="15.01" y2="9" />
-                  </svg>
-                </span>
-              </button>
-            </div>
-          </div>
-          <div class="form-group">
             <div
               class="color-picker-grid"
               id="color-grid"
@@ -1567,6 +1530,51 @@
           </button>
           <button class="btn-primary" id="subj-save" onclick="saveSubject()">
             Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subtask Management Modal -->
+    <div
+      class="modal-overlay"
+      id="subtask-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="subtask-modal-title"
+    >
+      <div class="modal" style="max-width: 520px">
+        <div class="modal-title" id="subtask-modal-title">
+          Sous-titres de la tâche
+        </div>
+        <input type="hidden" id="subtask-subject-id" />
+        <div class="subtask-modal-subject-name" id="subtask-modal-subject-name"></div>
+
+        <!-- Add new subtask -->
+        <div class="subtask-add-row">
+          <input
+            class="form-input"
+            id="subtask-new-title"
+            type="text"
+            placeholder="Nouveau sous-titre..."
+            onkeydown="if (event.key === 'Enter') addSubtaskFromModal();"
+            style="flex:1; margin:0"
+          />
+          <button class="btn-primary" onclick="addSubtaskFromModal()" style="white-space:nowrap;padding:0.5rem 1rem;font-size:0.82rem">
+            + Ajouter
+          </button>
+        </div>
+
+        <!-- Subtask list -->
+        <div id="subtask-list" class="subtask-list" aria-label="Liste des sous-titres">
+          <!-- injected by JS -->
+        </div>
+
+        <div id="subtask-msg" role="alert" aria-live="polite" style="margin-top:0.5rem"></div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModal('subtask-modal')">
+            Fermer
           </button>
         </div>
       </div>

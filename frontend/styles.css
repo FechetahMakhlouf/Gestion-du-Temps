@@ -3782,3 +3782,148 @@ textarea.form-input:not(:placeholder-shown)~.form-label {
         grid-template-columns: 72px 1fr 40px;
     }
 }
+
+/* ══════════════════════════════════════════════
+   SUBTASK MANAGEMENT
+══════════════════════════════════════════════ */
+
+/* Modal subject name header */
+.subtask-modal-subject-name {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    letter-spacing: 0.01em;
+}
+
+/* Add-subtask row */
+.subtask-add-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+/* Subtask list container */
+.subtask-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    max-height: 46vh;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+}
+
+.subtask-empty {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    padding: 0.6rem 0;
+    text-align: center;
+}
+
+/* Individual subtask row */
+.subtask-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.45rem 0.6rem;
+    transition: var(--transition);
+    cursor: default;
+}
+
+.subtask-row:hover {
+    border-color: var(--border2);
+}
+
+.subtask-row.subtask-dragging {
+    opacity: 0.45;
+    border-style: dashed;
+}
+
+.subtask-row.subtask-drag-over {
+    border-color: var(--gold);
+    background: rgba(212, 175, 55, 0.08);
+}
+
+.subtask-drag-handle {
+    font-size: 1rem;
+    color: var(--text-muted);
+    cursor: grab;
+    user-select: none;
+    flex-shrink: 0;
+    opacity: 0.55;
+}
+
+.subtask-row-title {
+    flex: 1;
+    font-size: 0.85rem;
+    color: var(--text);
+    word-break: break-word;
+}
+
+.subtask-inline-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--gold);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 0.85rem;
+    padding: 0.2rem 0.45rem;
+    outline: none;
+}
+
+.subtask-row-actions {
+    display: flex;
+    gap: 0.2rem;
+    flex-shrink: 0;
+}
+
+/* Block subtasks display in the schedule grid */
+.block-subtasks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    margin-top: 0.22rem;
+}
+
+.block-subtask-item {
+    font-size: 0.64rem;
+    font-weight: 400;
+    opacity: 0.82;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Subtask manage button in schedule block */
+.subtask-mgr-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: 0.6;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.1rem 0.25rem;
+    border-radius: 3px;
+    transition: opacity 0.15s;
+    line-height: 1;
+}
+
+.subtask-mgr-btn:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.12);
+}
+
+@media (max-width: 640px) {
+    .subtask-add-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .subtask-add-row .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+}
