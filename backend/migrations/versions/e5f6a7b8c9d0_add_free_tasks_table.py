@@ -15,6 +15,10 @@ depends_on = None
 
 
 def upgrade():
+    bind = op.get_bind()
+    if sa.inspect(bind).has_table('free_task'):
+        return  # table already created at runtime
+
     op.create_table(
         'free_task',
         sa.Column('id', sa.Integer(), nullable=False),
@@ -31,5 +35,9 @@ def upgrade():
 
 
 def downgrade():
+    bind = op.get_bind()
+    if not sa.inspect(bind).has_table('free_task'):
+        return
+
     op.drop_index('ix_free_task_user_day', table_name='free_task')
     op.drop_table('free_task')

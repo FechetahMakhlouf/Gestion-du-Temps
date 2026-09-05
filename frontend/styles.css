@@ -4447,3 +4447,20 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
   border: 1px solid rgba(201, 151, 42, 0.25);
   white-space: nowrap;
 }
+
+
+/* 24-hour time picker (no AM/PM) */
+.time-picker-24 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.time-picker-24 select.form-input {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+.time-picker-24 .time-sep {
+  font-weight: 700;
+  opacity: 0.7;
+}

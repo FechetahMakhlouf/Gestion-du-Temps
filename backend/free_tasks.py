@@ -1,9 +1,48 @@
+import logging
+
 from flask import Blueprint, request
 from flask_login import current_user, login_required
+from sqlalchemy import inspect
+from sqlalchemy.exc import SQLAlchemyError
 from models import db, FreeTask
 from utils import json_response
 
 free_tasks_bp = Blueprint('free_tasks', __name__, url_prefix='/api/free-tasks')
+
+logger = logging.getLogger(__name__)
+
+_table_checked = False
+
+
+def _ensure_table():
+    """Create the free_task table on the fly if the migration has not run yet.
+
+    Without this, every free-task request fails with a 500 on a database
+    where the migration was never applied.
+    """
+    global _table_checked
+    if _table_checked:
+        return
+    try:
+        if not inspect(db.engine).has_table(FreeTask.__tablename__):
+            FreeTask.__table__.create(bind=db.engine, checkfirst=True)
+    except SQLAlchemyError:
+        logger.exception('Could not ensure free_task table exists')
+    else:
+        _table_checked = True
+
+
+@free_tasks_bp.before_request
+def _before():
+    _ensure_table()
+
+
+@free_tasks_bp.errorhandler(SQLAlchemyError)
+def _db_error(err):
+    db.session.rollback()
+    logger.exception('Free task database error: %s', err)
+    return json_response(
+        message="Erreur lors de l'ajout. Réessayez.", status=500)
 
 
 def _serialize(ft):

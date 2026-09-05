@@ -1647,27 +1647,20 @@
         <div class="modal-title">Ajouter un créneau horaire</div>
         <div class="auth-form">
           <div class="form-group">
-            <label class="form-label" for="ts-start">Heure de début</label>
-            <input
-              class="form-input"
-              id="ts-start"
-              type="time"
-              value="08:00"
-              onkeydown="
-                if (event.key === 'Enter')
-                  document.getElementById('ts-end').focus();
-              "
-            />
+            <label class="form-label" for="ts-start-h">Heure de début</label>
+            <div class="time-picker-24">
+              <select class="form-input" id="ts-start-h" aria-label="Heure de début (heures, 00-23)"></select>
+              <span class="time-sep">:</span>
+              <select class="form-input" id="ts-start-m" aria-label="Heure de début (minutes)"></select>
+            </div>
           </div>
           <div class="form-group">
-            <label class="form-label" for="ts-end">Heure de fin</label>
-            <input
-              class="form-input"
-              id="ts-end"
-              type="time"
-              value="10:00"
-              onkeydown="if (event.key === 'Enter') saveTimeslot();"
-            />
+            <label class="form-label" for="ts-end-h">Heure de fin</label>
+            <div class="time-picker-24">
+              <select class="form-input" id="ts-end-h" aria-label="Heure de fin (heures, 00-23)"></select>
+              <span class="time-sep">:</span>
+              <select class="form-input" id="ts-end-m" aria-label="Heure de fin (minutes)"></select>
+            </div>
           </div>
           <div class="form-group">
             <div class="ts-days-picker" id="ts-days-picker">

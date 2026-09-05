@@ -1494,12 +1494,42 @@ function openTimeslotModal() {
       cb.checked = activeDays.includes(cb.value);
     });
   document.getElementById("timeslot-modal").classList.add("open");
-  requestAnimationFrame(() => document.getElementById("ts-start").focus());
+  fillTimeSelects();
+  requestAnimationFrame(() => document.getElementById("ts-start-h").focus());
+}
+
+// Populate the 24-hour (00-23) time selects. No AM/PM anywhere.
+function fillTimeSelects() {
+  const pad = (n) => String(n).padStart(2, "0");
+  const defaults = {
+    "ts-start-h": "08",
+    "ts-start-m": "00",
+    "ts-end-h": "10",
+    "ts-end-m": "00",
+  };
+  Object.keys(defaults).forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el || el.dataset.filled === "1") return;
+    const count = id.endsWith("-h") ? 24 : 60;
+    el.innerHTML = Array.from(
+      { length: count },
+      (_, i) => `<option value="${pad(i)}">${pad(i)}</option>`,
+    ).join("");
+    el.value = defaults[id];
+    el.dataset.filled = "1";
+  });
+}
+
+function readTime24(prefix) {
+  const h = document.getElementById(`${prefix}-h`);
+  const m = document.getElementById(`${prefix}-m`);
+  if (!h || !m || !h.value || !m.value) return "";
+  return `${h.value}:${m.value}`;
 }
 
 async function saveTimeslot() {
-  const start = document.getElementById("ts-start").value;
-  const end = document.getElementById("ts-end").value;
+  const start = readTime24("ts-start");
+  const end = readTime24("ts-end");
   const msgEl = document.getElementById("ts-msg");
   if (!start || !end) {
     showMsg(msgEl, "Remplissez les deux champs.", "error");
