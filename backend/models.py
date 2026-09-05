@@ -81,6 +81,20 @@ class AutogenConfig(db.Model):
         'user_id', 'subject_id', name='unique_user_subject'),)
 
 
+class FreeTask(db.Model):
+    """A task that belongs to a day but has no timeslot (no chrono)."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    # Day abbreviation e.g. 'Lun', 'Mar', … or NULL for week-level tasks
+    day = db.Column(db.String(3), nullable=True, default=None)
+    # Optional week offset (same logic as ScheduleEntry)
+    week_offset = db.Column(db.Integer, nullable=False, default=0)
+    title = db.Column(db.String(200), nullable=False)
+    color = db.Column(db.String(7), nullable=False, default='#c9972a')
+    position = db.Column(db.Integer, nullable=False, default=0)
+    done = db.Column(db.Boolean, default=False)
+
+
 class PasswordResetToken(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

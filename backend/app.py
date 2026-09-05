@@ -15,6 +15,7 @@ from autogen import autogen_bp
 from contact import contact_bp
 from productivity_routes import productivity_bp
 from subtasks import subtasks_bp
+from free_tasks import free_tasks_bp
 import os
 
 
@@ -61,6 +62,7 @@ def create_app():
     app.register_blueprint(contact_bp)
     app.register_blueprint(productivity_bp)
     app.register_blueprint(subtasks_bp)
+    app.register_blueprint(free_tasks_bp)
 
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')

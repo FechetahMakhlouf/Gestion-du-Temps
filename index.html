@@ -1879,6 +1879,63 @@
       <div class="emoji-picker-grid" id="emoji-grid"></div>
     </div>
 
+    <!-- Free Task Modal (tasks without timeslot/chrono) -->
+    <div
+      class="modal-overlay"
+      id="free-task-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="free-task-modal-title"
+    >
+      <div class="modal">
+        <div class="modal-title" id="free-task-modal-title">
+          <span id="free-task-modal-day-label">Tâches libres</span>
+          <span class="free-task-modal-badge">sans créneau</span>
+        </div>
+
+        <!-- Add new free task row -->
+        <div class="free-task-add-row">
+          <input
+            class="form-input free-task-input"
+            id="free-task-new-title"
+            placeholder="Nouvelle tâche…"
+            onkeydown="if (event.key === 'Enter') addFreeTaskFromModal();"
+          />
+          <div class="free-task-color-row">
+            <label class="free-task-color-label">Couleur :</label>
+            <div class="free-task-color-swatches" id="free-task-color-swatches"></div>
+            <input
+              type="color"
+              id="free-task-color-input"
+              class="free-task-color-native"
+              value="#c9972a"
+              title="Couleur personnalisée"
+            />
+          </div>
+          <button
+            class="btn-primary free-task-add-btn"
+            onclick="addFreeTaskFromModal()"
+          >
+            + Ajouter
+          </button>
+        </div>
+
+        <div id="free-task-msg" role="alert" aria-live="polite"></div>
+
+        <!-- Free task list -->
+        <div
+          id="free-task-list"
+          class="free-task-list"
+        ></div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModal('free-task-modal')">
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Toast container -->
     <div
       class="toast-container"
