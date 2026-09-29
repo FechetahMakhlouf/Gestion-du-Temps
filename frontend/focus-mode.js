@@ -104,9 +104,9 @@ function _todayAbbr() {
 async function _fetchTodayTasks() {
     try {
         const [timeslots, subjects, sched] = await Promise.all([
-            window.apiCall('/api/timeslots'),
-            window.apiCall('/api/subjects'),
-            window.apiCall('/api/schedule?weekOffset=0'),
+            window.Store.getTimeslots(),
+            window.Store.getSubjects(),
+            window.Store.getSchedule(0),
         ]);
 
         const todayAbbr = _todayAbbr();

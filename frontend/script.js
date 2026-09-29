@@ -170,6 +170,7 @@ function confirmLogout() {
 async function doLogout() {
   closeModal("logout-modal");
   await apiCall("/api/auth/logout", { method: "POST" }).catch(() => {});
+  Store.reset();
   document.getElementById("auth-page").style.display = "flex";
   document.getElementById("app-page").style.display = "none";
   toast("À bientôt !", "info");
@@ -179,7 +180,7 @@ async function startApp() {
   document.getElementById("auth-page").style.display = "none";
   document.getElementById("app-page").style.display = "block";
   setLoading("login-submit", false);
-  const user = await apiCall("/api/auth/me");
+  const user = await Store.getUser();
 
   // Sidebar: username + initials avatar + date
   document.getElementById("sidebar-username").textContent = user.name;
@@ -572,7 +573,7 @@ function openSubjectModal(id) {
 }
 
 async function loadSubjectsForEdit(id) {
-  const subjects = await apiCall("/api/subjects");
+  const subjects = await Store.getSubjects();
   const subj = subjects.find((s) => s.id === id);
   if (!subj) return;
   document.getElementById("subject-modal-title").textContent =
@@ -605,6 +606,8 @@ async function saveSubject() {
         body: JSON.stringify(payload),
       });
     }
+    Store.invalidateSubjects();
+    Store.invalidateSchedule();
     closeModal("subject-modal");
     await renderAll();
     toast(id ? "Tâche modifiée ✓" : "Tâche ajoutée ✓", "success");
@@ -624,6 +627,8 @@ async function deleteSubject(id) {
     return;
   try {
     await apiCall(`/api/subjects/${id}`, { method: "DELETE" });
+    Store.invalidateSubjects();
+    Store.invalidateSchedule();
     await renderAll();
     toast("Tâche supprimée", "info");
   } catch (e) {
@@ -659,9 +664,8 @@ async function openSubtaskModal(subjectId, subjectName, subjectColor, day) {
 async function renderSubtaskList(subjectId, color, day) {
   const listEl = document.getElementById("subtask-list");
   let subtasks = [];
-  const dayParam = day ? `?day=${encodeURIComponent(day)}` : "";
   try {
-    subtasks = await apiCall(`/api/subjects/${subjectId}/subtasks${dayParam}`);
+    subtasks = await Store.getSubtasks(subjectId, day);
   } catch (_) {
     subtasks = [];
   }
@@ -723,6 +727,7 @@ async function addSubtaskFromModal() {
       method: "POST",
       body: JSON.stringify(body),
     });
+    Store.invalidateSubtasks(subjectId, day);
     titleInput.value = "";
     msgEl.innerHTML = "";
     const color = document.getElementById("subtask-modal-subject-name").style
@@ -743,6 +748,7 @@ async function deleteSubtask(subtaskId) {
     await apiCall(`/api/subjects/${subjectId}/subtasks/${subtaskId}`, {
       method: "DELETE",
     });
+    Store.invalidateSubtasks(subjectId, day);
     const color = document.getElementById("subtask-modal-subject-name").style
       .color;
     await renderSubtaskList(subjectId, color, day);
@@ -785,6 +791,7 @@ async function saveSubtaskInline(subtaskId) {
       method: "PUT",
       body: JSON.stringify({ title: newTitle }),
     });
+    Store.invalidateSubtasks(subjectId, day);
     const color = document.getElementById("subtask-modal-subject-name").style
       .color;
     await renderSubtaskList(subjectId, color, day);
@@ -840,6 +847,7 @@ async function onSubtaskDrop(e, targetId) {
       method: "POST",
       body: JSON.stringify({ order: ids }),
     });
+    Store.invalidateSubtasks(subjectId, day);
     const color = document.getElementById("subtask-modal-subject-name").style
       .color;
     await renderSubtaskList(subjectId, color, day);
@@ -851,8 +859,8 @@ async function onSubtaskDrop(e, targetId) {
 
 async function renderSubjectsPanel() {
   const [subjects, sched] = await Promise.all([
-    apiCall("/api/subjects"),
-    apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`),
+    Store.getSubjects(),
+    Store.getSchedule(currentWeekOffset),
   ]);
 
   // Stats
@@ -905,7 +913,7 @@ async function renderSubjectsPanel() {
   await Promise.all(
     subjects.map(async (s) => {
       try {
-        const sts = await apiCall(`/api/subjects/${s.id}/subtasks`);
+        const sts = await Store.getSubtasks(s.id);
         subtasksMap[s.id] = sts;
       } catch (_) {
         subtasksMap[s.id] = [];
@@ -950,7 +958,7 @@ async function renderSubjectsPanel() {
 ══════════════════════════════════════════════ */
 
 async function renderPalette() {
-  const subjects = await apiCall("/api/subjects");
+  const subjects = await Store.getSubjects();
   const el = document.getElementById("palette-chips");
   const cellChips = document.getElementById("cell-modal-chips");
   if (!subjects.length) {
@@ -1053,9 +1061,9 @@ function renderScheduleLegend(subjects) {
 
 async function renderScheduleGrid() {
   const [timeslots, subjects, sched] = await Promise.all([
-    apiCall("/api/timeslots"),
-    apiCall("/api/subjects"),
-    apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`),
+    Store.getTimeslots(),
+    Store.getSubjects(),
+    Store.getSchedule(currentWeekOffset),
   ]);
 
   // Pre-fetch free tasks for all active days in this week
@@ -1064,8 +1072,10 @@ async function renderScheduleGrid() {
   await Promise.all(
     _weekDaysList.map(async (dayObj) => {
       try {
-        const params = new URLSearchParams({ weekOffset: currentWeekOffset, day: dayObj.abbr });
-        freeTasksByDay[dayObj.abbr] = await apiCall(`/api/free-tasks?${params}`);
+        freeTasksByDay[dayObj.abbr] = await Store.getFreeTasks(
+          currentWeekOffset,
+          dayObj.abbr,
+        );
       } catch (_) {
         freeTasksByDay[dayObj.abbr] = [];
       }
@@ -1090,9 +1100,7 @@ async function renderScheduleGrid() {
     usedPairs.map(async (pair) => {
       const [sid, dayAbbr] = pair.split("::");
       try {
-        subtasksCache[pair] = await apiCall(
-          `/api/subjects/${sid}/subtasks?day=${encodeURIComponent(dayAbbr)}`,
-        );
+        subtasksCache[pair] = await Store.getSubtasks(sid, dayAbbr);
       } catch (_) {
         subtasksCache[pair] = [];
       }
@@ -1301,9 +1309,7 @@ function resetDayDone(dayAbbr) {
 }
 
 async function handleCellClick(day, tsId) {
-  const ts = await apiCall("/api/timeslots").then((ts) =>
-    ts.find((t) => t.id === tsId),
-  );
+  const ts = await Store.getTimeslot(tsId);
   document.getElementById("cell-modal-day").value = day;
   document.getElementById("cell-modal-slot").value = tsId;
   document.getElementById("cell-modal-title").textContent =
@@ -1337,6 +1343,7 @@ async function assignSubject(day, tsId, subjId) {
         subjectId: subjId,
       }),
     });
+    Store.invalidateSchedule(currentWeekOffset);
     await renderScheduleGrid();
   } catch (e) {
     toast(e.message, "error");
@@ -1353,6 +1360,7 @@ async function removeEvent(day, tsId) {
         timeslotId: tsId,
       }),
     });
+    Store.invalidateSchedule(currentWeekOffset);
     await renderScheduleGrid();
   } catch (e) {
     toast(e.message, "error");
@@ -1402,15 +1410,11 @@ async function changeWeek(delta) {
   currentWeekOffset += delta;
 
   // Check if new week is empty — if so, copy from previous week
-  const newSched = await apiCall(
-    `/api/schedule?weekOffset=${currentWeekOffset}`,
-  );
+  const newSched = await Store.getSchedule(currentWeekOffset);
   const isEmpty = !newSched || Object.keys(newSched).length === 0;
 
   if (isEmpty) {
-    const prevSched = await apiCall(
-      `/api/schedule?weekOffset=${previousOffset}`,
-    );
+    const prevSched = await Store.getSchedule(previousOffset);
     if (prevSched && Object.keys(prevSched).length > 0) {
       // Copy all assignments from previous week to new week
       const assigns = [];
@@ -1434,6 +1438,7 @@ async function changeWeek(delta) {
         }
       }
       await Promise.all(assigns);
+      Store.invalidateSchedule(currentWeekOffset);
       toast("Planning copié depuis la semaine précédente ✓", "success");
     }
   }
@@ -1448,7 +1453,7 @@ function goToday() {
 
 async function clearAllSchedule() {
   if (!confirm("Vider tout l'emploi du temps de cette semaine ?")) return;
-  const sched = await apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`);
+  const sched = await Store.getSchedule(currentWeekOffset);
   // Run all removals in parallel for speed
   const removals = Object.keys(sched).map((key) => {
     const parts = key.split("_");
@@ -1465,6 +1470,7 @@ async function clearAllSchedule() {
     return Promise.resolve();
   });
   await Promise.all(removals);
+  Store.invalidateSchedule(currentWeekOffset);
   await renderScheduleGrid();
   toast("Emploi du temps vidé", "info");
 }
@@ -1554,6 +1560,8 @@ async function saveTimeslot() {
       method: "POST",
       body: JSON.stringify({ start, end, days }),
     });
+    Store.invalidateTimeslots();
+    Store.invalidateSchedule();
     closeModal("timeslot-modal");
     await Promise.all([renderTimeslots(), renderScheduleGrid()]);
     toast("Créneau ajouté ✓", "success");
@@ -1567,6 +1575,8 @@ async function saveTimeslot() {
 async function deleteTimeslot(id) {
   try {
     await apiCall(`/api/timeslots/${id}`, { method: "DELETE" });
+    Store.invalidateTimeslots();
+    Store.invalidateSchedule();
     await Promise.all([renderTimeslots(), renderScheduleGrid()]);
     toast("Créneau supprimé", "info");
   } catch (e) {
@@ -1575,7 +1585,7 @@ async function deleteTimeslot(id) {
 }
 
 async function renderTimeslots() {
-  const ts = await apiCall("/api/timeslots");
+  const ts = await Store.getTimeslots();
   const el = document.getElementById("timeslots-list");
   const summaryEl = document.getElementById("timeslots-summary");
 
@@ -1645,7 +1655,7 @@ function durationStr(start, end) {
 
 async function renderDaysCheckboxes() {
   const allDays = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-  const active = await apiCall("/api/days");
+  const active = await Store.getDays();
   window.currentActiveDays = active;
   const el = document.getElementById("days-checkboxes");
   el.innerHTML = allDays
@@ -1661,7 +1671,7 @@ async function renderDaysCheckboxes() {
 }
 
 async function toggleDay(day, cb) {
-  let active = await apiCall("/api/days");
+  let active = (await Store.getDays()).slice();
   if (cb.checked) {
     if (!active.includes(day)) active.push(day);
   } else {
@@ -1670,6 +1680,7 @@ async function toggleDay(day, cb) {
   const order = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
   active.sort((a, b) => order.indexOf(a) - order.indexOf(b));
   await apiCall("/api/days", { method: "PUT", body: JSON.stringify(active) });
+  Store.invalidateDays();
   await Promise.all([renderDaysCheckboxes(), renderScheduleGrid()]);
 }
 
@@ -1703,9 +1714,9 @@ function updateAutogenTotal() {
 
 async function renderAutogenGrid() {
   const [subjects, config, timeslots] = await Promise.all([
-    apiCall("/api/subjects"),
-    apiCall("/api/autogen"),
-    apiCall("/api/timeslots"),
+    Store.getSubjects(),
+    Store.getAutogen(),
+    Store.getTimeslots(),
   ]);
 
   window._timeslotsHoursPerDay = timeslots.reduce((acc, t) => {
@@ -1760,6 +1771,7 @@ async function autoGenerate() {
       method: "PUT",
       body: JSON.stringify(newConfig),
     });
+    Store.invalidateAutogen();
 
     const result = await apiCall(
       "/api/autogen/generate?weekOffset=" + currentWeekOffset,
@@ -1768,6 +1780,7 @@ async function autoGenerate() {
       },
     );
 
+    Store.invalidateSchedule(currentWeekOffset);
     document.getElementById("autogen-result").textContent =
       `✓ Planning généré : ${result.assigned} créneaux assignés.`;
     toast("Planning généré ✓", "success");
@@ -1800,11 +1813,11 @@ async function exportSchedule() {
     exportFrame.style.display = "none";
   }
   const [subjects, sched, timeslots, days, user] = await Promise.all([
-    apiCall("/api/subjects"),
-    apiCall(`/api/schedule?weekOffset=${currentWeekOffset}`),
-    apiCall("/api/timeslots"),
-    apiCall("/api/days"),
-    apiCall("/api/auth/me"),
+    Store.getSubjects(),
+    Store.getSchedule(currentWeekOffset),
+    Store.getTimeslots(),
+    Store.getDays(),
+    Store.getUser(),
   ]);
 
   const sortedSlots = timeslots
@@ -1998,7 +2011,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    const user = await apiCall("/api/auth/me");
+    const user = await Store.getUser();
     hideLoader();
     if (user) {
       await startApp();
@@ -2210,6 +2223,7 @@ async function doDeleteAccount() {
       method: "DELETE",
       body: JSON.stringify({ password: pwd }),
     });
+    Store.reset();
     closeModal("delete-account-modal");
     document.getElementById("app-page").style.display = "none";
     document.getElementById("auth-page").style.display = "flex";
@@ -3502,7 +3516,7 @@ async function renderProductivityCard() {
 
   let data;
   try {
-    data = await apiCall(`/api/productivity/${currentWeekOffset}`);
+    data = await Store.getProductivity(currentWeekOffset);
   } catch (e) {
     // Silently hide card on error (e.g. not logged in, server down)
     card.style.display = "none";
@@ -3722,9 +3736,7 @@ async function renderFreeTaskModalList() {
 
   let tasks = [];
   try {
-    const params = new URLSearchParams({ weekOffset: _freeTaskWeekOffset });
-    if (_freeTaskDay) params.set('day', _freeTaskDay);
-    tasks = await apiCall(`/api/free-tasks?${params}`);
+    tasks = await Store.getFreeTasks(_freeTaskWeekOffset, _freeTaskDay);
   } catch (_) {
     tasks = [];
   }
@@ -3779,6 +3791,7 @@ async function addFreeTaskFromModal() {
         week_offset: _freeTaskWeekOffset,
       }),
     });
+    Store.invalidateFreeTasks(_freeTaskWeekOffset, _freeTaskDay);
     if (titleInput) titleInput.value = '';
     if (msgEl) msgEl.innerHTML = '';
     await renderFreeTaskModalList();
@@ -3798,6 +3811,8 @@ async function toggleFreeTaskDone(taskId) {
       method: 'PUT',
       body: JSON.stringify({ done: !isDone }),
     });
+    Store.invalidateFreeTasks(_freeTaskWeekOffset, _freeTaskDay);
+    Store.invalidateFreeTasks(currentWeekOffset, _freeTaskDay);
     await renderFreeTaskModalList();
     await _refreshFreeTasksInGrid(_freeTaskDay);
   } catch (_) {}
@@ -3807,6 +3822,8 @@ async function toggleFreeTaskDone(taskId) {
 async function deleteFreeTask(taskId) {
   try {
     await apiCall(`/api/free-tasks/${taskId}`, { method: 'DELETE' });
+    Store.invalidateFreeTasks(_freeTaskWeekOffset, _freeTaskDay);
+    Store.invalidateFreeTasks(currentWeekOffset, _freeTaskDay);
     await renderFreeTaskModalList();
     await _refreshFreeTasksInGrid(_freeTaskDay);
   } catch (_) {}
@@ -3822,8 +3839,7 @@ async function _refreshFreeTasksInGrid(dayAbbr) {
   const section = document.getElementById(sectionId);
   if (!section) return;
   try {
-    const params = new URLSearchParams({ weekOffset: currentWeekOffset, day: dayAbbr });
-    const tasks = await apiCall(`/api/free-tasks?${params}`);
+    const tasks = await Store.getFreeTasks(currentWeekOffset, dayAbbr);
     section.innerHTML = _buildFreeTasksSectionHTML(dayAbbr, tasks);
     // Refresh chip count in header
     const chip = document.getElementById(`free-chip-${dayAbbr}`);
@@ -3883,6 +3899,7 @@ async function toggleFreeTaskDoneInCard(taskId, dayAbbr) {
       method: 'PUT',
       body: JSON.stringify({ done: !isDone }),
     });
+    Store.invalidateFreeTasks(currentWeekOffset, dayAbbr);
     await _refreshFreeTasksInGrid(dayAbbr);
   } catch (_) {}
 }
@@ -3891,6 +3908,7 @@ async function toggleFreeTaskDoneInCard(taskId, dayAbbr) {
 async function deleteFreeTaskInCard(taskId, dayAbbr) {
   try {
     await apiCall(`/api/free-tasks/${taskId}`, { method: 'DELETE' });
+    Store.invalidateFreeTasks(currentWeekOffset, dayAbbr);
     await _refreshFreeTasksInGrid(dayAbbr);
   } catch (_) {}
 }
