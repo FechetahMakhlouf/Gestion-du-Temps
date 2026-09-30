@@ -911,18 +911,14 @@ async function renderSubjectsPanel() {
   );
   const maxCount = Math.max(1, ...Object.values(countMap));
 
-  // Fetch all subtasks for all subjects in one pass
+  // Fetch all subtasks for all subjects in ONE request (no day filter →
+  // "all" bucket) and build a subjectId → list map for the card renderer.
+  const _bulkSubtasks = await Store.getAllSubtasks(subjects);
   const subtasksMap = {};
-  await Promise.all(
-    subjects.map(async (s) => {
-      try {
-        const sts = await Store.getSubtasks(s.id);
-        subtasksMap[s.id] = sts;
-      } catch (_) {
-        subtasksMap[s.id] = [];
-      }
-    }),
-  );
+  subjects.forEach((s) => {
+    const k = `${s.id}::all`;
+    subtasksMap[s.id] = _bulkSubtasks[k] || [];
+  });
 
   grid.innerHTML = subjects
     .map((s) => {
@@ -1069,45 +1065,43 @@ async function renderScheduleGrid() {
     Store.getSchedule(currentWeekOffset),
   ]);
 
-  // Pre-fetch free tasks for all active days in this week
+  // Pre-fetch free tasks for ALL active days in ONE request, then slice
+  // into per-day buckets.  Store.getAllFreeTasks also seeds the cache so
+  // subsequent individual Store.getFreeTasks(wk, day) calls are instant.
   const _weekDaysList = getWeekDays();
+  const _bulkFT = await Store.getAllFreeTasks(currentWeekOffset);
   const freeTasksByDay = {};
-  await Promise.all(
-    _weekDaysList.map(async (dayObj) => {
-      try {
-        freeTasksByDay[dayObj.abbr] = await Store.getFreeTasks(
-          currentWeekOffset,
-          dayObj.abbr,
-        );
-      } catch (_) {
-        freeTasksByDay[dayObj.abbr] = [];
-      }
-    })
-  );
+  _weekDaysList.forEach((dayObj) => {
+    const k = `${currentWeekOffset}::${dayObj.abbr}`;
+    freeTasksByDay[dayObj.abbr] = _bulkFT[k] || [];
+  });
 
-  // Pre-fetch subtasks for every (subject, day) pair that appears in the schedule
-  // Key format: "subjectId::dayAbbr"
-  const usedPairs = [
-    ...new Set(
-      Object.entries(sched).map(([key, sid]) => {
-        // key is "weekOffset_dayAbbr_tsId"
-        const parts = key.split("_");
-        // weekOffset may have sign, day is second segment
-        const dayAbbr = parts[1];
-        return `${sid}::${dayAbbr}`;
-      }),
-    ),
-  ];
+  // Pre-fetch subtasks for every (subject, day) pair that appears in the
+  // schedule in the MINIMUM number of requests.
+  //
+  // Strategy: group by day → one /api/subtasks?subjectIds=…&day=X request
+  // per distinct day (typically 5-7 days).  This replaces the former N+1
+  // pattern that fired one request per (subject, day) pair.
+  //
+  // Key format used in subtasksCache: "subjectId::dayAbbr"
+  const _dayToSubjectIds = {};
+  Object.entries(sched).forEach(([key, sid]) => {
+    // schedule key format: "<weekOffset>_<dayAbbr>_<tsId>"
+    const dayAbbr = key.split("_")[1];
+    if (!dayAbbr) return;
+    (_dayToSubjectIds[dayAbbr] = _dayToSubjectIds[dayAbbr] || new Set()).add(
+      Number(sid)
+    );
+  });
+
+  // One request per distinct day (not one per subject-day pair)
   const subtasksCache = {};
   await Promise.all(
-    usedPairs.map(async (pair) => {
-      const [sid, dayAbbr] = pair.split("::");
-      try {
-        subtasksCache[pair] = await Store.getSubtasks(sid, dayAbbr);
-      } catch (_) {
-        subtasksCache[pair] = [];
-      }
-    }),
+    Object.entries(_dayToSubjectIds).map(async ([dayAbbr, sidSet]) => {
+      const daySubjects = [...sidSet].map((id) => ({ id }));
+      const bulk = await Store.getAllSubtasks(daySubjects, dayAbbr);
+      Object.assign(subtasksCache, bulk);
+    })
   );
   const weekDays = getWeekDays();
 

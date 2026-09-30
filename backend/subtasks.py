@@ -126,3 +126,72 @@ def reorder_subtasks(subject_id):
         ).update({'position': idx})
     db.session.commit()
     return json_response(message='Ordre mis à jour')
+
+
+# ── Bulk endpoint ─────────────────────────────────────────────────────────────
+# GET /api/subtasks?subjectIds=1,2,3[&day=Lun]
+#
+# Fetches subtasks for N subjects in a SINGLE DB query and returns them
+# pre-bucketed with Store-compatible cache keys:
+#   { "<subjectId>::<day|all>": [...], ... }
+#
+# The frontend state.js uses this to seed the cache in one round-trip for
+# week offsets that were not covered by /api/bootstrap (which only seeds
+# week 0).  This replaces all N+1 patterns of the form:
+#   subjects.map(async s => await Store.getSubtasks(s.id, day))
+# ─────────────────────────────────────────────────────────────────────────────
+
+subtasks_bulk_bp = Blueprint('subtasks_bulk', __name__, url_prefix='/api')
+
+
+@subtasks_bulk_bp.route('/subtasks', methods=['GET'])
+@login_required
+def get_subtasks_bulk():
+    """
+    Bulk subtask fetch for multiple subjects.
+
+    Query params:
+      subjectIds — comma-separated subject IDs  (required)
+      day        — optional day abbreviation filter (e.g. "Lun")
+
+    Response: { "<subjectId>::<day|all>": [subtask, ...], ... }
+    """
+    raw = request.args.get('subjectIds', '')
+    day = request.args.get('day', None) or None
+
+    try:
+        subject_ids = [int(x) for x in raw.split(',') if x.strip()]
+    except ValueError:
+        return json_response(
+            message="subjectIds doit être une liste d'entiers séparés par des virgules",
+            status=400)
+
+    if not subject_ids:
+        return json_response({})
+
+    # Single DB round-trip for all requested subjects
+    q = Subtask.query.filter(
+        Subtask.user_id == current_user.id,
+        Subtask.subject_id.in_(subject_ids)
+    )
+    if day:
+        q = q.filter(Subtask.day == day)
+    rows = q.order_by(Subtask.subject_id, Subtask.position).all()
+
+    bucket_suffix = day if day else 'all'
+    result = {}
+    for st in rows:
+        key = f"{st.subject_id}::{bucket_suffix}"
+        result.setdefault(key, []).append({
+            'id': st.id,
+            'subject_id': st.subject_id,
+            'title': st.title,
+            'position': st.position,
+            'day': st.day,
+        })
+
+    # Guarantee an entry for every requested subject (even when empty)
+    for sid in subject_ids:
+        result.setdefault(f"{sid}::{bucket_suffix}", [])
+
+    return json_response(result)

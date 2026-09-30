@@ -126,7 +126,8 @@
         });
       }
 
-      // free tasks keyed as "<weekOffset>::all"
+      // free tasks — bootstrap now returns both "<weekOffset>::all" and
+      // "<weekOffset>::<day>" keys, so we store them all in one pass.
       if (data.freeTasks && typeof data.freeTasks === "object") {
         Object.entries(data.freeTasks).forEach(([key, list]) => {
           appState.freeTasks[key] = list;
@@ -230,6 +231,139 @@
         }
         loaded.subtasks[key] = true;
         return appState.subtasks[key];
+      });
+    },
+
+    /**
+     * Bulk-load subtasks for an array of subjects in ONE request.
+     * Seeds the cache so subsequent Store.getSubtasks(id, day) calls are
+     * instant — eliminating the classic N+1 pattern:
+     *
+     *   // Before (N requests):
+     *   await Promise.all(subjects.map(s => Store.getSubtasks(s.id, day)));
+     *
+     *   // After (1 request):
+     *   await Store.getAllSubtasks(subjects, day);
+     *
+     * @param {Array}  subjects  — array of subject objects (must have .id)
+     * @param {string} [day]     — optional day abbreviation filter
+     * @param {boolean}[force]   — bypass cache
+     * @returns {Object}  { "<subjectId>::<day|all>": [...], ... }
+     */
+    async getAllSubtasks(subjects, day, force) {
+      if (!subjects || !subjects.length) return {};
+
+      const bucketSuffix = day || "all";
+
+      // Filter to subjects whose cache entry is missing or stale
+      const missing = force
+        ? subjects
+        : subjects.filter((s) => !loaded.subtasks[stKey(s.id, day)]);
+
+      if (!missing.length) {
+        // Everything is already cached — assemble from cache
+        const result = {};
+        subjects.forEach((s) => {
+          const k = stKey(s.id, day);
+          result[k] = appState.subtasks[k] || [];
+        });
+        return result;
+      }
+
+      const ids = missing.map((s) => s.id).join(",");
+      const cacheKey = `subtasksBulk:${ids}:${bucketSuffix}`;
+
+      return once(cacheKey, async () => {
+        let bulk = {};
+        try {
+          const params = new URLSearchParams({ subjectIds: ids });
+          if (day) params.set("day", day);
+          bulk = (await api(`/api/subtasks?${params}`)) || {};
+        } catch (_) {
+          // fall back to empty lists for each missing subject
+          missing.forEach((s) => {
+            bulk[stKey(s.id, day)] = [];
+          });
+        }
+
+        // Seed the cache for every returned bucket
+        Object.entries(bulk).forEach(([key, list]) => {
+          appState.subtasks[key] = list;
+          loaded.subtasks[key] = true;
+        });
+
+        // Return a map covering ALL requested subjects (cached + newly fetched)
+        const result = {};
+        subjects.forEach((s) => {
+          const k = stKey(s.id, day);
+          result[k] = appState.subtasks[k] || [];
+        });
+        return result;
+      });
+    },
+
+    /**
+     * Bulk-load free tasks for all days of a given week in ONE request.
+     * Seeds "<weekOffset>::<day>" cache entries so each day column's
+     * subsequent Store.getFreeTasks(wk, day) call is a cache hit.
+     *
+     *   // Before (N requests — one per day):
+     *   await Promise.all(days.map(d => Store.getFreeTasks(wk, d.abbr)));
+     *
+     *   // After (1 request):
+     *   await Store.getAllFreeTasks(weekOffset);   // seeds every day bucket
+     *
+     * @param {number}  weekOffset
+     * @param {boolean} [force]
+     * @returns {Object}  { "<weekOffset>::<day>": [...], ... }
+     */
+    async getAllFreeTasks(weekOffset, force) {
+      const wk = Number(weekOffset) || 0;
+      const allKey = ftKey(wk, null); // "<wk>::all"
+
+      // If the "all" bucket is already loaded, derive day buckets from it
+      // without hitting the network.
+      if (loaded.freeTasks[allKey] && !force) {
+        const allTasks = appState.freeTasks[allKey] || [];
+        const byDay = {};
+        allTasks.forEach((ft) => {
+          if (ft.day) {
+            const k = ftKey(wk, ft.day);
+            (byDay[k] = byDay[k] || []).push(ft);
+          }
+        });
+        // Seed cache for any day bucket that isn't already loaded
+        Object.entries(byDay).forEach(([k, list]) => {
+          if (!loaded.freeTasks[k]) {
+            appState.freeTasks[k] = list;
+            loaded.freeTasks[k] = true;
+          }
+        });
+        return byDay;
+      }
+
+      return once(`freeTasksBulk:${wk}`, async () => {
+        let allTasks = [];
+        try {
+          const params = new URLSearchParams({ weekOffset: wk });
+          allTasks = (await api(`/api/free-tasks?${params}`)) || [];
+        } catch (_) {}
+
+        // Populate the "all" bucket
+        appState.freeTasks[allKey] = allTasks;
+        loaded.freeTasks[allKey] = true;
+
+        // Populate per-day buckets
+        const byDay = {};
+        allTasks.forEach((ft) => {
+          if (ft.day) {
+            const k = ftKey(wk, ft.day);
+            (byDay[k] = byDay[k] || []).push(ft);
+            appState.freeTasks[k] = byDay[k];
+            loaded.freeTasks[k] = true;
+          }
+        });
+        return byDay;
       });
     },
 

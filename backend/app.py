@@ -14,7 +14,7 @@ from schedule import schedule_bp
 from autogen import autogen_bp
 from contact import contact_bp
 from productivity_routes import productivity_bp
-from subtasks import subtasks_bp
+from subtasks import subtasks_bp, subtasks_bulk_bp
 from free_tasks import free_tasks_bp
 from bootstrap import bootstrap_bp
 import os
@@ -63,6 +63,7 @@ def create_app():
     app.register_blueprint(contact_bp)
     app.register_blueprint(productivity_bp)
     app.register_blueprint(subtasks_bp)
+    app.register_blueprint(subtasks_bulk_bp)
     app.register_blueprint(free_tasks_bp)
     app.register_blueprint(bootstrap_bp)
 
