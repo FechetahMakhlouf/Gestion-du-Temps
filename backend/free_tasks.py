@@ -60,14 +60,42 @@ def _serialize(ft):
 @free_tasks_bp.route('', methods=['GET'])
 @login_required
 def get_free_tasks():
-    """Return free tasks, optionally filtered by day and/or week_offset."""
+    """Return free tasks for a week.
+
+    Query params
+    ------------
+    weekOffset : int   — week to read (default 0)
+    day        : str   — single day filter → returns a flat list
+    days       : str   — comma-separated days (e.g. ``days=Lun,Mar,Mer``)
+                         → returns ONE response bucketed per day:
+                         ``{"Lun": [...], "Mar": [...], ...}``
+
+    The ``days`` form replaces the old N-requests-per-week pattern
+    (/api/free-tasks?day=Lun, ?day=Mar, …) with a single round-trip.
+    """
     day = request.args.get('day', None)
+    days_param = request.args.get('days', None)
     try:
         week_offset = int(request.args.get('weekOffset', 0))
     except ValueError:
         week_offset = 0
 
-    query = FreeTask.query.filter_by(user_id=current_user.id, week_offset=week_offset)
+    query = FreeTask.query.filter_by(
+        user_id=current_user.id, week_offset=week_offset)
+
+    # ── multi-day form: one request, bucketed response ────────────────
+    if days_param:
+        days = [d.strip() for d in days_param.split(',') if d.strip()]
+        if days:
+            query = query.filter(FreeTask.day.in_(days))
+        rows = query.order_by(FreeTask.position).all()
+
+        buckets = {d: [] for d in days}
+        for ft in rows:
+            buckets.setdefault(ft.day, []).append(_serialize(ft))
+        return json_response(buckets)
+
+    # ── single-day / whole-week form ──────────────────────────────────
     if day:
         query = query.filter(FreeTask.day == day)
 

@@ -1324,16 +1324,34 @@ async function renderSchedule() {
   // appState.subjects is always populated after bootstrap — read it directly.
   // Timeslots and schedule still need cache-or-fetch via Store.
   const subjects = appState.subjects;
-  const [timeslots, sched] = await Promise.all([
-    Store.getTimeslots(),
-    Store.getSchedule(currentWeekOffset),
-  ]);
+  let timeslots, sched;
+  try {
+    [timeslots, sched] = await Promise.all([
+      Store.getTimeslots(),
+      Store.getSchedule(currentWeekOffset),
+    ]);
+  } catch (err) {
+    // Obsolete week request — a newer render is already on its way.
+    if (Store.isAbortError(err)) return;
+    throw err;
+  }
 
   const weekDays = getWeekDays();
 
-  // Pre-fetch free tasks for ALL active days in ONE request, then slice
-  // into per-day buckets.
-  const _bulkFT = await Store.getAllFreeTasks(currentWeekOffset);
+  // Pre-fetch free tasks for ALL displayed days in ONE request
+  // (/api/free-tasks?weekOffset=…&days=Lun,Mar,…), then slice into
+  // per-day buckets. Never one request per day.
+  let _bulkFT = {};
+  try {
+    _bulkFT = await Store.getFreeTasksForDays(
+      currentWeekOffset,
+      weekDays.map((d) => d.abbr),
+    );
+  } catch (err) {
+    // The week changed mid-flight: this render is obsolete, a newer one runs.
+    if (Store.isAbortError(err)) return;
+    throw err;
+  }
   const freeTasksByDay = {};
   weekDays.forEach((dayObj) => {
     freeTasksByDay[dayObj.abbr] =
@@ -1610,50 +1628,65 @@ async function changeWeek(delta) {
   const previousOffset = currentWeekOffset;
   currentWeekOffset += delta;
 
-  // Check if new week is empty — if so, copy from previous week
-  const newSched = await Store.getSchedule(currentWeekOffset);
-  const isEmpty = !newSched || Object.keys(newSched).length === 0;
+  // Rapid clicking on ‹ / › cancels the requests of the week we just left,
+  // so an outdated response can never overwrite the grid.
+  Store.newWeekGeneration();
+  const requestedOffset = currentWeekOffset;
 
-  if (isEmpty) {
-    const prevSched = await Store.getSchedule(previousOffset);
-    if (prevSched && Object.keys(prevSched).length > 0) {
-      // Copy all assignments from previous week to new week
-      const assigns = [];
-      // Build the copied schedule map to write directly into cache
-      const copiedSched = {};
-      for (const key of Object.keys(prevSched)) {
-        const parts = key.split("_");
-        if (parts.length >= 3) {
-          const day = parts[1];
-          const tsId = parts.slice(2).join("_");
-          const subjId = prevSched[key];
-          const newKey = `${currentWeekOffset}_${day}_${tsId}`;
-          copiedSched[newKey] = subjId;
-          assigns.push(
-            apiCall("/api/schedule/assign", {
-              method: "POST",
-              body: JSON.stringify({
-                weekOffset: currentWeekOffset,
-                day,
-                timeslotId: tsId,
-                subjectId: subjId,
-              }),
-            }).catch(() => {}),
-          );
+  try {
+    // Check if new week is empty — if so, copy from previous week
+    const newSched = await Store.getSchedule(currentWeekOffset);
+    const isEmpty = !newSched || Object.keys(newSched).length === 0;
+
+    if (isEmpty) {
+      const prevSched = await Store.getSchedule(previousOffset);
+      if (prevSched && Object.keys(prevSched).length > 0) {
+        // Copy all assignments from previous week to new week
+        const assigns = [];
+        // Build the copied schedule map to write directly into cache
+        const copiedSched = {};
+        for (const key of Object.keys(prevSched)) {
+          const parts = key.split("_");
+          if (parts.length >= 3) {
+            const day = parts[1];
+            const tsId = parts.slice(2).join("_");
+            const subjId = prevSched[key];
+            const newKey = `${currentWeekOffset}_${day}_${tsId}`;
+            copiedSched[newKey] = subjId;
+            assigns.push(
+              apiCall("/api/schedule/assign", {
+                method: "POST",
+                body: JSON.stringify({
+                  weekOffset: currentWeekOffset,
+                  day,
+                  timeslotId: tsId,
+                  subjectId: subjId,
+                }),
+              }).catch(() => {}),
+            );
+          }
         }
+        await Promise.all(assigns);
+        // Seed the new week in the cache directly — no refetch needed.
+        Store.setScheduleWeek(currentWeekOffset, copiedSched);
+        toast("Planning copié depuis la semaine précédente ✓", "success");
       }
-      await Promise.all(assigns);
-      // Seed the new week in the cache directly — no refetch needed.
-      Store.setScheduleWeek(currentWeekOffset, copiedSched);
-      toast("Planning copié depuis la semaine précédente ✓", "success");
     }
+  } catch (err) {
+    // Aborted because the user moved on to another week — nothing to do.
+    if (Store.isAbortError(err)) return;
+    throw err;
   }
+
+  // The user navigated again while we were loading — let the newest call win.
+  if (requestedOffset !== currentWeekOffset) return;
 
   renderScheduleGrid();
 }
 
 function goToday() {
   currentWeekOffset = 0;
+  Store.newWeekGeneration();
   renderScheduleGrid();
 }
 

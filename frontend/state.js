@@ -80,6 +80,27 @@
 
   const api = (endpoint, options) => window.apiCall(endpoint, options);
 
+  const isAbort = (err) =>
+    typeof window.isAbortError === "function"
+      ? window.isAbortError(err)
+      : !!err && err.name === "AbortError";
+
+  /* ── obsolete-request cancellation ────────────────────────────────
+     Week-scoped reads (schedule, free tasks, productivity) attach the
+     signal of the "week" abort group. Calling Store.newWeekGeneration()
+     — done by the week navigation handlers — cancels every still
+     pending request of the previous week so an outdated response can
+     never land in the cache or the DOM. ─────────────────────────── */
+  const weekSignal = () =>
+    typeof window.apiAbortSignal === "function"
+      ? window.apiAbortSignal("week")
+      : undefined;
+
+  const weekOpts = () => {
+    const signal = weekSignal();
+    return signal ? { signal } : {};
+  };
+
   /* ══════════════════════════════════════════════════════════════════
      BOOTSTRAP  —  seeds all slices in one request
   ══════════════════════════════════════════════════════════════════ */
@@ -163,6 +184,28 @@
 
     /** Seed all slices in one round-trip.  Call once on startup. */
     bootstrap: bootstrapOnce,
+
+    /**
+     * Start a new week/day/filter "generation": every still-pending
+     * week-scoped request (schedule, free tasks, productivity) from the
+     * previous generation is aborted so outdated responses are dropped.
+     * Call this at the top of any rapid navigation handler.
+     */
+    newWeekGeneration() {
+      if (typeof window.apiAbortGroup === "function") {
+        window.apiAbortGroup("week");
+      }
+    },
+
+    /** Cancel pending week-scoped requests without opening a generation. */
+    cancelWeekRequests() {
+      if (typeof window.apiAbortCancel === "function") {
+        window.apiAbortCancel("week");
+      }
+    },
+
+    /** True when an error comes from an aborted (obsolete) request. */
+    isAbortError: (err) => isAbort(err),
 
     /* ── user ── */
     async getUser(force) {
@@ -248,7 +291,8 @@
       const wk = Number(weekOffset) || 0;
       if (loaded.schedule[wk] && !force) return appState.schedule[wk];
       return once("schedule:" + wk, async () => {
-        appState.schedule[wk] = (await api(`/api/schedule?weekOffset=${wk}`)) || {};
+        appState.schedule[wk] =
+          (await api(`/api/schedule?weekOffset=${wk}`, weekOpts())) || {};
         loaded.schedule[wk] = true;
         return appState.schedule[wk];
       });
@@ -383,8 +427,10 @@
         let allTasks = [];
         try {
           const params = new URLSearchParams({ weekOffset: wk });
-          allTasks = (await api(`/api/free-tasks?${params}`)) || [];
-        } catch (_) {}
+          allTasks = (await api(`/api/free-tasks?${params}`, weekOpts())) || [];
+        } catch (err) {
+          if (isAbort(err)) throw err; // obsolete week — keep cache untouched
+        }
 
         // Populate the "all" bucket
         appState.freeTasks[allKey] = allTasks;
@@ -404,6 +450,59 @@
       });
     },
 
+    /**
+     * Load the free tasks of SEVERAL days in ONE request.
+     *
+     *   // Before (N requests — one per day):
+     *   /api/free-tasks?day=Lun  /api/free-tasks?day=Mar  …
+     *
+     *   // After (1 request):
+     *   /api/free-tasks?weekOffset=0&days=Lun,Mar,Mer,Jeu,Ven
+     *
+     * Only the days that are not already cached are requested; when every
+     * day is cached the function resolves from memory with no network hop.
+     *
+     * @param {number}   weekOffset
+     * @param {string[]} days    — day abbreviations
+     * @param {boolean} [force]  — bypass cache
+     * @returns {Object} { "<weekOffset>::<day>": [...], ... }
+     */
+    async getFreeTasksForDays(weekOffset, days, force) {
+      const wk = Number(weekOffset) || 0;
+      const list = (days || []).filter(Boolean);
+      if (!list.length) return {};
+
+      const collect = () => {
+        const out = {};
+        list.forEach((d) => {
+          out[ftKey(wk, d)] = appState.freeTasks[ftKey(wk, d)] || [];
+        });
+        return out;
+      };
+
+      const missing = force
+        ? list
+        : list.filter((d) => !loaded.freeTasks[ftKey(wk, d)]);
+      if (!missing.length) return collect();
+
+      return once(`freeTasksDays:${wk}:${missing.join(",")}`, async () => {
+        const params = new URLSearchParams({ weekOffset: wk, days: missing.join(",") });
+        let buckets = {};
+        try {
+          buckets = (await api(`/api/free-tasks?${params}`, weekOpts())) || {};
+        } catch (err) {
+          if (isAbort(err)) throw err; // obsolete week — keep cache untouched
+          buckets = {};
+        }
+        missing.forEach((d) => {
+          const k = ftKey(wk, d);
+          appState.freeTasks[k] = buckets[d] || [];
+          loaded.freeTasks[k] = true;
+        });
+        return collect();
+      });
+    },
+
     /* ── free tasks (per week offset, optionally per day) ── */
     async getFreeTasks(weekOffset, day, force) {
       const wk = Number(weekOffset) || 0;
@@ -413,8 +512,10 @@
         const params = new URLSearchParams({ weekOffset: wk });
         if (day) params.set("day", day);
         try {
-          appState.freeTasks[key] = (await api(`/api/free-tasks?${params}`)) || [];
-        } catch (_) {
+          appState.freeTasks[key] =
+            (await api(`/api/free-tasks?${params}`, weekOpts())) || [];
+        } catch (err) {
+          if (isAbort(err)) throw err; // obsolete request — do not cache
           appState.freeTasks[key] = [];
         }
         loaded.freeTasks[key] = true;
@@ -440,7 +541,7 @@
         return appState.productivity;
       }
       return once("productivity:" + wk, async () => {
-        const data = await api(`/api/productivity/${wk}`);
+        const data = await api(`/api/productivity/${wk}`, weekOpts());
         loaded.productivity[wk] = data;
         appState.productivity = data;
         return data;
@@ -630,6 +731,7 @@
 
     /** Full wipe — used on logout / account deletion. */
     reset() {
+      Store.cancelWeekRequests();
       Store.invalidateAll();
       appState.user = null;
       appState.subjects = [];
