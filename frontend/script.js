@@ -743,8 +743,8 @@ async function addSubtaskFromModal() {
     const color = document.getElementById("subtask-modal-subject-name").style
       .color;
     await renderSubtaskList(subjectId, color, day);
-    // Refresh the schedule grid so subtasks appear in blocks
-    await renderScheduleGrid();
+    // Granular: only the blocks showing this subject need repainting.
+    await updateScheduleCellsForSubject(subjectId, day);
     await renderSubjectsPanel();
   } catch (e) {
     showMsg(msgEl, e.message, "error");
@@ -762,7 +762,7 @@ async function deleteSubtask(subtaskId) {
     const color = document.getElementById("subtask-modal-subject-name").style
       .color;
     await renderSubtaskList(subjectId, color, day);
-    await renderScheduleGrid();
+    await updateScheduleCellsForSubject(subjectId, day);
     await renderSubjectsPanel();
     toast("Sous-titre supprimé", "info");
   } catch (e) {
@@ -805,7 +805,7 @@ async function saveSubtaskInline(subtaskId) {
     const color = document.getElementById("subtask-modal-subject-name").style
       .color;
     await renderSubtaskList(subjectId, color, day);
-    await renderScheduleGrid();
+    await updateScheduleCellsForSubject(subjectId, day);
     await renderSubjectsPanel();
   } catch (e) {
     toast(e.message, "error");
@@ -861,7 +861,7 @@ async function onSubtaskDrop(e, targetId) {
     const color = document.getElementById("subtask-modal-subject-name").style
       .color;
     await renderSubtaskList(subjectId, color, day);
-    await renderScheduleGrid();
+    await updateScheduleCellsForSubject(subjectId, day);
   } catch (e) {
     toast(e.message, "error");
   }
@@ -874,7 +874,7 @@ async function renderSubjectsPanel() {
   const sched = await Store.getSchedule(currentWeekOffset);
 
   // Stats
-  const statsEl = document.getElementById("subj-stats");
+  const statsEl = DOM.subjStats;
   const usedSet = new Set(Object.values(sched));
   const assignedCount = Object.keys(sched).length;
   const usageRate = subjects.length
@@ -903,7 +903,7 @@ async function renderSubjectsPanel() {
         </div>
     `;
 
-  const grid = document.getElementById("subjects-grid");
+  const grid = DOM.subjectsGrid;
   if (!subjects.length) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
             <div class="empty-icon">📚</div>
@@ -966,8 +966,8 @@ async function renderSubjectsPanel() {
 async function renderPalette() {
   // appState.subjects is always populated after bootstrap — read it directly.
   const subjects = appState.subjects;
-  const el = document.getElementById("palette-chips");
-  const cellChips = document.getElementById("cell-modal-chips");
+  const el = DOM.paletteChips;
+  const cellChips = DOM.cellModalChips;
   if (!subjects.length) {
     if (el)
       el.innerHTML = `<span style="font-size:0.78rem;color:var(--text-muted)">Aucune tâche — allez dans "Mes Tâches" pour en ajouter</span>`;
@@ -1059,175 +1059,87 @@ function getWeekDays() {
 }
 
 function renderScheduleLegend(subjects) {
-  const el = document.getElementById("schedule-legend");
+  const el = DOM.scheduleLegend;
   if (!subjects.length) {
     el.innerHTML = "";
     return;
   }
 }
 
-async function renderScheduleGrid() {
-  // appState.subjects is always populated after bootstrap — read it directly.
-  // Timeslots and schedule still need cache-or-fetch via Store.
-  const subjects = appState.subjects;
-  const [timeslots, sched] = await Promise.all([
-    Store.getTimeslots(),
-    Store.getSchedule(currentWeekOffset),
-  ]);
+/* ══════════════════════════════════════════════════════════════════════
+   SCHEDULE RENDERING  —  granular / incremental  (Phase 2)
+   ----------------------------------------------------------------------
+   The old code had ONE giant renderScheduleGrid() that refetched
+   everything and rewrote grid.innerHTML on every single change.
 
-  // Pre-fetch free tasks for ALL active days in ONE request, then slice
-  // into per-day buckets.  Store.getAllFreeTasks also seeds the cache so
-  // subsequent individual Store.getFreeTasks(wk, day) calls are instant.
-  const _weekDaysList = getWeekDays();
-  const _bulkFT = await Store.getAllFreeTasks(currentWeekOffset);
-  const freeTasksByDay = {};
-  _weekDaysList.forEach((dayObj) => {
-    const k = `${currentWeekOffset}::${dayObj.abbr}`;
-    freeTasksByDay[dayObj.abbr] = _bulkFT[k] || [];
-  });
+   It is now split into small units:
 
-  // Pre-fetch subtasks for every (subject, day) pair that appears in the
-  // schedule in the MINIMUM number of requests.
-  //
-  // Strategy: group by day → one /api/subtasks?subjectIds=…&day=X request
-  // per distinct day (typically 5-7 days).  This replaces the former N+1
-  // pattern that fired one request per (subject, day) pair.
-  //
-  // Key format used in subtasksCache: "subjectId::dayAbbr"
-  const _dayToSubjectIds = {};
-  Object.entries(sched).forEach(([key, sid]) => {
-    // schedule key format: "<weekOffset>_<dayAbbr>_<tsId>"
-    const dayAbbr = key.split("_")[1];
-    if (!dayAbbr) return;
-    (_dayToSubjectIds[dayAbbr] = _dayToSubjectIds[dayAbbr] || new Set()).add(
-      Number(sid)
-    );
-  });
+     renderSchedule()                  full rebuild (panel open, week
+                                       change, timeslot/day changes)
+     renderScheduleCell(...)           returns the HTML of ONE block
+     updateScheduleCell(day, tsId)     repaints ONE block in place
+     removeScheduleCell(day, tsId)     turns ONE block back to "empty"
+     updateDayHeaderChips(day)         refreshes just a day's counters
+     updateWeekFillBar()               refreshes just the progress bar
 
-  // One request per distinct day (not one per subject-day pair)
-  const subtasksCache = {};
-  await Promise.all(
-    Object.entries(_dayToSubjectIds).map(async ([dayAbbr, sidSet]) => {
-      const daySubjects = [...sidSet].map((id) => ({ id }));
-      const bulk = await Store.getAllSubtasks(daySubjects, dayAbbr);
-      Object.assign(subtasksCache, bulk);
-    })
+   Mutations (assign / remove / subtasks / done) touch only the affected
+   element — no refetch, no full innerHTML replacement.
+
+   renderScheduleGrid() is kept as a thin alias so existing callers and
+   the productivity hook keep working.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── small helpers ─────────────────────────────────────────────────── */
+
+const _cellKey = (day, tsId) => `${currentWeekOffset}_${day}_${tsId}`;
+const _cellId = (day, tsId) => `blk_${currentWeekOffset}_${day}_${tsId}`;
+const _doneKey = (day, tsId) => `done_${currentWeekOffset}_${day}_${tsId}`;
+
+function _isCellDone(day, tsId) {
+  return localStorage.getItem(_doneKey(day, tsId)) === "1";
+}
+
+/** Timeslots that are active on a given day. */
+function _timeslotsForDay(timeslots, dayAbbr) {
+  return timeslots.filter(
+    (ts) => !ts.days || ts.days.length === 0 || ts.days.includes(dayAbbr),
   );
-  const weekDays = getWeekDays();
+}
 
-  if (weekDays.length) {
-    const first = weekDays[0].dateStr;
-    const last = weekDays[weekDays.length - 1].dateStr;
-    document.getElementById("week-label").textContent = `${first} – ${last}`;
+/* ══════════════════════════════════════════════
+   CELL LEVEL
+══════════════════════════════════════════════ */
+
+/**
+ * Inner markup of one block (everything after .block-time).
+ * Pure function — no DOM access, no network.
+ */
+function _buildCellContentHTML(dayAbbr, ts, subj, blockSubtasks, isDone) {
+  if (!subj) {
+    return `<div class="block-content block-empty"
+                    ondragover="event.preventDefault();this.classList.add('drag-over')"
+                    ondragleave="this.classList.remove('drag-over')"
+                    ondrop="this.classList.remove('drag-over');onDrop(event,'${dayAbbr}','${ts.id}')"
+                    onclick="handleCellClick('${dayAbbr}','${ts.id}')"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Ajouter une tâche ${dayAbbr} ${ts.start}"
+                    onkeydown="if(event.key==='Enter')handleCellClick('${dayAbbr}','${ts.id}')">
+                    <span class="empty-slot-hint">+ Assigner</span>
+                </div>`;
   }
 
-  // Fill progress bar
-  // Total slots = sum of timeslots active per day
-  const totalSlots = weekDays.reduce((acc, dayObj) => {
-    return (
-      acc +
-      timeslots.filter(
-        (ts) =>
-          !ts.days || ts.days.length === 0 || ts.days.includes(dayObj.abbr),
-      ).length
-    );
-  }, 0);
-  const assignedSlots = Object.keys(sched).length;
-  const fillBarEl = document.getElementById("week-fill-bar");
-  const fillTrack = document.getElementById("fill-track-inner");
-  const fillLabel = document.getElementById("fill-label");
-  if (fillBarEl && totalSlots > 0) {
-    fillBarEl.style.display = "flex";
-    const pct = Math.round((assignedSlots / totalSlots) * 100);
-    fillTrack.style.width = pct + "%";
-    fillTrack.style.background =
-      pct >= 80 ? "var(--green)" : pct >= 40 ? "var(--gold)" : "var(--blue)";
-    fillLabel.textContent = `${assignedSlots} / ${totalSlots} créneaux assignés (${pct}%)`;
-  } else if (fillBarEl) {
-    fillBarEl.style.display = "none";
-  }
+  const subtasks = blockSubtasks || [];
+  const subtasksHtml = subtasks.length
+    ? `<div class="block-subtasks">${subtasks
+        .map(
+          (st) =>
+            `<span class="block-subtask-item" style="color:${subj.color}">• ${st.title}</span>`,
+        )
+        .join("")}</div>`
+    : "";
 
-  renderScheduleLegend(subjects);
-
-  const grid = document.getElementById("schedule-grid");
-
-  if (!timeslots.length) {
-    grid.innerHTML = `<div class="empty-state">
-            <div class="empty-icon">🕐</div>
-            <div class="empty-title">Aucun créneau horaire</div>
-            <div class="empty-sub">Allez dans "Créneaux Horaires" pour en ajouter</div>
-        </div>`;
-    checkConflicts();
-    return;
-  }
-
-  const todayStr = new Date().toLocaleDateString("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-  });
-
-  let html = '<div class="days-grid">';
-
-  weekDays.forEach((dayObj) => {
-    const dayAbbr = dayObj.abbr;
-    const isToday = dayObj.dateStr === todayStr;
-
-    // Count filled slots for this day (only timeslots active on this day)
-    const dayTimeslots = timeslots.filter(
-      (ts) => !ts.days || ts.days.length === 0 || ts.days.includes(dayAbbr),
-    );
-    const dayFilled = dayTimeslots.filter(
-      (ts) => sched[`${currentWeekOffset}_${dayAbbr}_${ts.id}`],
-    ).length;
-    const dayTotal = dayTimeslots.length;
-    const dayDone = dayTimeslots.filter((ts) => {
-      const doneKey = `done_${currentWeekOffset}_${dayAbbr}_${ts.id}`;
-      return localStorage.getItem(doneKey) === "1";
-    }).length;
-
-    const dayFreeTasks = freeTasksByDay[dayAbbr] || [];
-    const dayFreeCount = dayFreeTasks.length;
-
-    html += `<div class="day-card ${isToday ? "day-card-today" : ""}">
-            <div class="day-header">
-                <span class="day-name">${dayAbbr} <span class="day-date-badge">${dayObj.date.getDate()}</span></span>
-                <div class="day-tags">
-                    ${isToday ? '<span class="day-tag tag-today">Aujourd\'hui</span>' : ""}
-                    <span class="day-fill-chip">${dayFilled}/${dayTotal}</span>
-                    ${dayDone > 0 ? `<span class="day-done-chip">✓ ${dayDone}</span>` : ""}
-                    <span class="day-free-chip" id="free-chip-${dayAbbr}" ${dayFreeCount === 0 ? 'style="display:none"' : ''}>✎ ${dayFreeCount}</span>
-                    <button class="reset-day-btn" title="Réinitialiser la journée" aria-label="Réinitialiser ${dayAbbr}" onclick="resetDayDone('${dayAbbr}')">↺</button>
-                </div>
-            </div>
-            <div class="timeline">`;
-
-    timeslots
-      .filter(
-        (ts) => !ts.days || ts.days.length === 0 || ts.days.includes(dayAbbr),
-      )
-      .forEach((ts) => {
-        const key = `${currentWeekOffset}_${dayAbbr}_${ts.id}`;
-        const subjId = sched[key];
-        const subj = subjId ? subjects.find((s) => s.id === subjId) : null;
-        const doneKey = `done_${currentWeekOffset}_${dayAbbr}_${ts.id}`;
-        const isDone = localStorage.getItem(doneKey) === "1";
-        const blockId = `blk_${currentWeekOffset}_${dayAbbr}_${ts.id}`;
-
-        html += `<div class="block ${isDone ? "completed" : ""}" id="${blockId}">
-                <div class="block-time">${ts.start}<br>→ ${ts.end}</div>`;
-
-        if (subj) {
-          const blockSubtasks = subtasksCache[`${subj.id}::${dayAbbr}`] || [];
-          const subtasksHtml =
-            blockSubtasks.length > 0
-              ? `<div class="block-subtasks">${blockSubtasks
-                  .map(
-                    (st) =>
-                      `<span class="block-subtask-item" style="color:${subj.color}">• ${st.title}</span>`,
-                  )
-                  .join("")}</div>`
-              : "";
-          html += `<div class="block-content"
+  return `<div class="block-content"
                     style="background:${hexAlpha(subj.color, 0.18)};border-left:3px solid ${subj.color};color:${subj.color}"
                     ondragover="onDragOver(event)"
                     ondragleave="onDragLeave(event)"
@@ -1241,47 +1153,305 @@ async function renderScheduleGrid() {
                         <button class="subtask-mgr-btn"
                             onclick="event.stopPropagation();openSubtaskModal('${subj.id}','${subj.name.replace(/'/g, "\\'")}','${subj.color}','${dayAbbr}')"
                             aria-label="Gérer les sous-titres"
-                            title="Sous-titres (${blockSubtasks.length})">≡</button>
+                            title="Sous-titres (${subtasks.length})">≡</button>
                         <button class="done-btn ${isDone ? "done" : ""}"
                             onclick="event.stopPropagation();toggleDoneBlock('${currentWeekOffset}','${dayAbbr}','${ts.id}')"
                             aria-label="${isDone ? "Marquer comme non fait" : "Marquer comme fait"}"
                             title="Marquer comme fait">${isDone ? "✓" : "○"}</button>
                     </div>
                 </div>`;
-        } else {
-          html += `<div class="block-content block-empty"
-                    ondragover="event.preventDefault();this.classList.add('drag-over')"
-                    ondragleave="this.classList.remove('drag-over')"
-                    ondrop="this.classList.remove('drag-over');onDrop(event,'${dayAbbr}','${ts.id}')"
-                    onclick="handleCellClick('${dayAbbr}','${ts.id}')"
-                    role="button"
-                    tabindex="0"
-                    aria-label="Ajouter une tâche ${dayAbbr} ${ts.start}"
-                    onkeydown="if(event.key==='Enter')handleCellClick('${dayAbbr}','${ts.id}')">
-                    <span class="empty-slot-hint">+ Assigner</span>
-                </div>`;
-        }
+}
 
-        html += `</div>`; // .block
-      });
+/**
+ * Full markup of one schedule block (used by the full render).
+ * Pure function.
+ */
+function renderScheduleCell(dayAbbr, ts, subj, blockSubtasks, isDone) {
+  return `<div class="block ${isDone ? "completed" : ""}" id="${_cellId(dayAbbr, ts.id)}">
+                <div class="block-time">${ts.start}<br>→ ${ts.end}</div>
+                ${_buildCellContentHTML(dayAbbr, ts, subj, blockSubtasks, isDone)}
+            </div>`;
+}
 
-    // Free tasks section (tasks without timeslot)
-    html += `</div>`; // close .timeline
-    html += `<div class="free-tasks-section" id="free-tasks-section-${dayAbbr}">
-      ${_buildFreeTasksSectionHTML(dayAbbr, dayFreeTasks)}
-    </div>`;
-    html += `</div>`; // close .day-card
+/**
+ * Repaint ONE cell in place — the only DOM write is the block's
+ * .block-content child.  Nothing else in the grid is touched.
+ *
+ * @param {string} day    day abbreviation, e.g. "Lun"
+ * @param {string|number} tsId
+ */
+async function updateScheduleCell(day, tsId) {
+  const block = DOM.cell(currentWeekOffset, day, tsId);
+  if (!block) return; // grid not rendered / different week — nothing to do
+
+  const timeslots = await Store.getTimeslots();
+  const ts = timeslots.find((t) => String(t.id) === String(tsId));
+  if (!ts) return;
+
+  const sched = await Store.getSchedule(currentWeekOffset);
+  const subjId = sched[_cellKey(day, tsId)];
+  const subj = subjId
+    ? appState.subjects.find((s) => String(s.id) === String(subjId))
+    : null;
+
+  let subtasks = [];
+  if (subj) {
+    try {
+      subtasks = (await Store.getSubtasks(subj.id, day)) || [];
+    } catch (_) {
+      subtasks = [];
+    }
+  }
+
+  const isDone = _isCellDone(day, tsId);
+  block.classList.toggle("completed", isDone);
+
+  const content = block.querySelector(".block-content");
+  const html = _buildCellContentHTML(day, ts, subj, subtasks, isDone);
+  if (content) {
+    content.outerHTML = html;
+  } else {
+    block.insertAdjacentHTML("beforeend", html);
+  }
+
+  updateDayHeaderChips(day, timeslots, sched);
+  updateWeekFillBar(timeslots, sched);
+  _refreshProductivitySoon();
+}
+
+/**
+ * Turn ONE cell back into its empty state.  The schedule cache must
+ * already have the record removed (Store.patchScheduleRecord(..., null)).
+ */
+async function removeScheduleCell(day, tsId) {
+  return updateScheduleCell(day, tsId);
+}
+
+/**
+ * Repaint every visible cell that shows a given subject on a given day.
+ * Used after subtask add / edit / delete / reorder so the block list
+ * updates without rebuilding the grid.
+ *
+ * @param {string|number} subjectId
+ * @param {string|null}   day  null → all days of the current week
+ */
+async function updateScheduleCellsForSubject(subjectId, day) {
+  if (!DOM.scheduleGrid) return;
+  const [timeslots, sched] = await Promise.all([
+    Store.getTimeslots(),
+    Store.getSchedule(currentWeekOffset),
+  ]);
+
+  const targets = [];
+  Object.entries(sched).forEach(([key, sid]) => {
+    if (String(sid) !== String(subjectId)) return;
+    const parts = key.split("_"); // "<week>_<day>_<tsId>"
+    if (parts.length !== 3) return;
+    if (day && parts[1] !== day) return;
+    targets.push([parts[1], parts[2]]);
   });
 
-  html += "</div>"; // .days-grid
-  grid.innerHTML = html;
+  await Promise.all(targets.map(([d, tsId]) => updateScheduleCell(d, tsId)));
+  void timeslots;
+}
+
+/* ══════════════════════════════════════════════
+   DAY / WEEK LEVEL (counters only — no rebuild)
+══════════════════════════════════════════════ */
+
+/** Refresh the "x/y" and "✓ n" chips of one day header. */
+function updateDayHeaderChips(day, timeslots, sched) {
+  const fillChip = DOM.get(`fill-chip-${day}`);
+  const doneChip = DOM.get(`done-chip-${day}`);
+  if (!fillChip && !doneChip) return;
+
+  const dayTimeslots = _timeslotsForDay(timeslots, day);
+  const filled = dayTimeslots.filter(
+    (ts) => sched[`${currentWeekOffset}_${day}_${ts.id}`],
+  ).length;
+  const done = dayTimeslots.filter((ts) => _isCellDone(day, ts.id)).length;
+
+  if (fillChip) fillChip.textContent = `${filled}/${dayTimeslots.length}`;
+  if (doneChip) {
+    doneChip.textContent = `✓ ${done}`;
+    doneChip.style.display = done > 0 ? "" : "none";
+  }
+}
+
+/** Refresh the week progress bar only. */
+function updateWeekFillBar(timeslots, sched) {
+  const fillBarEl = DOM.weekFillBar;
+  const fillTrack = DOM.fillTrackInner;
+  const fillLabel = DOM.fillLabel;
+  if (!fillBarEl) return;
+
+  const weekDays = getWeekDays();
+  const totalSlots = weekDays.reduce(
+    (acc, d) => acc + _timeslotsForDay(timeslots, d.abbr).length,
+    0,
+  );
+  const assignedSlots = Object.keys(sched).length;
+
+  if (totalSlots > 0) {
+    fillBarEl.style.display = "flex";
+    const pct = Math.round((assignedSlots / totalSlots) * 100);
+    if (fillTrack) {
+      fillTrack.style.width = pct + "%";
+      fillTrack.style.background =
+        pct >= 80 ? "var(--green)" : pct >= 40 ? "var(--gold)" : "var(--blue)";
+    }
+    if (fillLabel)
+      fillLabel.textContent = `${assignedSlots} / ${totalSlots} créneaux assignés (${pct}%)`;
+  } else {
+    fillBarEl.style.display = "none";
+  }
+}
+
+/** Debounced productivity refresh (granular updates don't go through
+    the renderScheduleGrid wrapper). */
+let _prodRefreshTimer = null;
+function _refreshProductivitySoon() {
+  if (typeof renderProductivityCard !== "function") return;
+  clearTimeout(_prodRefreshTimer);
+  _prodRefreshTimer = setTimeout(() => renderProductivityCard(), 250);
+}
+
+/* ══════════════════════════════════════════════
+   FULL RENDER (only when the structure changes)
+══════════════════════════════════════════════ */
+
+async function renderSchedule() {
+  // appState.subjects is always populated after bootstrap — read it directly.
+  // Timeslots and schedule still need cache-or-fetch via Store.
+  const subjects = appState.subjects;
+  const [timeslots, sched] = await Promise.all([
+    Store.getTimeslots(),
+    Store.getSchedule(currentWeekOffset),
+  ]);
+
+  const weekDays = getWeekDays();
+
+  // Pre-fetch free tasks for ALL active days in ONE request, then slice
+  // into per-day buckets.
+  const _bulkFT = await Store.getAllFreeTasks(currentWeekOffset);
+  const freeTasksByDay = {};
+  weekDays.forEach((dayObj) => {
+    freeTasksByDay[dayObj.abbr] =
+      _bulkFT[`${currentWeekOffset}::${dayObj.abbr}`] || [];
+  });
+
+  // Pre-fetch subtasks: one request per distinct day (not per pair).
+  const _dayToSubjectIds = {};
+  Object.entries(sched).forEach(([key, sid]) => {
+    const dayAbbr = key.split("_")[1];
+    if (!dayAbbr) return;
+    (_dayToSubjectIds[dayAbbr] = _dayToSubjectIds[dayAbbr] || new Set()).add(
+      Number(sid),
+    );
+  });
+
+  const subtasksCache = {};
+  await Promise.all(
+    Object.entries(_dayToSubjectIds).map(async ([dayAbbr, sidSet]) => {
+      const daySubjects = [...sidSet].map((id) => ({ id }));
+      const bulk = await Store.getAllSubtasks(daySubjects, dayAbbr);
+      Object.assign(subtasksCache, bulk);
+    }),
+  );
+
+  if (weekDays.length && DOM.weekLabel) {
+    DOM.weekLabel.textContent = `${weekDays[0].dateStr} – ${weekDays[weekDays.length - 1].dateStr}`;
+  }
+
+  updateWeekFillBar(timeslots, sched);
+  renderScheduleLegend(subjects);
+
+  const grid = DOM.scheduleGrid;
+  if (!grid) return;
+
+  if (!timeslots.length) {
+    grid.innerHTML = `<div class="empty-state">
+            <div class="empty-icon">🕐</div>
+            <div class="empty-title">Aucun créneau horaire</div>
+            <div class="empty-sub">Allez dans "Créneaux Horaires" pour en ajouter</div>
+        </div>`;
+    DOM.invalidateDynamic();
+    checkConflicts();
+    return;
+  }
+
+  const todayStr = new Date().toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+  });
+
+  const cards = weekDays.map((dayObj) => {
+    const dayAbbr = dayObj.abbr;
+    const isToday = dayObj.dateStr === todayStr;
+
+    const dayTimeslots = _timeslotsForDay(timeslots, dayAbbr);
+    const dayFilled = dayTimeslots.filter(
+      (ts) => sched[`${currentWeekOffset}_${dayAbbr}_${ts.id}`],
+    ).length;
+    const dayDone = dayTimeslots.filter((ts) =>
+      _isCellDone(dayAbbr, ts.id),
+    ).length;
+    const dayFreeTasks = freeTasksByDay[dayAbbr] || [];
+    const dayFreeCount = dayFreeTasks.length;
+
+    const blocks = dayTimeslots
+      .map((ts) => {
+        const subjId = sched[`${currentWeekOffset}_${dayAbbr}_${ts.id}`];
+        const subj = subjId ? subjects.find((s) => s.id === subjId) : null;
+        const blockSubtasks = subj
+          ? subtasksCache[`${subj.id}::${dayAbbr}`] || []
+          : [];
+        return renderScheduleCell(
+          dayAbbr,
+          ts,
+          subj,
+          blockSubtasks,
+          _isCellDone(dayAbbr, ts.id),
+        );
+      })
+      .join("");
+
+    return `<div class="day-card ${isToday ? "day-card-today" : ""}" id="day-card-${dayAbbr}">
+            <div class="day-header">
+                <span class="day-name">${dayAbbr} <span class="day-date-badge">${dayObj.date.getDate()}</span></span>
+                <div class="day-tags">
+                    ${isToday ? '<span class="day-tag tag-today">Aujourd\'hui</span>' : ""}
+                    <span class="day-fill-chip" id="fill-chip-${dayAbbr}">${dayFilled}/${dayTimeslots.length}</span>
+                    <span class="day-done-chip" id="done-chip-${dayAbbr}" ${dayDone === 0 ? 'style="display:none"' : ""}>✓ ${dayDone}</span>
+                    <span class="day-free-chip" id="free-chip-${dayAbbr}" ${dayFreeCount === 0 ? 'style="display:none"' : ""}>✎ ${dayFreeCount}</span>
+                    <button class="reset-day-btn" title="Réinitialiser la journée" aria-label="Réinitialiser ${dayAbbr}" onclick="resetDayDone('${dayAbbr}')">↺</button>
+                </div>
+            </div>
+            <div class="timeline">${blocks}</div>
+            <div class="free-tasks-section" id="free-tasks-section-${dayAbbr}">
+              ${_buildFreeTasksSectionHTML(dayAbbr, dayFreeTasks)}
+            </div>
+        </div>`;
+  });
+
+  // Single write for the whole structure — then never again until the
+  // structure itself (week, timeslots, days) changes.
+  grid.innerHTML = `<div class="days-grid">${cards.join("")}</div>`;
+
+  // Every previously memoised day card / block node is now detached.
+  DOM.invalidateDynamic();
   checkConflicts();
+}
+
+/** Back-compat alias: full rebuild. */
+async function renderScheduleGrid() {
+  return renderSchedule();
 }
 
 function toggleDoneBlock(weekOffset, day, tsId) {
   const doneKey = `done_${weekOffset}_${day}_${tsId}`;
   const blockId = `blk_${weekOffset}_${day}_${tsId}`;
-  const block = document.getElementById(blockId);
+  const block = DOM.get(blockId);
   if (!block) return;
   const btn = block.querySelector(".done-btn");
   const isDone = localStorage.getItem(doneKey) === "1";
@@ -1302,6 +1472,11 @@ function toggleDoneBlock(weekOffset, day, tsId) {
       btn.setAttribute("aria-label", "Marquer comme non fait");
     }
   }
+  // Granular: refresh only this day's counters + the productivity card.
+  Promise.all([Store.getTimeslots(), Store.getSchedule(currentWeekOffset)])
+    .then(([timeslots, sched]) => updateDayHeaderChips(day, timeslots, sched))
+    .catch(() => {});
+  _refreshProductivitySoon();
 }
 
 function resetDayDone(dayAbbr) {
@@ -1312,7 +1487,14 @@ function resetDayDone(dayAbbr) {
       keysToRemove.push(k);
   }
   keysToRemove.forEach((k) => localStorage.removeItem(k));
-  renderScheduleGrid();
+  // Granular: only this day's blocks changed.
+  Promise.all([Store.getTimeslots(), Store.getSchedule(currentWeekOffset)])
+    .then(async ([timeslots, sched]) => {
+      const dayTs = _timeslotsForDay(timeslots, dayAbbr);
+      await Promise.all(dayTs.map((ts) => updateScheduleCell(dayAbbr, ts.id)));
+      updateDayHeaderChips(dayAbbr, timeslots, sched);
+    })
+    .catch(() => {});
 }
 
 async function handleCellClick(day, tsId) {
@@ -1356,7 +1538,8 @@ async function assignSubject(day, tsId, subjId) {
       `${currentWeekOffset}_${day}_${tsId}`,
       subjId
     );
-    await renderScheduleGrid();
+    // Granular: repaint only the changed cell.
+    await updateScheduleCell(day, tsId);
   } catch (e) {
     toast(e.message, "error");
   }
@@ -1378,7 +1561,8 @@ async function removeEvent(day, tsId) {
       `${currentWeekOffset}_${day}_${tsId}`,
       null
     );
-    await renderScheduleGrid();
+    // Granular: reset only the emptied cell.
+    await removeScheduleCell(day, tsId);
   } catch (e) {
     toast(e.message, "error");
   }
@@ -1499,7 +1683,7 @@ async function clearAllSchedule() {
 }
 
 function checkConflicts() {
-  document.getElementById("conflict-badge").style.display = "none";
+  if (DOM.conflictBadge) DOM.conflictBadge.style.display = "none";
 }
 
 /* ══════════════════════════════════════════════
@@ -3886,13 +4070,13 @@ async function deleteFreeTask(taskId) {
 async function _refreshFreeTasksInGrid(dayAbbr) {
   if (!dayAbbr) return;
   const sectionId = `free-tasks-section-${dayAbbr}`;
-  const section = document.getElementById(sectionId);
+  const section = DOM.get(sectionId);
   if (!section) return;
   try {
     const tasks = await Store.getFreeTasks(currentWeekOffset, dayAbbr);
     section.innerHTML = _buildFreeTasksSectionHTML(dayAbbr, tasks);
     // Refresh chip count in header
-    const chip = document.getElementById(`free-chip-${dayAbbr}`);
+    const chip = DOM.get(`free-chip-${dayAbbr}`);
     if (chip) {
       if (tasks.length > 0) {
         chip.textContent = `✎ ${tasks.length}`;
