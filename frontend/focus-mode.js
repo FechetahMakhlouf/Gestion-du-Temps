@@ -103,9 +103,11 @@ function _todayAbbr() {
  */
 async function _fetchTodayTasks() {
     try {
-        const [timeslots, subjects, sched] = await Promise.all([
+        // appState.subjects is always populated after bootstrap — read it directly.
+        // Timeslots and schedule still need cache-or-fetch via Store.
+        const subjects = window.appState.subjects;
+        const [timeslots, sched] = await Promise.all([
             window.Store.getTimeslots(),
-            window.Store.getSubjects(),
             window.Store.getSchedule(0),
         ]);
 

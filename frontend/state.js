@@ -20,6 +20,15 @@
    Any write (POST/PUT/DELETE) must invalidate the slices it affects via
    `Store.invalidate*()` so the next read refetches fresh data.
 
+   SUBJECTS CACHE STRATEGY:
+   - appState.subjects is populated once by /api/bootstrap on startup.
+   - Rendering functions call Store.getSubjects() which returns the cached
+     array synchronously (no network hop) when loaded.subjects is true.
+   - The cache is refreshed ONLY when subjects actually change: after a
+     successful POST, PUT, or DELETE to /api/subjects the write handler
+     calls Store.refreshSubjects() which fetches fresh data and stores it.
+   - No rendering function ever calls /api/subjects directly.
+
    Load order in index.html:  config.js → state.js → script.js
    ══════════════════════════════════════════════════════════════════════ */
 
@@ -165,9 +174,37 @@
       });
     },
 
-    /* ── subjects ── */
+    /* ── subjects ──────────────────────────────────────────────────────
+       Cache strategy:
+         • appState.subjects is populated by bootstrap on startup.
+         • getSubjects() returns the cached array instantly when loaded.
+         • refreshSubjects() is the ONLY function that hits /api/subjects
+           over the network — call it only after a successful write
+           (POST / PUT / DELETE).  Never call it during rendering.
+       ──────────────────────────────────────────────────────────────── */
+
+    /**
+     * Return subjects from cache.  Falls back to /api/subjects only on
+     * the very first call (before bootstrap has run) or after an explicit
+     * invalidateSubjects() + refreshSubjects() cycle triggered by a write.
+     */
     async getSubjects(force) {
       if (loaded.subjects && !force) return appState.subjects;
+      return once("subjects", async () => {
+        appState.subjects = (await api("/api/subjects")) || [];
+        loaded.subjects = true;
+        return appState.subjects;
+      });
+    },
+
+    /**
+     * Fetch fresh subjects from /api/subjects and update the cache.
+     * Call this ONLY after a successful write (POST / PUT / DELETE) so
+     * the cache reflects the server's new state.  All subsequent reads
+     * via getSubjects() will return the updated cached array without
+     * any additional network request.
+     */
+    async refreshSubjects() {
       return once("subjects", async () => {
         appState.subjects = (await api("/api/subjects")) || [];
         loaded.subjects = true;
@@ -418,6 +455,18 @@
       loaded.user = false;
     },
 
+    /**
+     * Mark subjects cache as stale.  After calling this you MUST call
+     * Store.refreshSubjects() (not Store.getSubjects()) to fetch fresh
+     * data, so the cache is repopulated before any rendering function
+     * reads appState.subjects.
+     *
+     * Typical write flow:
+     *   await apiCall('/api/subjects', { method: 'POST', ... });
+     *   Store.invalidateSubjects();
+     *   await Store.refreshSubjects();   // ← one network call, then cached
+     *   await renderAll();               // reads appState.subjects — no fetch
+     */
     invalidateSubjects() {
       loaded.subjects = false;
       Store.invalidateSubtasks();

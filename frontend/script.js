@@ -576,7 +576,8 @@ function openSubjectModal(id) {
 }
 
 async function loadSubjectsForEdit(id) {
-  const subjects = await Store.getSubjects();
+  // appState.subjects is always populated after bootstrap — read it directly.
+  const subjects = appState.subjects;
   const subj = subjects.find((s) => s.id === id);
   if (!subj) return;
   document.getElementById("subject-modal-title").textContent =
@@ -609,8 +610,11 @@ async function saveSubject() {
         body: JSON.stringify(payload),
       });
     }
+    // Subjects changed: invalidate then immediately refresh the cache so
+    // renderAll() reads appState.subjects without any additional network call.
     Store.invalidateSubjects();
     Store.invalidateSchedule();
+    await Store.refreshSubjects();
     closeModal("subject-modal");
     await renderAll();
     toast(id ? "Tâche modifiée ✓" : "Tâche ajoutée ✓", "success");
@@ -630,8 +634,11 @@ async function deleteSubject(id) {
     return;
   try {
     await apiCall(`/api/subjects/${id}`, { method: "DELETE" });
+    // Subjects changed: invalidate then immediately refresh the cache so
+    // renderAll() reads appState.subjects without any additional network call.
     Store.invalidateSubjects();
     Store.invalidateSchedule();
+    await Store.refreshSubjects();
     await renderAll();
     toast("Tâche supprimée", "info");
   } catch (e) {
@@ -861,10 +868,10 @@ async function onSubtaskDrop(e, targetId) {
 }
 
 async function renderSubjectsPanel() {
-  const [subjects, sched] = await Promise.all([
-    Store.getSubjects(),
-    Store.getSchedule(currentWeekOffset),
-  ]);
+  // appState.subjects is always populated after bootstrap; only the schedule
+  // needs a network hop (it varies per week offset).
+  const subjects = appState.subjects;
+  const sched = await Store.getSchedule(currentWeekOffset);
 
   // Stats
   const statsEl = document.getElementById("subj-stats");
@@ -957,7 +964,8 @@ async function renderSubjectsPanel() {
 ══════════════════════════════════════════════ */
 
 async function renderPalette() {
-  const subjects = await Store.getSubjects();
+  // appState.subjects is always populated after bootstrap — read it directly.
+  const subjects = appState.subjects;
   const el = document.getElementById("palette-chips");
   const cellChips = document.getElementById("cell-modal-chips");
   if (!subjects.length) {
@@ -1059,9 +1067,11 @@ function renderScheduleLegend(subjects) {
 }
 
 async function renderScheduleGrid() {
-  const [timeslots, subjects, sched] = await Promise.all([
+  // appState.subjects is always populated after bootstrap — read it directly.
+  // Timeslots and schedule still need cache-or-fetch via Store.
+  const subjects = appState.subjects;
+  const [timeslots, sched] = await Promise.all([
     Store.getTimeslots(),
-    Store.getSubjects(),
     Store.getSchedule(currentWeekOffset),
   ]);
 
@@ -1710,8 +1720,9 @@ function updateAutogenTotal() {
 }
 
 async function renderAutogenGrid() {
-  const [subjects, config, timeslots] = await Promise.all([
-    Store.getSubjects(),
+  // appState.subjects is always populated after bootstrap — read it directly.
+  const subjects = appState.subjects;
+  const [config, timeslots] = await Promise.all([
     Store.getAutogen(),
     Store.getTimeslots(),
   ]);
@@ -1809,8 +1820,9 @@ async function exportSchedule() {
   if (exportFrame) {
     exportFrame.style.display = "none";
   }
-  const [subjects, sched, timeslots, days, user] = await Promise.all([
-    Store.getSubjects(),
+  // appState.subjects is always populated after bootstrap — read it directly.
+  const subjects = appState.subjects;
+  const [sched, timeslots, days, user] = await Promise.all([
     Store.getSchedule(currentWeekOffset),
     Store.getTimeslots(),
     Store.getDays(),
