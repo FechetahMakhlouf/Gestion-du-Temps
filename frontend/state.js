@@ -448,6 +448,82 @@
     },
 
     /* ══════════════════════════════════════════════
+       PATCH HELPERS — update cache without refetch
+       ══════════════════════════════════════════════
+       Use these after successful writes to avoid a
+       full invalidate + re-fetch round-trip.  Each
+       helper mutates the relevant appState slice in
+       place so the next Store.get*() call returns
+       the new value from cache without hitting the
+       network.
+    ══════════════════════════════════════════════ */
+
+    /**
+     * Update a single schedule record in the cache.
+     *
+     * @param {number} weekOffset
+     * @param {string} key   — schedule key: "<wk>_<day>_<tsId>"
+     * @param {number|null} subjectId — null to remove the record
+     */
+    patchScheduleRecord(weekOffset, key, subjectId) {
+      const wk = Number(weekOffset) || 0;
+      if (!appState.schedule[wk]) appState.schedule[wk] = {};
+      if (subjectId === null || subjectId === undefined) {
+        delete appState.schedule[wk][key];
+      } else {
+        appState.schedule[wk][key] = subjectId;
+      }
+      // Ensure the week is marked as loaded
+      loaded.schedule[wk] = true;
+    },
+
+    /**
+     * Replace the entire schedule for one week in the cache.
+     *
+     * @param {number} weekOffset
+     * @param {Object} scheduleMap — complete { key: subjectId } map
+     */
+    setScheduleWeek(weekOffset, scheduleMap) {
+      const wk = Number(weekOffset) || 0;
+      appState.schedule[wk] = scheduleMap || {};
+      loaded.schedule[wk] = true;
+    },
+
+    /**
+     * Add a newly created timeslot to the cache without refetching.
+     *
+     * @param {Object} timeslot — the timeslot object returned by the server
+     */
+    addTimeslot(timeslot) {
+      if (!timeslot) return;
+      appState.timeslots = [...appState.timeslots, timeslot];
+      loaded.timeslots = true;
+    },
+
+    /**
+     * Remove a timeslot from the cache by id without refetching.
+     *
+     * @param {string|number} id
+     */
+    removeTimeslot(id) {
+      appState.timeslots = appState.timeslots.filter(
+        (t) => String(t.id) !== String(id)
+      );
+      // Keep loaded.timeslots = true so the next getTimeslots() is a cache hit
+    },
+
+    /**
+     * Replace the active-days list in the cache without refetching.
+     *
+     * @param {string[]} days — ordered array of day abbreviations
+     */
+    setDays(days) {
+      appState.days = days || [];
+      loaded.days = true;
+      window.currentActiveDays = appState.days;
+    },
+
+    /* ══════════════════════════════════════════════
        INVALIDATION — call after every write
     ══════════════════════════════════════════════ */
 

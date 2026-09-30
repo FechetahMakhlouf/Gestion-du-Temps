@@ -1350,7 +1350,12 @@ async function assignSubject(day, tsId, subjId) {
         subjectId: subjId,
       }),
     });
-    Store.invalidateSchedule(currentWeekOffset);
+    // Patch only the changed record — no full refetch needed.
+    Store.patchScheduleRecord(
+      currentWeekOffset,
+      `${currentWeekOffset}_${day}_${tsId}`,
+      subjId
+    );
     await renderScheduleGrid();
   } catch (e) {
     toast(e.message, "error");
@@ -1367,7 +1372,12 @@ async function removeEvent(day, tsId) {
         timeslotId: tsId,
       }),
     });
-    Store.invalidateSchedule(currentWeekOffset);
+    // Patch only the removed record — no full refetch needed.
+    Store.patchScheduleRecord(
+      currentWeekOffset,
+      `${currentWeekOffset}_${day}_${tsId}`,
+      null
+    );
     await renderScheduleGrid();
   } catch (e) {
     toast(e.message, "error");
@@ -1425,12 +1435,16 @@ async function changeWeek(delta) {
     if (prevSched && Object.keys(prevSched).length > 0) {
       // Copy all assignments from previous week to new week
       const assigns = [];
+      // Build the copied schedule map to write directly into cache
+      const copiedSched = {};
       for (const key of Object.keys(prevSched)) {
         const parts = key.split("_");
         if (parts.length >= 3) {
           const day = parts[1];
           const tsId = parts.slice(2).join("_");
           const subjId = prevSched[key];
+          const newKey = `${currentWeekOffset}_${day}_${tsId}`;
+          copiedSched[newKey] = subjId;
           assigns.push(
             apiCall("/api/schedule/assign", {
               method: "POST",
@@ -1445,7 +1459,8 @@ async function changeWeek(delta) {
         }
       }
       await Promise.all(assigns);
-      Store.invalidateSchedule(currentWeekOffset);
+      // Seed the new week in the cache directly — no refetch needed.
+      Store.setScheduleWeek(currentWeekOffset, copiedSched);
       toast("Planning copié depuis la semaine précédente ✓", "success");
     }
   }
@@ -1477,7 +1492,8 @@ async function clearAllSchedule() {
     return Promise.resolve();
   });
   await Promise.all(removals);
-  Store.invalidateSchedule(currentWeekOffset);
+  // Replace the entire week in the cache with an empty map — no refetch.
+  Store.setScheduleWeek(currentWeekOffset, {});
   await renderScheduleGrid();
   toast("Emploi du temps vidé", "info");
 }
@@ -1563,12 +1579,15 @@ async function saveTimeslot() {
 
   setLoading("ts-save", true);
   try {
-    await apiCall("/api/timeslots", {
+    const result = await apiCall("/api/timeslots", {
       method: "POST",
       body: JSON.stringify({ start, end, days }),
     });
-    Store.invalidateTimeslots();
-    Store.invalidateSchedule();
+    // Patch the timeslots cache with the new slot — no refetch needed.
+    // The server returns { id } so we build the full object from form data.
+    Store.addTimeslot({ id: result.id, start, end, days });
+    // Schedule cells for this timeslot are all empty on every existing week,
+    // so no schedule cache patch is needed — the grid will show empty cells.
     closeModal("timeslot-modal");
     await Promise.all([renderTimeslots(), renderScheduleGrid()]);
     toast("Créneau ajouté ✓", "success");
@@ -1582,8 +1601,22 @@ async function saveTimeslot() {
 async function deleteTimeslot(id) {
   try {
     await apiCall(`/api/timeslots/${id}`, { method: "DELETE" });
-    Store.invalidateTimeslots();
-    Store.invalidateSchedule();
+    // Remove the slot from the timeslots cache in place.
+    Store.removeTimeslot(id);
+    // Remove every schedule entry that referenced this timeslot from all
+    // loaded week caches so the grid reflects the deletion immediately.
+    const idStr = String(id);
+    Object.keys(appState.schedule).forEach((wk) => {
+      const weekSched = appState.schedule[wk];
+      if (!weekSched) return;
+      Object.keys(weekSched).forEach((key) => {
+        // key format: "<wk>_<day>_<tsId>"
+        const tsIdPart = key.split("_").slice(2).join("_");
+        if (tsIdPart === idStr) {
+          delete weekSched[key];
+        }
+      });
+    });
     await Promise.all([renderTimeslots(), renderScheduleGrid()]);
     toast("Créneau supprimé", "info");
   } catch (e) {
@@ -1687,7 +1720,8 @@ async function toggleDay(day, cb) {
   const order = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
   active.sort((a, b) => order.indexOf(a) - order.indexOf(b));
   await apiCall("/api/days", { method: "PUT", body: JSON.stringify(active) });
-  Store.invalidateDays();
+  // Write the new days list directly into the cache — no refetch needed.
+  Store.setDays(active);
   await Promise.all([renderDaysCheckboxes(), renderScheduleGrid()]);
 }
 
