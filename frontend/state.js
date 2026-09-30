@@ -2,6 +2,13 @@
    CENTRALIZED APPLICATION STATE  —  frontend/state.js
    ----------------------------------------------------------------------
    Single source of truth for every piece of server data used by the UI.
+
+   On startup, ONE call to /api/bootstrap seeds subjects, timeslots, days,
+   schedule (week 0), subtasks, free-tasks (week 0) and autogen in a
+   single round-trip.  Subsequent reads for other week offsets or
+   day-scoped data still go through the individual endpoints — the Store
+   getters handle that transparently.
+
    UI functions must read through `Store.*` getters instead of calling
    `apiCall()` directly for reads. Each getter:
 
@@ -64,12 +71,88 @@
 
   const api = (endpoint, options) => window.apiCall(endpoint, options);
 
+  /* ══════════════════════════════════════════════════════════════════
+     BOOTSTRAP  —  seeds all slices in one request
+  ══════════════════════════════════════════════════════════════════ */
+
+  /**
+   * Call /api/bootstrap and populate every appState slice from the
+   * single response.  Already-loaded slices are left untouched so that
+   * a second call (e.g. after autogen generation) refreshes everything.
+   *
+   * The promise is deduplicated: concurrent callers receive the same
+   * in-flight request.
+   */
+  function bootstrapOnce() {
+    return once("bootstrap", async () => {
+      const data = await api("/api/bootstrap");
+
+      // user
+      if (data.user) {
+        appState.user = data.user;
+        loaded.user = true;
+      }
+
+      // subjects
+      if (Array.isArray(data.subjects)) {
+        appState.subjects = data.subjects;
+        loaded.subjects = true;
+      }
+
+      // timeslots
+      if (Array.isArray(data.timeslots)) {
+        appState.timeslots = data.timeslots;
+        loaded.timeslots = true;
+      }
+
+      // days
+      if (Array.isArray(data.days)) {
+        appState.days = data.days;
+        loaded.days = true;
+        window.currentActiveDays = appState.days;
+      }
+
+      // schedule (week 0)
+      if (data.schedule && typeof data.schedule === "object") {
+        appState.schedule[0] = data.schedule;
+        loaded.schedule[0] = true;
+      }
+
+      // subtasks keyed as "<subjectId>::all"
+      if (data.subtasks && typeof data.subtasks === "object") {
+        Object.entries(data.subtasks).forEach(([key, list]) => {
+          appState.subtasks[key] = list;
+          loaded.subtasks[key] = true;
+        });
+      }
+
+      // free tasks keyed as "<weekOffset>::all"
+      if (data.freeTasks && typeof data.freeTasks === "object") {
+        Object.entries(data.freeTasks).forEach(([key, list]) => {
+          appState.freeTasks[key] = list;
+          loaded.freeTasks[key] = true;
+        });
+      }
+
+      // autogen
+      if (data.autogen && typeof data.autogen === "object") {
+        appState.autogen = data.autogen;
+        loaded.autogen = true;
+      }
+
+      return data;
+    });
+  };
+
   /* ══════════════════════════════════════════════
      READ ACCESSORS — the only way the UI gets data
   ══════════════════════════════════════════════ */
 
   const Store = {
     state: appState,
+
+    /** Seed all slices in one round-trip.  Call once on startup. */
+    bootstrap: bootstrapOnce,
 
     /* ── user ── */
     async getUser(force) {

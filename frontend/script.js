@@ -98,7 +98,10 @@ async function doLogin() {
     setTimeout(() => {
       msgEl.innerHTML = "";
     }, 2000);
-    setTimeout(() => {
+    setTimeout(async () => {
+      // Prime the bootstrap cache right after login so startApp
+      // finds all slices already populated (no extra round-trips).
+      try { await Store.bootstrap(); } catch (_) {}
       startApp();
       document.getElementById("login-email").value = "";
       document.getElementById("login-password").value = "";
@@ -2011,7 +2014,14 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    const user = await Store.getUser();
+    // /api/bootstrap seeds all slices in one request (subjects, timeslots,
+    // days, schedule, subtasks, freeTasks, autogen) and also returns user.
+    // If it resolves, the user is authenticated; if it rejects (401), we
+    // fall back to the login form exactly as before.
+    const bootstrapData = await Store.bootstrap();
+    const user = bootstrapData && bootstrapData.user
+      ? bootstrapData.user
+      : await Store.getUser();
     hideLoader();
     if (user) {
       await startApp();
