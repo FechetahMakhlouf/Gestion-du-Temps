@@ -1,14 +1,19 @@
 // Jadwal Service Worker — requis pour l'installation PWA
-const CACHE = 'jadwal-v2';
+const CACHE = 'jadwal-v3';
 const BASE = '/Gestion-du-Temps';
 
 const STATIC = [
   BASE + '/',
   BASE + '/frontend/styles.css',
-  BASE + '/frontend/script.js',
-  BASE + '/frontend/config.js',
-  BASE + '/frontend/dom.js',
-  BASE + '/frontend/state.js',
+  BASE + '/frontend/js/api.js',
+  BASE + '/frontend/js/dom.js',
+  BASE + '/frontend/js/state.js',
+  BASE + '/frontend/js/ui.js',
+  BASE + '/frontend/js/modals.js',
+  BASE + '/frontend/js/auth.js',
+  BASE + '/frontend/js/subjects.js',
+  BASE + '/frontend/js/schedule.js',
+  BASE + '/frontend/js/tasks.js',
   BASE + '/frontend/img/icon-192.png',
   BASE + '/frontend/img/icon-512.png',
 ];

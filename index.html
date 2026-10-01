@@ -1937,12 +1937,16 @@
       aria-atomic="false"
     ></div>
 
-    <script src="frontend/config.js"></script>
-    <script src="frontend/dom.js"></script>
-    <script src="frontend/state.js"></script>
-    <script src="frontend/script.js"></script>
-    <!-- Focus Mode module -->
-    <script src="frontend/focus-mode.js"></script>
+    <!-- Core (deferred, in order). Secondary features are lazy-loaded from frontend/js/lazy/ -->
+    <script defer src="frontend/js/api.js"></script>
+    <script defer src="frontend/js/dom.js"></script>
+    <script defer src="frontend/js/state.js"></script>
+    <script defer src="frontend/js/ui.js"></script>
+    <script defer src="frontend/js/modals.js"></script>
+    <script defer src="frontend/js/auth.js"></script>
+    <script defer src="frontend/js/subjects.js"></script>
+    <script defer src="frontend/js/schedule.js"></script>
+    <script defer src="frontend/js/tasks.js"></script>
 
     <!-- Service Worker (PWA) -->
     <script>
@@ -1950,8 +1954,7 @@
         window.addEventListener("load", () => {
           navigator.serviceWorker
             .register("/Gestion-du-Temps/sw.js")
-            .then((reg) => console.log("SW enregistré :", reg.scope))
-            .catch((err) => console.warn("SW échec :", err));
+                        .catch((err) => console.warn("SW échec :", err));
         });
       }
     </script>
