@@ -301,7 +301,8 @@ function pickColor(c) {
 }
 
 function openSubjectModal(id) {
-  const modal = document.getElementById("subject-modal");
+  const modal = ensureModal("subject-modal");
+  ensureModal("emoji-picker");
   document.getElementById("subj-edit-id").value = id || "";
   document.getElementById("subj-msg").innerHTML = "";
   if (id) {
@@ -399,6 +400,7 @@ let _subtaskSubjectId = null;
 let _subtaskDay = null;
 
 async function openSubtaskModal(subjectId, subjectName, subjectColor, day) {
+  ensureModal("subtask-modal");
   _subtaskSubjectId = subjectId;
   _subtaskDay = day || null;
   document.getElementById("subtask-subject-id").value = subjectId;

@@ -502,6 +502,7 @@ function resetDayDone(dayAbbr) {
 }
 
 async function handleCellClick(day, tsId) {
+  ensureModal("cell-modal");
   const ts = await Store.getTimeslot(tsId);
   document.getElementById("cell-modal-day").value = day;
   document.getElementById("cell-modal-slot").value = tsId;
@@ -710,6 +711,7 @@ function checkConflicts() {
 ══════════════════════════════════════════════ */
 
 function openTimeslotModal() {
+  ensureModal("timeslot-modal");
   document.getElementById("ts-msg").innerHTML = "";
   const activeDays = window.currentActiveDays || [
     "Dim",

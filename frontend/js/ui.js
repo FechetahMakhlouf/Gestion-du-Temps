@@ -27,6 +27,18 @@ function isModuleLoaded(name) {
   return !!_lazyModules[name];
 }
 
+function ensurePanel(name) {
+  const id = "panel-" + name;
+  let panel = document.getElementById(id);
+  if (panel) return panel;
+  const template = document.getElementById("secondary-panels-template");
+  const source = template?.content.querySelector("#" + id);
+  if (!source) return null;
+  panel = source.cloneNode(true);
+  document.querySelector(".main-content").appendChild(panel);
+  return panel;
+}
+
 /** Define global stubs that load `mod` then forward the call to the real
     function (the module's own declaration replaces the stub). */
 function lazyStub(mod, names) {
@@ -86,18 +98,22 @@ function restoreFocusIfNeeded() {
 ══════════════════════════════════════════════ */
 
 function showPanel(name) {
+  const panel = ensurePanel(name);
+  if (!panel) return;
   document
     .querySelectorAll(".panel")
     .forEach((p) => p.classList.remove("active"));
   document
     .querySelectorAll(".nav-item")
     .forEach((n) => n.classList.remove("active"));
-  document.getElementById("panel-" + name).classList.add("active");
+  panel.classList.add("active");
   document.querySelectorAll(".nav-item").forEach((n) => {
     if (n.getAttribute("onclick") && n.getAttribute("onclick").includes(name))
       n.classList.add("active");
   });
   if (name === "schedule") renderScheduleGrid();
+  if (name === "tasks") Promise.all([renderSubjectsPanel(), renderPalette()]);
+  if (name === "timeslots") Promise.all([renderTimeslots(), renderDaysCheckboxes()]);
   if (name === "autogen") renderAutogenGrid();
   if (name === "guide") openGuide();
   if (name === "contact") {
@@ -152,14 +168,7 @@ document.addEventListener("click", (e) => {
 ══════════════════════════════════════════════ */
 
 async function renderAll() {
-  await Promise.all([
-    renderSubjectsPanel(),
-    renderPalette(),
-    renderScheduleGrid(),
-    renderTimeslots(),
-    renderDaysCheckboxes(),
-    isModuleLoaded("autogen") && renderAutogenGrid(),
-  ]);
+  await renderScheduleGrid();
 }
 
 /* ══════════════════════════════════════════════

@@ -1,8 +1,19 @@
 /* modals.js — open/close helpers, Escape + backdrop handling
    Classic script: top-level functions stay global so index.html onclick="…" handlers keep working. */
 
+function ensureModal(id) {
+  let modal = document.getElementById(id);
+  if (modal) return modal;
+  const template = document.getElementById("secondary-modals-template");
+  const source = template?.content.querySelector("#" + id);
+  if (!source) return null;
+  modal = source.cloneNode(true);
+  document.body.insertBefore(modal, template);
+  return modal;
+}
+
 function closeModal(id) {
-  document.getElementById(id).classList.remove("open");
+  ensureModal(id)?.classList.remove("open");
 }
 
 // Close modals with Escape key
@@ -19,8 +30,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 // Click outside modal to close
-document.querySelectorAll(".modal-overlay").forEach((overlay) => {
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) overlay.classList.remove("open");
-  });
+document.addEventListener("click", (e) => {
+  const overlay = e.target.closest(".modal-overlay");
+  if (overlay && e.target === overlay) overlay.classList.remove("open");
 });

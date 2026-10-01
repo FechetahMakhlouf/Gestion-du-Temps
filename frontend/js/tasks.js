@@ -50,6 +50,7 @@ function _initFreeTaskNativeColor() {
  * @param {number} weekOffset
  */
 async function openFreeTaskModal(dayAbbr, weekOffset) {
+  ensureModal('free-task-modal');
   _freeTaskDay = dayAbbr || null;
   _freeTaskWeekOffset = weekOffset !== undefined ? weekOffset : currentWeekOffset;
 

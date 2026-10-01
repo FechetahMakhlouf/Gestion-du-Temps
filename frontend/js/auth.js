@@ -165,6 +165,7 @@ async function doRegister() {
 }
 
 function confirmLogout() {
+  ensureModal("logout-modal");
   document.getElementById("logout-modal").classList.add("open");
 }
 
@@ -201,7 +202,6 @@ async function startApp() {
     { weekday: "short", day: "numeric", month: "short" },
   );
 
-  buildColorGrid();
   renderAll();
 
   // ── Focus Mode integration ──────────────────────────────────────────
@@ -385,6 +385,7 @@ async function doChangePassword() {
 }
 
 function openDeleteAccountModal() {
+  ensureModal("delete-account-modal");
   document.getElementById("delete-account-password").value = "";
   document.getElementById("delete-account-msg").innerHTML = "";
   document.getElementById("delete-account-modal").classList.add("open");
