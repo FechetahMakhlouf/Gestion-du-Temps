@@ -1948,8 +1948,8 @@
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
           navigator.serviceWorker
-            .register("/Gestion-du-Temps/sw.js")
-                        .catch((err) => console.warn("SW échec :", err));
+            .register("/Gestion-du-Temps/sw.js", { scope: "/Gestion-du-Temps/", updateViaCache: "none" })
+            .catch((err) => console.warn("SW échec :", err));
         });
       }
     </script>

@@ -172,6 +172,7 @@ function confirmLogout() {
 async function doLogout() {
   closeModal("logout-modal");
   await apiCall("/api/auth/logout", { method: "POST" }).catch(() => {});
+  navigator.serviceWorker?.controller?.postMessage({ type: "CLEAR_USER_DATA" });
   Store.reset();
   document.getElementById("auth-page").style.display = "flex";
   document.getElementById("app-page").style.display = "none";
