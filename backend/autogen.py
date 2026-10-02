@@ -22,10 +22,12 @@ def update_config():
         return json_response(message='Expected dict', status=400)
 
     AutogenConfig.query.filter_by(user_id=current_user.id).delete()
+    # One query for all owned subject ids instead of one per item
+    owned = {sid for (sid,) in db.session.query(Subject.id).filter(
+        Subject.user_id == current_user.id,
+        Subject.id.in_(list(data.keys()))).all()} if data else set()
     for subj_id, hours in data.items():
-        subject = Subject.query.filter_by(
-            id=subj_id, user_id=current_user.id).first()
-        if subject and hours > 0:
+        if subj_id in owned and isinstance(hours, (int, float)) and hours > 0:
             config = AutogenConfig(
                 user_id=current_user.id,
                 subject_id=subj_id,
@@ -49,6 +51,7 @@ def generate():
     if not subjects or not timeslots:
         return json_response(message='Missing subjects or timeslots', status=400)
 
+    ts_by_id = {t.id: t for t in timeslots}
     cells = []
     for ts in timeslots:
         ts_days = ts.days or []
@@ -73,7 +76,7 @@ def generate():
         if hours_needed <= 0:
             continue
         for cell in available_cells[:]:
-            ts = next(t for t in timeslots if t.id == cell['timeslot_id'])
+            ts = ts_by_id[cell['timeslot_id']]
             start_h, start_m = map(int, ts.start.split(':'))
             end_h, end_m = map(int, ts.end.split(':'))
             duration = (end_h * 60 + end_m - start_h * 60 - start_m) / 60
@@ -91,15 +94,8 @@ def generate():
             if hours_needed <= 0:
                 break
 
-    for a in assignments:
-        entry = ScheduleEntry(
-            user_id=current_user.id,
-            week_offset=a['week_offset'],
-            day=a['day'],
-            timeslot_id=a['timeslot_id'],
-            subject_id=a['subject_id']
-        )
-        db.session.add(entry)
+    db.session.add_all([
+        ScheduleEntry(user_id=current_user.id, **a) for a in assignments])
     db.session.commit()
 
     return json_response({'assigned': len(assignments)}, message='Generation complete')

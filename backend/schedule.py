@@ -10,8 +10,9 @@ schedule_bp = Blueprint('schedule', __name__, url_prefix='/api/schedule')
 @login_required
 def get_schedule():
     week_offset = request.args.get('weekOffset', 0, type=int)
-    entries = ScheduleEntry.query.filter_by(
-        user_id=current_user.id, week_offset=week_offset).all()
+    entries = db.session.query(
+        ScheduleEntry.day, ScheduleEntry.timeslot_id, ScheduleEntry.subject_id
+    ).filter_by(user_id=current_user.id, week_offset=week_offset).all()
     sched = {}
     for e in entries:
         key = f"{week_offset}_{e.day}_{e.timeslot_id}"

@@ -3,6 +3,7 @@ from flask_login import LoginManager
 from flask_cors import CORS
 from flask_mail import Mail
 from flask_migrate import Migrate
+from flask_compress import Compress
 from models import db, User
 from config import Config
 from auth import auth_bp, mail
@@ -41,6 +42,14 @@ def create_app():
         os.makedirs(os.path.join(app.instance_path), exist_ok=True)
     except OSError:
         pass
+
+    # gzip / Brotli for JSON & text responses (negotiated via Accept-Encoding)
+    app.config.setdefault('COMPRESS_MIMETYPES', [
+        'application/json', 'text/html', 'text/css', 'text/plain',
+        'application/javascript', 'text/javascript', 'image/svg+xml'])
+    app.config.setdefault('COMPRESS_ALGORITHM', ['br', 'gzip'])
+    app.config.setdefault('COMPRESS_MIN_SIZE', 500)
+    Compress(app)
 
     db.init_app(app)
     migrate = Migrate(app, db)

@@ -46,15 +46,9 @@ def _db_error(err):
 
 
 def _serialize(ft):
-    return {
-        'id': ft.id,
-        'day': ft.day,
-        'week_offset': ft.week_offset,
-        'title': ft.title,
-        'color': ft.color,
-        'position': ft.position,
-        'done': ft.done,
-    }
+    # week_offset is known by the caller; position is implied by list order
+    return {'id': ft.id, 'day': ft.day, 'title': ft.title,
+            'color': ft.color, 'done': ft.done}
 
 
 @free_tasks_bp.route('', methods=['GET'])

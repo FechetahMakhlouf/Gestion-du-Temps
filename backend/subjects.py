@@ -10,7 +10,9 @@ subjects_bp = Blueprint('subjects', __name__, url_prefix='/api/subjects')
 @subjects_bp.route('', methods=['GET'])
 @login_required
 def get_subjects():
-    subjects = Subject.query.filter_by(user_id=current_user.id).all()
+    subjects = db.session.query(
+        Subject.id, Subject.name, Subject.type, Subject.color
+    ).filter(Subject.user_id == current_user.id).all()
     return json_response([{
         'id': s.id, 'name': s.name, 'type': s.type, 'color': s.color
     } for s in subjects])

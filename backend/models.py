@@ -31,6 +31,8 @@ class Subject(db.Model):
     type = db.Column(db.String(50), nullable=False)
     color = db.Column(db.String(7), nullable=False)
 
+    __table_args__ = (db.Index('ix_subject_user_id', 'user_id'),)
+
     subtasks = db.relationship(
         'Subtask', backref='subject', lazy=True,
         cascade='all, delete-orphan',
@@ -47,6 +49,11 @@ class Subtask(db.Model):
     # Day abbreviation (e.g. 'Lun', 'Mar', …). NULL means applies to all days (legacy).
     day = db.Column(db.String(3), nullable=True, default=None)
 
+    __table_args__ = (
+        db.Index('ix_subtask_user_subject_pos', 'user_id', 'subject_id', 'position'),
+        db.Index('ix_subtask_subject_day', 'subject_id', 'day'),
+    )
+
 
 class Timeslot(db.Model):
     id = db.Column(db.String(50), primary_key=True)
@@ -54,6 +61,8 @@ class Timeslot(db.Model):
     start = db.Column(db.String(5), nullable=False)
     end = db.Column(db.String(5), nullable=False)
     days = db.Column(db.JSON, nullable=False, default=list)
+
+    __table_args__ = (db.Index('ix_timeslot_user_start', 'user_id', 'start'),)
 
 
 class ScheduleEntry(db.Model):
@@ -67,7 +76,11 @@ class ScheduleEntry(db.Model):
         'subject.id'), nullable=False)
 
     __table_args__ = (db.UniqueConstraint(
-        'user_id', 'week_offset', 'day', 'timeslot_id', name='unique_cell'),)
+        'user_id', 'week_offset', 'day', 'timeslot_id', name='unique_cell'),
+        # unique_cell already covers (user_id, week_offset, ...) lookups
+        db.Index('ix_schedule_entry_subject_id', 'subject_id'),
+        db.Index('ix_schedule_entry_timeslot_id', 'timeslot_id'),
+        db.Index('ix_schedule_entry_user_subject', 'user_id', 'subject_id'))
 
 
 class AutogenConfig(db.Model):
@@ -78,7 +91,8 @@ class AutogenConfig(db.Model):
     hours = db.Column(db.Float, nullable=False, default=0.0)
 
     __table_args__ = (db.UniqueConstraint(
-        'user_id', 'subject_id', name='unique_user_subject'),)
+        'user_id', 'subject_id', name='unique_user_subject'),
+        db.Index('ix_autogen_config_subject_id', 'subject_id'))
 
 
 class FreeTask(db.Model):
@@ -94,6 +108,10 @@ class FreeTask(db.Model):
     position = db.Column(db.Integer, nullable=False, default=0)
     done = db.Column(db.Boolean, default=False)
 
+    __table_args__ = (
+        db.Index('ix_free_task_user_week_day_pos',
+                 'user_id', 'week_offset', 'day', 'position'),)
+
 
 class PasswordResetToken(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -101,6 +119,8 @@ class PasswordResetToken(db.Model):
     token = db.Column(db.String(100), unique=True, nullable=False)
     expires_at = db.Column(db.DateTime, nullable=False)
     used = db.Column(db.Boolean, default=False)
+
+    __table_args__ = (db.Index('ix_password_reset_token_user_id', 'user_id'),)
 
     @staticmethod
     def generate_for(user):

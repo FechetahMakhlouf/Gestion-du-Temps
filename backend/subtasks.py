@@ -2,6 +2,12 @@ from flask import Blueprint, request
 from flask_login import current_user, login_required
 from models import db, Subject, Subtask
 from utils import json_response
+from sqlalchemy import case
+
+
+def _st(st):
+    # Minimal payload: subject_id is known by the caller, position by order
+    return {'id': st.id, 'title': st.title, 'day': st.day}
 
 subtasks_bp = Blueprint('subtasks', __name__, url_prefix='/api/subjects')
 
@@ -22,13 +28,7 @@ def get_subtasks(subject_id):
         query = query.filter(Subtask.day == day)
     subtasks = query.order_by(Subtask.position).all()
 
-    return json_response([{
-        'id': st.id,
-        'subject_id': st.subject_id,
-        'title': st.title,
-        'position': st.position,
-        'day': st.day
-    } for st in subtasks])
+    return json_response([_st(st) for st in subtasks])
 
 
 @subtasks_bp.route('/<subject_id>/subtasks', methods=['POST'])
@@ -57,13 +57,7 @@ def add_subtask(subject_id):
     )
     db.session.add(subtask)
     db.session.commit()
-    return json_response({
-        'id': subtask.id,
-        'subject_id': subtask.subject_id,
-        'title': subtask.title,
-        'position': subtask.position,
-        'day': subtask.day
-    }, message='Sous-titre ajouté', status=201)
+    return json_response(_st(subtask), message='Sous-titre ajouté', status=201)
 
 
 @subtasks_bp.route('/<subject_id>/subtasks/<int:subtask_id>', methods=['PUT'])
@@ -86,13 +80,7 @@ def update_subtask(subject_id, subtask_id):
         subtask.position = int(data['position'])
 
     db.session.commit()
-    return json_response({
-        'id': subtask.id,
-        'subject_id': subtask.subject_id,
-        'title': subtask.title,
-        'position': subtask.position,
-        'day': subtask.day
-    }, message='Sous-titre modifié')
+    return json_response(_st(subtask), message='Sous-titre modifié')
 
 
 @subtasks_bp.route('/<subject_id>/subtasks/<int:subtask_id>', methods=['DELETE'])
@@ -119,11 +107,19 @@ def reorder_subtasks(subject_id):
         id=subject_id, user_id=current_user.id).first_or_404()
     data = request.get_json()
     order = data.get('order', [])
-    for idx, subtask_id in enumerate(order):
-        Subtask.query.filter_by(
-            id=subtask_id, subject_id=subject_id,
-            user_id=current_user.id
-        ).update({'position': idx})
+    try:
+        order = [int(x) for x in order]
+    except (TypeError, ValueError):
+        return json_response(message='order invalide', status=400)
+    if order:
+        # Single UPDATE ... CASE instead of one UPDATE per row
+        Subtask.query.filter(
+            Subtask.id.in_(order),
+            Subtask.subject_id == subject_id,
+            Subtask.user_id == current_user.id,
+        ).update({Subtask.position: case(
+            {sid: idx for idx, sid in enumerate(order)}, value=Subtask.id)},
+            synchronize_session=False)
     db.session.commit()
     return json_response(message='Ordre mis à jour')
 
@@ -159,18 +155,14 @@ def get_subtasks_bulk():
     raw = request.args.get('subjectIds', '')
     day = request.args.get('day', None) or None
 
-    try:
-        subject_ids = [int(x) for x in raw.split(',') if x.strip()]
-    except ValueError:
-        return json_response(
-            message="subjectIds doit être une liste d'entiers séparés par des virgules",
-            status=400)
+    subject_ids = [x.strip() for x in raw.split(',') if x.strip()][:200]
 
     if not subject_ids:
         return json_response({})
 
     # Single DB round-trip for all requested subjects
-    q = Subtask.query.filter(
+    q = db.session.query(Subtask.id, Subtask.subject_id,
+                         Subtask.title, Subtask.day).filter(
         Subtask.user_id == current_user.id,
         Subtask.subject_id.in_(subject_ids)
     )
@@ -182,13 +174,7 @@ def get_subtasks_bulk():
     result = {}
     for st in rows:
         key = f"{st.subject_id}::{bucket_suffix}"
-        result.setdefault(key, []).append({
-            'id': st.id,
-            'subject_id': st.subject_id,
-            'title': st.title,
-            'position': st.position,
-            'day': st.day,
-        })
+        result.setdefault(key, []).append(_st(st))
 
     # Guarantee an entry for every requested subject (even when empty)
     for sid in subject_ids:

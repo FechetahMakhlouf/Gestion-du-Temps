@@ -52,7 +52,9 @@ def bootstrap():
     }
 
     # ── subjects ──────────────────────────────────────────────────────
-    subjects_rows = Subject.query.filter_by(user_id=uid).all()
+    subjects_rows = (
+        db.session.query(Subject.id, Subject.name, Subject.type, Subject.color)
+        .filter(Subject.user_id == uid).all())
     subjects = [
         {'id': s.id, 'name': s.name, 'type': s.type, 'color': s.color}
         for s in subjects_rows
@@ -91,7 +93,8 @@ def bootstrap():
     subject_ids = [s.id for s in subjects_rows]
     if subject_ids:
         all_subtasks = (
-            Subtask.query
+            db.session.query(Subtask.id, Subtask.subject_id,
+                             Subtask.title, Subtask.day)
             .filter(Subtask.user_id == uid,
                     Subtask.subject_id.in_(subject_ids))
             .order_by(Subtask.subject_id, Subtask.position)
@@ -103,13 +106,8 @@ def bootstrap():
         day_key_lists: dict = defaultdict(list)
 
         for st in all_subtasks:
-            row = {
-                'id': st.id,
-                'subject_id': st.subject_id,
-                'title': st.title,
-                'position': st.position,
-                'day': st.day,
-            }
+            # subject_id/position are implied by the bucket key & order
+            row = {'id': st.id, 'title': st.title, 'day': st.day}
             all_key_lists[st.subject_id].append(row)
             if st.day:
                 day_key_lists[(st.subject_id, st.day)].append(row)
@@ -141,15 +139,9 @@ def bootstrap():
         day_ft: dict = defaultdict(list)
 
         for ft in ft_rows:
-            row = {
-                'id': ft.id,
-                'day': ft.day,
-                'week_offset': ft.week_offset,
-                'title': ft.title,
-                'color': ft.color,
-                'position': ft.position,
-                'done': ft.done,
-            }
+            # week_offset/position are implied by the bucket key & order
+            row = {'id': ft.id, 'day': ft.day, 'title': ft.title,
+                   'color': ft.color, 'done': ft.done}
             all_ft.append(row)
             if ft.day:
                 day_ft[ft.day].append(row)
