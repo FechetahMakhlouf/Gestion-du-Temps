@@ -27,15 +27,26 @@ def upgrade():
         "ALTER TABLE public.free_task FORCE ROW LEVEL SECURITY"
     ))
 
-    conn.execute(text("""
-        CREATE POLICY "free_task_no_public_access"
-        ON public.free_task
-        AS RESTRICTIVE
-        FOR ALL
-        TO PUBLIC
-        USING (false)
-        WITH CHECK (false)
-    """))
+    policy_exists = conn.execute(text("""
+        SELECT EXISTS (
+            SELECT 1
+            FROM pg_policies
+            WHERE schemaname = 'public'
+              AND tablename = 'free_task'
+              AND policyname = 'free_task_no_public_access'
+        )
+    """)).scalar()
+
+    if not policy_exists:
+        conn.execute(text("""
+            CREATE POLICY "free_task_no_public_access"
+            ON public.free_task
+            AS RESTRICTIVE
+            FOR ALL
+            TO PUBLIC
+            USING (false)
+            WITH CHECK (false)
+        """))
 
 
 def downgrade():
