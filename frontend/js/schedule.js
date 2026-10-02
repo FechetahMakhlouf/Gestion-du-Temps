@@ -328,7 +328,7 @@ function updateWeekFillBar(timeslots, sched) {
     if (fillTrack) {
       fillTrack.style.width = pct + "%";
       fillTrack.style.background =
-        pct >= 80 ? "var(--green)" : pct >= 40 ? "var(--gold)" : "var(--blue)";
+        pct >= 80 ? "var(--success)" : pct >= 40 ? "var(--primary)" : "var(--info)";
     }
     if (fillLabel)
       fillLabel.textContent = `${assignedSlots} / ${totalSlots} créneaux assignés (${pct}%)`;
@@ -996,8 +996,8 @@ async function renderDaysCheckboxes() {
   el.innerHTML = allDays
     .map(
       (d) => `
-        <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.82rem;padding:0.4rem 0.8rem;background:var(--surface);border:1px solid ${active.includes(d) ? "var(--gold)" : "var(--border)"};border-radius:6px;color:${active.includes(d) ? "var(--gold-light)" : "var(--text-muted)"}">
-            <input type="checkbox" ${active.includes(d) ? "checked" : ""} onchange="toggleDay('${d}',this)" style="accent-color:var(--gold)">
+        <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.82rem;padding:0.4rem 0.8rem;background:var(--surface);border:1px solid ${active.includes(d) ? "var(--primary)" : "var(--border)"};border-radius:6px;color:${active.includes(d) ? "var(--primary-light)" : "var(--text-muted)"}">
+            <input type="checkbox" ${active.includes(d) ? "checked" : ""} onchange="toggleDay('${d}',this)" style="accent-color:var(--primary)">
             ${d}
         </label>
     `,

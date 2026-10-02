@@ -5,7 +5,7 @@
    SUBJECTS
 ══════════════════════════════════════════════ */
 
-let selectedColor = "#1d4ed8";
+let selectedColor = "var(--info)";
 
 /* ── Color Wheel Picker ─────────────────────────── */
 const _wheel = {

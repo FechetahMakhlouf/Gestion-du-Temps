@@ -54,7 +54,7 @@ async function renderProductivityCard() {
   try {
     data = await Store.getProductivity(currentWeekOffset);
   } catch (e) {
-    // Silently hide card on error (e.g. not logged in, server down)
+    console.error("Unable to load productivity score", e);
     card.style.display = "none";
     return;
   }
@@ -124,14 +124,14 @@ function _prodRenderScore(data) {
     if (levelEl2) {
       levelEl2.style.color =
         tier === "excellent"
-          ? "var(--green-light)"
+          ? "var(--success)"
           : tier === "productive"
-            ? "var(--blue-light)"
+            ? "var(--info)"
             : tier === "good"
-              ? "var(--gold-light)"
+              ? "var(--primary-light)"
               : tier === "needs-work"
-                ? "#e07b2a"
-                : "var(--red-light)";
+                ? "var(--primary-light)"
+                : "var(--danger)";
     }
   }
 
@@ -148,12 +148,12 @@ function _prodRenderScore(data) {
         // Bar colour reflects fill level
         const barColor =
           pct >= 80
-            ? "var(--green)"
+            ? "var(--success)"
             : pct >= 50
-              ? "var(--blue)"
+              ? "var(--info)"
               : pct >= 30
-                ? "var(--gold)"
-                : "var(--red-light)";
+                ? "var(--primary)"
+                : "var(--danger)";
 
         return `<div class="prod-bar-row">
                 <span class="prod-bar-label" title="${label}">${label}</span>

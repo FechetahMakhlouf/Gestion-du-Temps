@@ -2,7 +2,7 @@
 
 <h1>
   <br>
-  <img src="https://img.shields.io/badge/جدول-Jadwal-b8960c?style=for-the-badge&labelColor=1e293b" alt="Jadwal Logo"/>
+  <img src="https://img.shields.io/badge/جدول-Jadwal-6366f1?style=for-the-badge&labelColor=121a2b" alt="Jadwal Logo"/>
   <br>
   Jadwal — Gestionnaire d'emploi du temps
   <br>
@@ -15,7 +15,7 @@
 
 <p align="center">
   <a href="https://fechetahmakhlouf.github.io/Gestion-du-Temps/">
-    <img src="https://img.shields.io/badge/🌐 Live Demo-Jadwal.io-b8960c?style=flat-square" alt="Live Demo"/>
+    <img src="https://img.shields.io/badge/🌐 Live Demo-Jadwal.io-6366f1?style=flat-square" alt="Live Demo"/>
   </a>
   &nbsp;
   <img src="https://img.shields.io/badge/Python-3.10+-3776ab?style=flat-square&logo=python&logoColor=white" alt="Python"/>

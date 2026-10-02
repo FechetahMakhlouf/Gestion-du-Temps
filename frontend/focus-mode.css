@@ -16,9 +16,9 @@
 }
 
 .focus-mode-toggle-btn.fm-btn-active {
-    background: var(--gold-dim);
-    border-color: var(--gold);
-    color: var(--gold-light);
+    background: var(--primary-dim);
+    border-color: var(--primary);
+    color: var(--primary-light);
 }
 
 /* ── Hide app UI while focus is active ─────────────────────────────── */
@@ -131,7 +131,7 @@ body.focus-mode-active .top-bar {
     color: var(--text);
     line-height: 1.2;
     padding-bottom: 0.4rem;
-    border-bottom: 2px solid var(--gold);
+    border-bottom: 2px solid var(--primary);
     transition: border-color var(--transition);
 }
 
@@ -266,7 +266,7 @@ body.focus-mode-active .top-bar {
 .fm-settings-btn:focus-visible {
     color: var(--text);
     border-color: var(--border2);
-    outline: 2px solid var(--gold);
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
 }
 
@@ -302,7 +302,7 @@ body.focus-mode-active .top-bar {
 }
 
 .fm-pref-check {
-    accent-color: var(--gold);
+    accent-color: var(--primary);
     width: 15px;
     height: 15px;
     cursor: pointer;
@@ -331,7 +331,7 @@ body.focus-mode-active .top-bar {
     background: var(--surface3);
     color: var(--text);
     border-color: var(--border2);
-    outline: 2px solid var(--gold);
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
 }
 
@@ -390,7 +390,7 @@ body.focus-mode-active .top-bar {
 
 .fm-free-time {
     font-size: 1.05rem;
-    color: var(--gold-light);
+    color: var(--primary-light);
 }
 
 /* ══════════════════════════════════════════════════════════════════════

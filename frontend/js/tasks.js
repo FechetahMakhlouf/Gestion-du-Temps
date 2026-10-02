@@ -6,13 +6,19 @@
 ══════════════════════════════════════════════ */
 
 const FREE_TASK_SWATCHES = [
-  '#c9972a', '#e8b84b', '#2ea44f', '#58a6ff',
-  '#da3633', '#bf91f3', '#f78166', '#39d353',
+  'var(--primary)', 'var(--primary-light)', 'var(--success)', 'var(--info)',
+  'var(--danger)', '#A78BFA', '#FB923C', '#4ADE80',
 ];
 
 let _freeTaskDay = null;
 let _freeTaskWeekOffset = 0;
-let _selectedFreeTaskColor = '#c9972a';
+let _selectedFreeTaskColor = 'var(--primary)';
+
+function _freeTaskColorValue(color) {
+  if (!color.startsWith('var(')) return color;
+  const token = color.slice(4, -1).trim();
+  return getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+}
 
 /** Render the color swatches inside the Free Task modal */
 function _renderFreeTaskSwatches() {
@@ -25,7 +31,7 @@ function _renderFreeTaskSwatches() {
          onclick="selectFreeTaskColor('${c}')"></div>
   `).join('');
   const native = document.getElementById('free-task-color-input');
-  if (native) native.value = _selectedFreeTaskColor;
+  if (native) native.value = _freeTaskColorValue(_selectedFreeTaskColor);
 }
 
 /** Pick a color from swatches */

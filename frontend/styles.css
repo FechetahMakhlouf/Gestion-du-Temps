@@ -5,24 +5,21 @@
 
 /* ── Variables ────────────────────────────────────── */
 :root {
-  --bg: #060a10;
-  --surface: #0d1420;
-  --surface2: #131c2e;
-  --surface3: #192336;
-  --border: #1a2840;
-  --border2: #243650;
+  --bg: #0B1020;
+  --surface: #121A2B;
+  --surface2: #18233A;
+  --surface3: #1F2E4A;
+  --border: #293B5A;
+  --border2: #385174;
   --text: #e4edf8;
   --text-muted: #5a6e85;
   --text-dim: #2e3f55;
-  --gold: #c9972a;
-  --gold-light: #e8b84b;
-  --gold-dim: rgba(201, 151, 42, 0.13);
-  --green: #2ea44f;
-  --green-light: #4cc76b;
-  --red: #da3633;
-  --red-light: #ff6b6b;
-  --blue: #1f6feb;
-  --blue-light: #58a6ff;
+  --primary: #6366F1;
+  --primary-light: #818CF8;
+  --primary-dim: rgba(99, 102, 241, 0.14);
+  --success: #22C55E;
+  --danger: #EF4444;
+  --info: #38BDF8;
   --radius: 12px;
   --radius-sm: 8px;
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -88,8 +85,8 @@ body {
 .loader-logo {
   font-family: "Amiri", serif;
   font-size: 3rem;
-  color: var(--gold-light);
-  text-shadow: 0 0 40px rgba(232, 184, 75, 0.3);
+  color: var(--primary-light);
+  text-shadow: 0 0 40px color-mix(in srgb, var(--primary-light) 30%, transparent);
   animation: logoPulse 1.5s ease-in-out infinite;
 }
 
@@ -108,7 +105,7 @@ body {
   width: 28px;
   height: 28px;
   border: 2.5px solid var(--border2);
-  border-top-color: var(--gold);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -129,7 +126,7 @@ body {
   align-items: stretch;
   justify-content: center;
   background:
-    radial-gradient(circle at 8% 8%, rgba(201, 151, 42, 0.08), transparent 34%),
+    radial-gradient(circle at 8% 8%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 34%),
     radial-gradient(circle at 92% 92%, rgba(31, 111, 235, 0.06), transparent 30%),
     var(--bg);
   position: relative;
@@ -178,16 +175,16 @@ body {
 .auth-deco-logo .logo-title {
   font-family: "Amiri", serif;
   font-size: 4rem;
-  color: var(--gold-light);
+  color: var(--primary-light);
   letter-spacing: 0.04em;
   line-height: 1;
-  text-shadow: 0 0 60px rgba(232, 184, 75, 0.25);
+  text-shadow: 0 0 60px color-mix(in srgb, var(--primary-light) 25%, transparent);
 }
 
 .gold-line {
   width: 48px;
   height: 1.5px;
-  background: linear-gradient(90deg, var(--gold), transparent);
+  background: linear-gradient(90deg, var(--primary), transparent);
   margin: 0.8rem 0;
 }
 
@@ -201,7 +198,7 @@ body {
 }
 
 .auth-deco-tagline span {
-  color: var(--gold-light);
+  color: var(--primary-light);
   font-weight: 500;
 }
 
@@ -223,7 +220,7 @@ body {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--gold);
+  background: var(--primary);
   flex-shrink: 0;
 }
 
@@ -252,14 +249,14 @@ body {
 }
 
 .auth-card {
-  background: rgba(13, 20, 32, 0.9);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
   border: 1px solid var(--border);
   border-radius: 22px;
   padding: 2.5rem 2.2rem;
   position: relative;
   overflow: hidden;
   box-shadow:
-    0 0 0 1px rgba(201, 151, 42, 0.06),
+    0 0 0 1px color-mix(in srgb, var(--primary) 6%, transparent),
     0 12px 32px rgba(0, 0, 0, 0.38),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
@@ -274,7 +271,7 @@ body {
   background: linear-gradient(
     90deg,
     transparent,
-    var(--gold-light),
+    var(--primary-light),
     transparent
   );
   opacity: 0.6;
@@ -289,7 +286,7 @@ body {
   height: 160px;
   background: radial-gradient(
     circle,
-    rgba(201, 151, 42, 0.08) 0%,
+    color-mix(in srgb, var(--primary) 8%, transparent) 0%,
     transparent 70%
   );
   pointer-events: none;
@@ -316,10 +313,10 @@ body {
 .auth-card .logo-title {
   font-family: "Amiri", serif;
   font-size: 1.8rem;
-  color: var(--gold-light);
+  color: var(--primary-light);
   letter-spacing: 0.04em;
   line-height: 1;
-  text-shadow: 0 0 60px rgba(232, 184, 75, 0.25);
+  text-shadow: 0 0 60px color-mix(in srgb, var(--primary-light) 25%, transparent);
   text-align: center;
 }
 
@@ -332,7 +329,7 @@ body {
 .auth-tabs {
   display: flex;
   margin-bottom: 2rem;
-  background: rgba(19, 28, 46, 0.6);
+  background: color-mix(in srgb, var(--surface2) 60%, transparent);
   border-radius: 12px;
   padding: 4px;
   border: 1px solid var(--border);
@@ -357,11 +354,11 @@ body {
 .auth-tab.active {
   background: linear-gradient(
     135deg,
-    rgba(201, 151, 42, 0.2),
-    rgba(232, 184, 75, 0.1)
+    color-mix(in srgb, var(--primary) 20%, transparent),
+    color-mix(in srgb, var(--primary-light) 10%, transparent)
   );
-  color: var(--gold-light);
-  border: 1px solid rgba(201, 151, 42, 0.32);
+  color: var(--primary-light);
+  border: 1px solid color-mix(in srgb, var(--primary) 32%, transparent);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
@@ -378,7 +375,7 @@ body {
 }
 
 .form-input {
-  background: rgba(19, 28, 46, 0.75);
+  background: color-mix(in srgb, var(--surface2) 75%, transparent);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1.4rem 1rem 0.6rem 1rem;
@@ -392,9 +389,9 @@ body {
 }
 
 .form-input:focus {
-  border-color: var(--gold);
-  background: rgba(25, 35, 54, 0.9);
-  box-shadow: 0 0 0 3px rgba(201, 151, 42, 0.1);
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--surface3) 90%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 .form-label {
@@ -414,7 +411,7 @@ body {
   top: 0.5rem;
   transform: translateY(0);
   font-size: 0.65rem;
-  color: var(--gold);
+  color: var(--primary);
   letter-spacing: 0.07em;
   text-transform: uppercase;
   font-weight: 600;
@@ -425,7 +422,7 @@ body {
   top: 0.55rem;
   transform: translateY(0);
   font-size: 0.65rem;
-  color: var(--gold);
+  color: var(--primary);
   letter-spacing: 0.07em;
   text-transform: uppercase;
   font-weight: 600;
@@ -438,7 +435,7 @@ body {
 
 /* ── Buttons ────────────────────────────────────── */
 .btn-primary {
-  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
   color: #07090d;
   border: none;
   border-radius: 14px;
@@ -491,7 +488,7 @@ body {
 
 .btn-danger {
   background: rgba(218, 54, 51, 0.12);
-  color: var(--red-light);
+  color: var(--danger);
   border: 1px solid rgba(218, 54, 51, 0.28);
   border-radius: 10px;
   padding: 0.75rem 1rem;
@@ -535,13 +532,13 @@ body {
 
 .auth-msg.error {
   background: rgba(218, 54, 51, 0.12);
-  color: var(--red-light);
+  color: var(--danger);
   border: 1px solid rgba(218, 54, 51, 0.28);
 }
 
 .auth-msg.success {
   background: rgba(46, 164, 79, 0.12);
-  color: var(--green-light);
+  color: var(--success);
   border: 1px solid rgba(46, 164, 79, 0.28);
 }
 
@@ -554,7 +551,7 @@ body {
 }
 
 .forgot-link:hover {
-  color: var(--gold-light);
+  color: var(--primary-light);
 }
 
 /* Password toggle */
@@ -587,7 +584,7 @@ body {
 
 .pwd-toggle:hover,
 .pwd-toggle.active {
-  color: var(--gold-light);
+  color: var(--primary-light);
 }
 
 .eye-icon {
@@ -632,9 +629,9 @@ body {
 .sidebar-logo {
   font-family: "Amiri", serif;
   font-size: 1.6rem;
-  color: var(--gold-light);
+  color: var(--primary-light);
   text-align: center;
-  text-shadow: 0 0 30px rgba(232, 184, 75, 0.2);
+  text-shadow: 0 0 30px color-mix(in srgb, var(--primary-light) 20%, transparent);
 }
 
 .sidebar-user-row {
@@ -650,9 +647,9 @@ body {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: var(--gold-dim);
-  border: 1.5px solid rgba(201, 151, 42, 0.35);
-  color: var(--gold-light);
+  background: var(--primary-dim);
+  border: 1.5px solid color-mix(in srgb, var(--primary) 35%, transparent);
+  color: var(--primary-light);
   font-family: "DM Sans", sans-serif;
   font-size: 0.72rem;
   font-weight: 700;
@@ -722,9 +719,9 @@ body {
 }
 
 .nav-item.active {
-  background: var(--gold-dim);
-  color: var(--gold-light);
-  border-color: rgba(201, 151, 42, 0.22);
+  background: var(--primary-dim);
+  color: var(--primary-light);
+  border-color: color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
 .nav-icon {
@@ -741,7 +738,7 @@ body {
 
 .guide-badge {
   margin-left: auto;
-  background: var(--gold);
+  background: var(--primary);
   color: #07090d;
   font-size: 0.62rem;
   font-weight: 800;
@@ -780,7 +777,7 @@ body {
 .panel-title {
   font-family: "Amiri", serif;
   font-size: 1.8rem;
-  color: var(--gold-light);
+  color: var(--primary-light);
 }
 
 .panel-sub {
@@ -867,8 +864,8 @@ select.form-input option {
 }
 
 .week-btn:hover {
-  border-color: var(--gold);
-  color: var(--gold-light);
+  border-color: var(--primary);
+  color: var(--primary-light);
 }
 
 .week-label {
@@ -959,9 +956,9 @@ select.form-input option {
 }
 
 .day-card-today {
-  border-color: rgba(201, 151, 42, 0.4);
+  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
   box-shadow:
-    0 0 0 1px rgba(201, 151, 42, 0.12),
+    0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent),
     0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
@@ -994,9 +991,9 @@ select.form-input option {
 }
 
 .day-card-today .day-date-badge {
-  background: var(--gold-dim);
-  color: var(--gold-light);
-  border-color: rgba(201, 151, 42, 0.3);
+  background: var(--primary-dim);
+  color: var(--primary-light);
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .day-tags {
@@ -1016,9 +1013,9 @@ select.form-input option {
 }
 
 .tag-today {
-  background: rgba(201, 151, 42, 0.15);
-  color: var(--gold-light);
-  border: 1px solid rgba(201, 151, 42, 0.3);
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary-light);
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .reset-day-btn {
@@ -1039,8 +1036,8 @@ select.form-input option {
 }
 
 .reset-day-btn:hover {
-  border-color: var(--gold);
-  color: var(--gold-light);
+  border-color: var(--primary);
+  color: var(--primary-light);
 }
 
 /* Timeline */
@@ -1112,7 +1109,7 @@ select.form-input option {
 }
 
 .block-empty {
-  background: rgba(26, 40, 64, 0.35) !important;
+  background: color-mix(in srgb, var(--border) 35%, transparent) !important;
   border: 1.5px dashed var(--border2) !important;
   cursor: pointer;
   min-height: 38px;
@@ -1124,13 +1121,13 @@ select.form-input option {
 }
 
 .block-empty:hover {
-  background: rgba(201, 151, 42, 0.06) !important;
-  border-color: rgba(201, 151, 42, 0.3) !important;
+  background: color-mix(in srgb, var(--primary) 6%, transparent) !important;
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent) !important;
 }
 
 .block-empty.drag-over {
-  background: rgba(201, 151, 42, 0.1) !important;
-  border-color: var(--gold) !important;
+  background: color-mix(in srgb, var(--primary) 10%, transparent) !important;
+  border-color: var(--primary) !important;
 }
 
 .empty-slot-hint {
@@ -1161,14 +1158,14 @@ select.form-input option {
 }
 
 .done-btn:hover {
-  border-color: var(--green);
-  color: var(--green-light);
+  border-color: var(--success);
+  color: var(--success);
 }
 
 .done-btn.done {
   background: rgba(46, 164, 79, 0.2);
-  border-color: var(--green);
-  color: var(--green-light);
+  border-color: var(--success);
+  color: var(--success);
 }
 
 /* Delete inline */
@@ -1178,7 +1175,7 @@ select.form-input option {
   border-radius: 50%;
   border: none;
   background: rgba(218, 54, 51, 0.15);
-  color: var(--red-light);
+  color: var(--danger);
   cursor: pointer;
   font-size: 0.55rem;
   display: flex;
@@ -1229,7 +1226,7 @@ select.form-input option {
   padding: 0.1rem 0.38rem;
   border-radius: 0.3rem;
   background: rgba(46, 164, 79, 0.12);
-  color: var(--green-light);
+  color: var(--success);
   border: 1px solid rgba(46, 164, 79, 0.25);
 }
 
@@ -1237,7 +1234,7 @@ select.form-input option {
 .conflict-badge {
   background: rgba(218, 54, 51, 0.15);
   border: 1px solid rgba(218, 54, 51, 0.4);
-  color: var(--red-light);
+  color: var(--danger);
   border-radius: 6px;
   padding: 0.3rem 0.8rem;
   font-size: 0.78rem;
@@ -1272,7 +1269,7 @@ select.form-input option {
 }
 
 .stat-icon {
-  color: var(--gold);
+  color: var(--primary);
   opacity: 0.7;
   margin-bottom: 0.4rem;
   display: flex;
@@ -1283,7 +1280,7 @@ select.form-input option {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 1.9rem;
   font-weight: 600;
-  color: var(--gold-light);
+  color: var(--primary-light);
   line-height: 1;
 }
 
@@ -1350,13 +1347,13 @@ select.form-input option {
 }
 
 .icon-btn:hover {
-  color: var(--gold-light);
-  border-color: var(--gold);
+  color: var(--primary-light);
+  border-color: var(--primary);
 }
 
 .icon-btn.danger:hover {
-  color: var(--red-light);
-  border-color: var(--red);
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 .subject-card-meta {
@@ -1473,7 +1470,7 @@ select.form-input option {
 .timeslot-time {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.85rem;
-  color: var(--gold-light);
+  color: var(--primary-light);
   flex: 1;
 }
 
@@ -1501,7 +1498,7 @@ select.form-input option {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 1.15rem;
   font-weight: 600;
-  color: var(--gold-light);
+  color: var(--primary-light);
   line-height: 1;
 }
 
@@ -1563,9 +1560,9 @@ select.form-input option {
 }
 
 .ts-day-chip input[type="checkbox"]:checked + span {
-  background: var(--gold);
+  background: var(--primary);
   color: #1a1200;
-  border-color: var(--gold);
+  border-color: var(--primary);
 }
 
 .ts-day-tags {
@@ -1580,9 +1577,9 @@ select.form-input option {
   font-weight: 700;
   padding: 0.15rem 0.45rem;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--gold) 18%, transparent);
-  color: var(--gold);
-  border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
+  background: color-mix(in srgb, var(--primary) 18%, transparent);
+  color: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1633,7 +1630,7 @@ select.form-input option {
 .autogen-total-inner.autogen-over {
   border-color: rgba(218, 54, 51, 0.4);
   background: rgba(218, 54, 51, 0.07);
-  color: var(--red-light);
+  color: var(--danger);
 }
 
 .autogen-capacity {
@@ -1643,7 +1640,7 @@ select.form-input option {
 
 .autogen-capacity.over {
   opacity: 1;
-  color: var(--red-light);
+  color: var(--danger);
 }
 
 .autogen-row-dot {
@@ -1693,9 +1690,9 @@ select.form-input option {
 }
 
 .mode-btn.active {
-  background: var(--gold-dim);
-  color: var(--gold-light);
-  border-color: rgba(201, 151, 42, 0.4);
+  background: var(--primary-dim);
+  color: var(--primary-light);
+  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1746,7 +1743,7 @@ select.form-input option {
 .modal-title {
   font-family: "Amiri", serif;
   font-size: 1.3rem;
-  color: var(--gold-light);
+  color: var(--primary-light);
   margin-bottom: 1.3rem;
 }
 
@@ -1840,7 +1837,7 @@ select.form-input option {
 
 .wheel-hex-input:focus {
   outline: none;
-  border-color: var(--gold);
+  border-color: var(--primary);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1893,15 +1890,15 @@ select.form-input option {
 }
 
 .toast.success {
-  border-left: 3px solid var(--green);
+  border-left: 3px solid var(--success);
 }
 
 .toast.error {
-  border-left: 3px solid var(--red);
+  border-left: 3px solid var(--danger);
 }
 
 .toast.info {
-  border-left: 3px solid var(--gold);
+  border-left: 3px solid var(--primary);
 }
 
 .toast-close {
@@ -1998,14 +1995,14 @@ select.form-input option {
 }
 
 .guide-step-pill:hover {
-  border-color: var(--gold);
-  color: var(--gold-light);
+  border-color: var(--primary);
+  color: var(--primary-light);
 }
 
 .guide-step-pill.active {
-  background: rgba(201, 151, 42, 0.15);
-  border-color: var(--gold);
-  color: var(--gold-light);
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  border-color: var(--primary);
+  color: var(--primary-light);
   font-weight: 600;
 }
 
@@ -2024,12 +2021,12 @@ select.form-input option {
 }
 
 .guide-step-pill.active .pill-num {
-  background: var(--gold);
+  background: var(--primary);
   color: #07090d;
 }
 
 .guide-step-pill.completed .pill-num {
-  background: var(--green, #16a34a);
+  background: var(--success);
   color: #fff;
 }
 
@@ -2065,8 +2062,8 @@ select.form-input option {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: rgba(201, 151, 42, 0.12);
-  border: 1px solid rgba(201, 151, 42, 0.3);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2080,7 +2077,7 @@ select.form-input option {
 
 .guide-step-num {
   font-size: 0.7rem;
-  color: var(--gold);
+  color: var(--primary);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -2126,16 +2123,16 @@ select.form-input option {
 }
 
 .guide-action:hover {
-  border-color: rgba(201, 151, 42, 0.3);
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .guide-action-num {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(201, 151, 42, 0.15);
-  border: 1px solid rgba(201, 151, 42, 0.4);
-  color: var(--gold);
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  color: var(--primary);
   font-size: 0.7rem;
   font-weight: 700;
   display: flex;
@@ -2163,10 +2160,10 @@ select.form-input option {
   display: flex;
   gap: 0.75rem;
   padding: 0.9rem 1rem;
-  background: rgba(201, 151, 42, 0.07);
-  border: 1px solid rgba(201, 151, 42, 0.25);
+  background: color-mix(in srgb, var(--primary) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
   border-radius: 10px;
-  border-left: 3px solid var(--gold);
+  border-left: 3px solid var(--primary);
 }
 
 .guide-tip-icon {
@@ -2182,7 +2179,7 @@ select.form-input option {
 }
 
 .guide-tip-text strong {
-  color: var(--gold-light);
+  color: var(--primary-light);
 }
 
 .guide-warn-box {
@@ -2260,7 +2257,7 @@ select.form-input option {
 }
 
 .guide-summary-card:hover {
-  border-color: var(--gold);
+  border-color: var(--primary);
   transform: translateY(-2px);
 }
 
@@ -2301,7 +2298,7 @@ select.form-input option {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgba(6, 10, 16, 0.96);
+  background: color-mix(in srgb, var(--bg) 96%, transparent);
   opacity: 0;
 
   padding: 0;
@@ -2320,7 +2317,7 @@ select.form-input option {
 
 .giv-card {
   background: linear-gradient(170deg, #111825 0%, #0c1219 100%);
-  border: 1px solid rgba(201, 151, 42, 0.28);
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, transparent);
   border-bottom: none;
   border-radius: 22px 22px 0 0;
   padding: 1.6rem 1.4rem calc(1.8rem + env(safe-area-inset-bottom));
@@ -2337,7 +2334,7 @@ select.form-input option {
   width: 40px;
   height: 4px;
   border-radius: 2px;
-  background: rgba(201, 151, 42, 0.3);
+  background: color-mix(in srgb, var(--primary) 30%, transparent);
   margin: 0 auto 1.4rem;
 }
 
@@ -2354,7 +2351,7 @@ select.form-input option {
 .giv-bismillah {
   font-family: "Amiri", serif;
   font-size: 1rem;
-  color: var(--gold);
+  color: var(--primary);
   letter-spacing: 0.04em;
   margin-bottom: 1.3rem;
   opacity: 0.85;
@@ -2390,7 +2387,7 @@ select.form-input option {
   align-items: center;
   gap: 0.7rem;
   margin: 1rem 0;
-  color: rgba(201, 151, 42, 0.35);
+  color: color-mix(in srgb, var(--primary) 35%, transparent);
   font-size: 0.72rem;
 }
 
@@ -2402,13 +2399,13 @@ select.form-input option {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(201, 151, 42, 0.22),
+    color-mix(in srgb, var(--primary) 22%, transparent),
     transparent
   );
 }
 
 .giv-separator span {
-  color: var(--gold);
+  color: var(--primary);
   opacity: 0.45;
 }
 
@@ -2416,7 +2413,7 @@ select.form-input option {
   margin-top: 1.5rem;
   display: block;
   width: 100%;
-  background: linear-gradient(135deg, var(--gold) 0%, #e8b84b 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
   color: #0a0c10;
   border: none;
   border-radius: 14px;
@@ -2430,7 +2427,7 @@ select.form-input option {
     transform 0.15s ease,
     box-shadow 0.15s ease,
     opacity 0.15s;
-  box-shadow: 0 4px 18px rgba(201, 151, 42, 0.32);
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--primary) 32%, transparent);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
@@ -2467,7 +2464,7 @@ select.form-input option {
   }
 
   .giv-card {
-    border: 1px solid rgba(201, 151, 42, 0.3);
+    border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
     border-radius: 18px;
     padding: 2.6rem 2.2rem 2rem;
     max-width: 540px;
@@ -2490,7 +2487,7 @@ select.form-input option {
 
   .giv-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(201, 151, 42, 0.42);
+    box-shadow: 0 8px 28px color-mix(in srgb, var(--primary) 42%, transparent);
   }
 
   @keyframes givCardIn {
@@ -2528,8 +2525,8 @@ select.form-input option {
     left: 0;
     right: 0;
     z-index: 200;
-    background: rgba(6, 10, 16, 0.98);
-    border-bottom: 1px solid rgba(201, 151, 42, 0.12);
+    background: color-mix(in srgb, var(--bg) 98%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--primary) 12%, transparent);
     padding: 0.65rem 1rem;
     height: var(--top-bar-height);
   }
@@ -2537,8 +2534,8 @@ select.form-input option {
   .mobile-top-bar-logo {
     font-family: "Amiri", serif;
     font-size: 1.5rem;
-    color: var(--gold-light);
-    text-shadow: 0 0 20px rgba(232, 184, 75, 0.3);
+    color: var(--primary-light);
+    text-shadow: 0 0 20px color-mix(in srgb, var(--primary-light) 30%, transparent);
     line-height: 1;
   }
 
@@ -2553,9 +2550,9 @@ select.form-input option {
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: var(--gold-dim);
-    border: 1.5px solid rgba(201, 151, 42, 0.42);
-    color: var(--gold-light);
+    background: var(--primary-dim);
+    border: 1.5px solid color-mix(in srgb, var(--primary) 42%, transparent);
+    color: var(--primary-light);
     font-size: 0.7rem;
     font-weight: 700;
     display: flex;
@@ -2572,7 +2569,7 @@ select.form-input option {
     border-radius: 10px;
     background: rgba(218, 54, 51, 0.1);
     border: 1px solid rgba(218, 54, 51, 0.25);
-    color: var(--red-light);
+    color: var(--danger);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2590,9 +2587,9 @@ select.form-input option {
     width: 38px;
     height: 38px;
     border-radius: 12px;
-    background: rgba(201, 151, 42, 0.08);
-    border: 1px solid rgba(201, 151, 42, 0.25);
-    color: var(--gold-light);
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+    color: var(--primary-light);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2603,7 +2600,7 @@ select.form-input option {
 
   .mobile-top-bar-contact:active {
     transform: scale(0.92);
-    background: rgba(201, 151, 42, 0.2);
+    background: color-mix(in srgb, var(--primary) 20%, transparent);
   }
 
   /* ── Mobile Bottom Nav ── */
@@ -2615,7 +2612,7 @@ select.form-input option {
     right: 0;
     z-index: 300;
     background: rgba(8, 12, 20, 0.99);
-    border-top: 1px solid rgba(201, 151, 42, 0.14);
+    border-top: 1px solid color-mix(in srgb, var(--primary) 14%, transparent);
     padding: 0.4rem 0.25rem;
     padding-bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px));
     gap: 0;
@@ -2644,9 +2641,9 @@ select.form-input option {
   }
 
   .mobile-bottom-nav .nav-item.active {
-    color: var(--gold-light);
-    background: rgba(201, 151, 42, 0.1);
-    border-color: rgba(201, 151, 42, 0.2);
+    color: var(--primary-light);
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
+    border-color: color-mix(in srgb, var(--primary) 20%, transparent);
   }
 
   .mobile-bottom-nav .nav-item.active::before {
@@ -2659,7 +2656,7 @@ select.form-input option {
     background: linear-gradient(
       90deg,
       transparent,
-      var(--gold-light),
+      var(--primary-light),
       transparent
     );
     border-radius: 0 0 4px 4px;
@@ -2901,7 +2898,7 @@ select.form-input option {
     border: 1px solid var(--border2);
     border-radius: var(--radius-sm);
     background: var(--surface);
-    color: var(--gold-light);
+    color: var(--primary-light);
     font: inherit;
     font-size: 1rem;
     cursor: pointer;
@@ -3273,7 +3270,7 @@ body.export-mode .sidebar {
 }
 
 .nav-item-contact:hover {
-  color: var(--gold);
+  color: var(--primary);
   background: rgba(184, 150, 12, 0.08);
 }
 
@@ -3282,7 +3279,7 @@ body.export-mode .sidebar {
 }
 
 .nav-item-contact:hover .nav-icon svg {
-  stroke: var(--gold);
+  stroke: var(--primary);
 }
 
 .sidebar-author {
@@ -3309,7 +3306,7 @@ body.export-mode .sidebar {
 
 .sidebar-author-link:hover {
   opacity: 1;
-  color: var(--gold);
+  color: var(--primary);
 }
 
 .sidebar-author-icon {
@@ -3323,7 +3320,7 @@ body.export-mode .sidebar {
 }
 
 .sidebar-author-link:hover .sidebar-author-icon svg {
-  stroke: var(--gold);
+  stroke: var(--primary);
 }
 
 /* contact textarea label fix */
@@ -3332,7 +3329,7 @@ textarea.form-input:focus ~ .form-label,
 textarea.form-input:not(:placeholder-shown) ~ .form-label {
   top: 0.45rem;
   font-size: 0.72rem;
-  color: var(--gold);
+  color: var(--primary);
 }
 
 /* ── Contact Panel ────────────────────────────────────── */
@@ -3401,7 +3398,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 
 .contact-author-link:hover {
   opacity: 1;
-  color: var(--gold);
+  color: var(--primary);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -3434,7 +3431,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 }
 
 .emoji-toggle-btn.active {
-  background: var(--gold-dim);
+  background: var(--primary-dim);
 }
 
 .emoji-toggle-icon {
@@ -3459,7 +3456,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
   border-radius: var(--radius);
   box-shadow:
     0 12px 40px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(201, 151, 42, 0.08);
+    0 0 0 1px color-mix(in srgb, var(--primary) 8%, transparent);
   width: 300px;
   max-height: 320px;
   display: flex;
@@ -3522,8 +3519,8 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 }
 
 .emoji-cat-btn.active {
-  background: var(--gold-dim);
-  outline: 1.5px solid var(--gold);
+  background: var(--primary-dim);
+  outline: 1.5px solid var(--primary);
 }
 
 .emoji-picker-close {
@@ -3621,8 +3618,8 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 }
 
 .sidebar-settings-btn:hover {
-  color: var(--gold-light);
-  background: var(--gold-dim);
+  color: var(--primary-light);
+  background: var(--primary-dim);
 }
 
 .sidebar-settings-btn:active {
@@ -3637,7 +3634,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 }
 
 .settings-danger-title {
-  color: var(--red-light);
+  color: var(--danger);
 }
 
 .settings-danger-text {
@@ -3729,7 +3726,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 
 .prod-gauge-fill {
   fill: none;
-  stroke: var(--blue-light);
+  stroke: var(--info);
   stroke-width: 10;
   transition:
     stroke-dashoffset 0.9s cubic-bezier(0.4, 0, 0.2, 1),
@@ -3741,16 +3738,16 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
   stroke: #4cc76b;
 }
 .prod-gauge-fill[data-score-tier="productive"] {
-  stroke: #58a6ff;
+  stroke: var(--info);
 }
 .prod-gauge-fill[data-score-tier="good"] {
-  stroke: #e8b84b;
+  stroke: var(--primary-light);
 }
 .prod-gauge-fill[data-score-tier="needs-work"] {
-  stroke: #e07b2a;
+  stroke: var(--primary-light);
 }
 .prod-gauge-fill[data-score-tier="poor"] {
-  stroke: #da3633;
+  stroke: var(--danger);
 }
 
 .prod-gauge-center {
@@ -3824,7 +3821,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 .prod-bar-fill {
   height: 100%;
   border-radius: 3px;
-  background: var(--blue);
+  background: var(--info);
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   width: 0%;
 }
@@ -3874,7 +3871,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
   content: "→";
   position: absolute;
   left: 0;
-  color: var(--gold);
+  color: var(--primary);
 }
 
 /* ── Loading skeleton ───────────────────────────── */
@@ -3985,7 +3982,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 }
 
 .subtask-row.subtask-drag-over {
-  border-color: var(--gold);
+  border-color: var(--primary);
   background: rgba(212, 175, 55, 0.08);
 }
 
@@ -4008,7 +4005,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 .subtask-inline-input {
   flex: 1;
   background: var(--surface);
-  border: 1px solid var(--gold);
+  border: 1px solid var(--primary);
   border-radius: 4px;
   color: var(--text);
   font-size: 0.85rem;
@@ -4116,9 +4113,9 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 }
 
 .free-tasks-add-btn:hover {
-  border-color: var(--gold);
-  color: var(--gold-light);
-  background: rgba(201, 151, 42, 0.07);
+  border-color: var(--primary);
+  color: var(--primary-light);
+  background: color-mix(in srgb, var(--primary) 7%, transparent);
 }
 
 .free-task-item {
@@ -4180,14 +4177,14 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 }
 
 .free-task-done-btn:hover {
-  border-color: var(--green);
-  color: var(--green-light);
+  border-color: var(--success);
+  color: var(--success);
 }
 
 .free-task-done-btn.done {
   background: rgba(46, 164, 79, 0.2);
-  border-color: var(--green);
-  color: var(--green-light);
+  border-color: var(--success);
+  color: var(--success);
 }
 
 .free-task-del-btn {
@@ -4196,7 +4193,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
   border-radius: 50%;
   border: none;
   background: rgba(218, 54, 51, 0.1);
-  color: var(--red-light);
+  color: var(--danger);
   cursor: pointer;
   font-size: 0.55rem;
   display: flex;
@@ -4228,9 +4225,9 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 .free-task-modal-badge {
   font-size: 0.6rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-  background: rgba(201, 151, 42, 0.15);
-  color: var(--gold-light);
-  border: 1px solid rgba(201, 151, 42, 0.3);
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary-light);
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
   border-radius: 4px;
   padding: 0.1rem 0.45rem;
   margin-left: 0.6rem;
@@ -4375,14 +4372,14 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 }
 
 .free-task-modal-done-btn:hover {
-  border-color: var(--green);
-  color: var(--green-light);
+  border-color: var(--success);
+  color: var(--success);
 }
 
 .free-task-modal-done-btn.done {
   background: rgba(46, 164, 79, 0.2);
-  border-color: var(--green);
-  color: var(--green-light);
+  border-color: var(--success);
+  color: var(--success);
 }
 
 .free-task-modal-del-btn {
@@ -4391,7 +4388,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
   border-radius: 50%;
   border: none;
   background: rgba(218, 54, 51, 0.12);
-  color: var(--red-light);
+  color: var(--danger);
   cursor: pointer;
   font-size: 0.6rem;
   display: flex;
@@ -4418,9 +4415,9 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
   font-size: 0.58rem;
   padding: 0.1rem 0.38rem;
   border-radius: 4px;
-  background: rgba(201, 151, 42, 0.12);
-  color: var(--gold-light);
-  border: 1px solid rgba(201, 151, 42, 0.25);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary-light);
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
   white-space: nowrap;
 }
 
