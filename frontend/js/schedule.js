@@ -201,7 +201,6 @@ async function updateScheduleCell(day, tsId) {
 
   updateDayHeaderChips(day, timeslots, sched);
   updateWeekFillBar(timeslots, sched);
-  _refreshProductivitySoon();
 }
 
 /**
@@ -292,12 +291,38 @@ function updateWeekFillBar(timeslots, sched) {
   }
 }
 
-/** Debounced productivity refresh (granular updates don't go through
-    the renderScheduleGrid wrapper). */
+/* ══════════════════════════════════════════════
+   PRODUCTIVITY — decoupled from schedule rendering
+   ----------------------------------------------
+   Rendering the grid never touches /api/productivity.  The score is
+   cached in appState.productivity (per week inside Store) and is only
+   invalidated by writes that affect it: schedule entries, timeslots,
+   subjects.  Done-toggles and subtasks do NOT affect the score.
+
+   refreshProductivity() is a no-op when the card already shows the
+   current, still-valid data.  When the cache holds the week's data it
+   repaints without a request; otherwise it performs ONE fetch.
+══════════════════════════════════════════════ */
+let _prodShownKey = null;   // "<week>:<version>" currently painted
 let _prodRefreshTimer = null;
-function _refreshProductivitySoon() {
+
+async function refreshProductivity({ force = false } = {}) {
+  const key = `${currentWeekOffset}:${Store.productivityVersion()}`;
+  if (!force && key === _prodShownKey && Store.hasProductivity(currentWeekOffset)) {
+    return; // card is up to date — nothing changed
+  }
+  if (force) Store.invalidateProductivity(currentWeekOffset);
+  await renderProductivityCard();
+  // Only remember the key if the data is now cached (fetch succeeded).
+  _prodShownKey = Store.hasProductivity(currentWeekOffset)
+    ? `${currentWeekOffset}:${Store.productivityVersion()}`
+    : null;
+}
+
+/** Debounced variant for bursts of writes (e.g. drag & drop). */
+function refreshProductivitySoon() {
   clearTimeout(_prodRefreshTimer);
-  _prodRefreshTimer = setTimeout(() => renderProductivityCard(), 250);
+  _prodRefreshTimer = setTimeout(() => refreshProductivity(), 250);
 }
 
 /* ══════════════════════════════════════════════
@@ -445,10 +470,11 @@ async function renderSchedule() {
   checkConflicts();
 }
 
-/** Full rebuild + (debounced, lazy-loaded) productivity refresh. */
+/** Full rebuild, then a productivity refresh that only hits the network
+    when the cached score for this week is missing or invalidated. */
 async function renderScheduleGrid() {
   const result = await renderSchedule();
-  _refreshProductivitySoon();
+  refreshProductivity();
   return result;
 }
 
@@ -476,11 +502,11 @@ function toggleDoneBlock(weekOffset, day, tsId) {
       btn.setAttribute("aria-label", "Marquer comme non fait");
     }
   }
-  // Granular: refresh only this day's counters + the productivity card.
+  // Granular: refresh only this day's counters. Done-state is not part of
+  // the productivity score, so no productivity refresh is needed.
   Promise.all([Store.getTimeslots(), Store.getSchedule(currentWeekOffset)])
     .then(([timeslots, sched]) => updateDayHeaderChips(day, timeslots, sched))
     .catch(() => {});
-  _refreshProductivitySoon();
 }
 
 function resetDayDone(dayAbbr) {
@@ -543,8 +569,10 @@ async function assignSubject(day, tsId, subjId) {
       `${currentWeekOffset}_${day}_${tsId}`,
       subjId
     );
-    // Granular: repaint only the changed cell.
+    // Granular: repaint only the changed cell; patchScheduleRecord has
+    // invalidated this week's productivity, so refresh it.
     await updateScheduleCell(day, tsId);
+    refreshProductivitySoon();
   } catch (e) {
     toast(e.message, "error");
   }
@@ -568,6 +596,7 @@ async function removeEvent(day, tsId) {
     );
     // Granular: reset only the emptied cell.
     await removeScheduleCell(day, tsId);
+    refreshProductivitySoon();
   } catch (e) {
     toast(e.message, "error");
   }
@@ -811,6 +840,7 @@ async function deleteTimeslot(id) {
     // Remove every schedule entry that referenced this timeslot from all
     // loaded week caches so the grid reflects the deletion immediately.
     const idStr = String(id);
+    // (Store.removeTimeslot already invalidated productivity.)
     Object.keys(appState.schedule).forEach((wk) => {
       const weekSched = appState.schedule[wk];
       if (!weekSched) return;

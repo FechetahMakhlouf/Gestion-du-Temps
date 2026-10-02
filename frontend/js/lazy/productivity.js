@@ -33,11 +33,21 @@ const PROD_LABELS = {
  * Called automatically after every schedule mutation and on panel show.
  */
 async function renderProductivityCard() {
+  // Note: prefer refreshProductivity() (schedule.js), which skips this
+  // entirely when the card is already up to date.
   const card = document.getElementById("productivity-card");
   if (!card) return;
 
-  // Show card with skeleton while loading
   card.style.display = "";
+
+  // Cache hit → paint immediately, no skeleton, no request.
+  const cached = Store.peekProductivity(currentWeekOffset);
+  if (cached !== undefined) {
+    _prodRenderScore(cached);
+    return;
+  }
+
+  // Cache miss → skeleton while the single request is in flight.
   _prodShowSkeleton();
 
   let data;

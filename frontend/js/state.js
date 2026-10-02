@@ -63,6 +63,11 @@
 
   const inflight = {}; // { [cacheKey]: Promise }
 
+  /* Productivity version counter: bumped on every productivity
+     invalidation so the UI can tell whether what it shows is stale
+     without making a network call. */
+  let productivityVersion = 0;
+
   /** Deduplicate concurrent requests for the same cache key. */
   function once(key, fn) {
     if (inflight[key]) return inflight[key];
@@ -540,12 +545,29 @@
         appState.productivity = loaded.productivity[wk];
         return appState.productivity;
       }
+      const versionAtStart = productivityVersion;
       return once("productivity:" + wk, async () => {
         const data = await api(`/api/productivity/${wk}`, weekOpts());
-        loaded.productivity[wk] = data;
+        // Don't cache a response that was invalidated while in flight.
+        if (versionAtStart === productivityVersion) loaded.productivity[wk] = data;
         appState.productivity = data;
         return data;
       });
+    },
+
+    /** Cached productivity for a week, or undefined (never fetches). */
+    peekProductivity(weekOffset) {
+      return loaded.productivity[Number(weekOffset) || 0];
+    },
+
+    /** True when the week's productivity is cached and still valid. */
+    hasProductivity(weekOffset) {
+      return loaded.productivity[Number(weekOffset) || 0] !== undefined;
+    },
+
+    /** Monotonic counter bumped by every invalidateProductivity(). */
+    productivityVersion() {
+      return productivityVersion;
     },
 
     /* ══════════════════════════════════════════════
@@ -576,6 +598,8 @@
       }
       // Ensure the week is marked as loaded
       loaded.schedule[wk] = true;
+      // Schedule entries feed the productivity score for this week.
+      Store.invalidateProductivity(wk);
     },
 
     /**
@@ -588,6 +612,7 @@
       const wk = Number(weekOffset) || 0;
       appState.schedule[wk] = scheduleMap || {};
       loaded.schedule[wk] = true;
+      Store.invalidateProductivity(wk);
     },
 
     /**
@@ -599,6 +624,8 @@
       if (!timeslot) return;
       appState.timeslots = [...appState.timeslots, timeslot];
       loaded.timeslots = true;
+      // Timeslot durations feed productivity for every week.
+      Store.invalidateProductivity();
     },
 
     /**
@@ -611,6 +638,7 @@
         (t) => String(t.id) !== String(id)
       );
       // Keep loaded.timeslots = true so the next getTimeslots() is a cache hit
+      Store.invalidateProductivity();
     },
 
     /**
@@ -647,10 +675,12 @@
     invalidateSubjects() {
       loaded.subjects = false;
       Store.invalidateSubtasks();
+      Store.invalidateProductivity();
     },
 
     invalidateTimeslots() {
       loaded.timeslots = false;
+      Store.invalidateProductivity();
     },
 
     invalidateDays() {
@@ -708,11 +738,14 @@
     },
 
     invalidateProductivity(weekOffset) {
+      productivityVersion++;
       if (weekOffset === undefined || weekOffset === null) {
         loaded.productivity = {};
         appState.productivity = null;
       } else {
-        delete loaded.productivity[Number(weekOffset) || 0];
+        const wk = Number(weekOffset) || 0;
+        delete loaded.productivity[wk];
+        if (appState.productivity === undefined) appState.productivity = null;
       }
     },
 
@@ -727,6 +760,7 @@
       loaded.subtasks = {};
       loaded.freeTasks = {};
       loaded.productivity = {};
+      productivityVersion++;
     },
 
     /** Full wipe — used on logout / account deletion. */
