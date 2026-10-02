@@ -10,7 +10,7 @@
  * Bump VERSION on every deploy: asset filenames are not hashed, so the
  * version change is what invalidates cache-first entries.
  */
-const VERSION = 'v6';
+const VERSION = 'v7';
 const BASE = '/Gestion-du-Temps';
 
 const SHELL_CACHE = `jadwal-shell-${VERSION}`;

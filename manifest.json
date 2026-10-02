@@ -6,8 +6,8 @@
   "scope": "/Gestion-du-Temps/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0B1020",
-  "theme_color": "#6366F1",
+  "background_color": "#FFFFFF",
+  "theme_color": "#16A34A",
   "lang": "fr",
   "icons": [
     {

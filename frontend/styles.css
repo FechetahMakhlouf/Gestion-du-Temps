@@ -5,21 +5,21 @@
 
 /* ── Variables ────────────────────────────────────── */
 :root {
-  --bg: #0B1020;
-  --surface: #121A2B;
-  --surface2: #18233A;
-  --surface3: #1F2E4A;
-  --border: #293B5A;
-  --border2: #385174;
-  --text: #e4edf8;
-  --text-muted: #5a6e85;
-  --text-dim: #2e3f55;
-  --primary: #6366F1;
-  --primary-light: #818CF8;
-  --primary-dim: rgba(99, 102, 241, 0.14);
+  --bg: #FFFFFF;
+  --surface: #F8FAFC;
+  --surface2: #F1F5F9;
+  --surface3: #E2E8F0;
+  --border: #CBD5E1;
+  --border2: #94A3B8;
+  --text: #0F172A;
+  --text-muted: #475569;
+  --text-dim: #64748B;
+  --primary: #16A34A;
+  --primary-light: #22C55E;
+  --primary-dim: rgba(22, 163, 74, 0.14);
   --success: #22C55E;
   --danger: #EF4444;
-  --info: #38BDF8;
+  --info: #16A34A;
   --radius: 12px;
   --radius-sm: 8px;
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
