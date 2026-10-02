@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════
-   CACHED DOM REFERENCES  —  frontend/dom.js
+   CACHED DOM REFERENCES  —  frontend/js/dom.js
    ----------------------------------------------------------------------
    Phase 2 optimisation.
 
@@ -23,7 +23,7 @@
    rows…) is looked up through DOM.get()/DOM.cell(), whose cache is
    cleared by DOM.invalidateDynamic() after each full grid rebuild.
 
-   Load order in index.html:  config.js → dom.js → state.js → script.js
+   Load order in index.html:  api.js → dom.js → state.js → ui.js → … (see index.html)
    ══════════════════════════════════════════════════════════════════════ */
 
 (function () {

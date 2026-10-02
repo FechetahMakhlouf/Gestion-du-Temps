@@ -186,7 +186,8 @@ async function startApp() {
   const user = await Store.getUser();
 
   // Sidebar: username + initials avatar + date
-  document.getElementById("sidebar-username").textContent = user.name;
+  const sidebarUsername = getResponsiveElement("sidebar-username");
+  if (sidebarUsername) sidebarUsername.textContent = user.name;
   const initials = user.name
     .trim()
     .split(/\s+/)
@@ -194,14 +195,19 @@ async function startApp() {
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  document.getElementById("sidebar-avatar").textContent = initials;
-  const mobileAvatar = document.getElementById("mobile-avatar");
+  const sidebarAvatar = getResponsiveElement("sidebar-avatar");
+  if (sidebarAvatar) sidebarAvatar.textContent = initials;
+  const mobileAvatar = getResponsiveElement("mobile-avatar");
   if (mobileAvatar) mobileAvatar.textContent = initials;
   const now = new Date();
-  document.getElementById("sidebar-date").textContent = now.toLocaleDateString(
-    "fr-FR",
-    { weekday: "short", day: "numeric", month: "short" },
-  );
+  const sidebarDate = getResponsiveElement("sidebar-date");
+  if (sidebarDate) {
+    sidebarDate.textContent = now.toLocaleDateString("fr-FR", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    });
+  }
 
   renderAll();
 

@@ -118,7 +118,7 @@ function showPanel(name) {
   if (name === "guide") openGuide();
   if (name === "contact") {
     // Pre-fill name if logged in and field is empty
-    const usernameEl = document.getElementById("sidebar-username");
+    const usernameEl = getResponsiveElement("sidebar-username");
     const nameField = document.getElementById("contact-name");
     if (
       usernameEl &&
@@ -135,22 +135,72 @@ function showPanel(name) {
   }
   // Fermer sidebar sur mobile après navigation
   if (window.innerWidth <= 768) {
-    document.getElementById("sidebar").classList.remove("open");
+    document.getElementById("sidebar")?.classList.remove("open");
   }
 }
 
 function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("open");
-}
-
-function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebar")?.classList.toggle("open");
 }
 
 function updateMobileNav(panel) {
   document.querySelectorAll(".mobile-bottom-nav .nav-item").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.panel === panel);
   });
+}
+
+/* Keep only one responsive navigation interface in the live DOM. CSS-only
+   hiding still makes the browser retain and maintain both complete trees. */
+const _mobileViewport = window.matchMedia("(max-width: 768px)");
+const _responsiveShell = {
+  mobileTopBar: null,
+  mobileBottomNav: null,
+  sidebar: null,
+  mobileTopAnchor: null,
+  mobileBottomAnchor: null,
+  sidebarAnchor: null,
+  initialized: false,
+};
+
+function getResponsiveElement(id) {
+  return document.getElementById(id)
+    || _responsiveShell.sidebar?.querySelector(`#${id}`)
+    || _responsiveShell.mobileTopBar?.querySelector(`#${id}`)
+    || _responsiveShell.mobileBottomNav?.querySelector(`#${id}`);
+}
+
+function syncResponsiveShell() {
+  if (!_responsiveShell.initialized) {
+    _responsiveShell.mobileTopBar = document.getElementById("mobile-top-bar");
+    _responsiveShell.mobileBottomNav = document.getElementById("mobile-bottom-nav");
+    _responsiveShell.sidebar = document.getElementById("sidebar");
+    _responsiveShell.mobileTopAnchor = document.createComment("jadwal-mobile-top-anchor");
+    _responsiveShell.mobileBottomAnchor = document.createComment("jadwal-mobile-bottom-anchor");
+    _responsiveShell.sidebarAnchor = document.createComment("jadwal-sidebar-anchor");
+    _responsiveShell.mobileTopBar?.before(_responsiveShell.mobileTopAnchor);
+    _responsiveShell.mobileBottomNav?.before(_responsiveShell.mobileBottomAnchor);
+    _responsiveShell.sidebar?.before(_responsiveShell.sidebarAnchor);
+    _responsiveShell.initialized = true;
+  }
+
+  const mobile = _mobileViewport.matches;
+  if (mobile) {
+    if (_responsiveShell.sidebar?.isConnected) _responsiveShell.sidebar.remove();
+    if (!_responsiveShell.mobileTopBar?.isConnected) {
+      _responsiveShell.mobileTopAnchor.after(_responsiveShell.mobileTopBar);
+    }
+    if (!_responsiveShell.mobileBottomNav?.isConnected) {
+      _responsiveShell.mobileBottomAnchor.after(_responsiveShell.mobileBottomNav);
+    }
+  } else {
+    if (_responsiveShell.mobileTopBar?.isConnected) _responsiveShell.mobileTopBar.remove();
+    if (_responsiveShell.mobileBottomNav?.isConnected) _responsiveShell.mobileBottomNav.remove();
+    if (!_responsiveShell.sidebar?.isConnected) {
+      _responsiveShell.sidebarAnchor.after(_responsiveShell.sidebar);
+    }
+  }
+
+  DOM.invalidateAll();
 }
 
 /* Close sidebar when tapping outside on mobile */
@@ -256,8 +306,16 @@ function sendContactEmail() {
 ══════════════════════════════════════════════ */
 
 window.addEventListener("DOMContentLoaded", async () => {
+  syncResponsiveShell();
+  _mobileViewport.addEventListener("change", () => {
+    syncResponsiveShell();
+    if (document.getElementById("panel-schedule")?.classList.contains("active")) {
+      renderScheduleGrid();
+    }
+  });
+
   // Keep bottom nav in sync with sidebar navigation
-  document.querySelectorAll(".sidebar-nav .nav-item").forEach((btn) => {
+  _responsiveShell.sidebar?.querySelectorAll(".sidebar-nav .nav-item").forEach((btn) => {
     btn.addEventListener("click", () => {
       const panel = btn.getAttribute("onclick")?.match(/showPanel\('(\w+)'\)/)?.[1];
       if (panel) updateMobileNav(panel);

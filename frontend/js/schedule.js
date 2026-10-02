@@ -5,6 +5,7 @@ let currentWeekOffset = 0;
 let selectedSubjectId = null;
 let interactionMode = "click";
 let currentActiveDays = [];
+let mobileScheduleDay = null;
 
 /* ══════════════════════════════════════════════
    SCHEDULE GRID — Day-Card Timeline Layout
@@ -41,6 +42,51 @@ function getWeekDays() {
       }),
     };
   });
+}
+
+function _isMobileSchedule() {
+  return window.matchMedia("(max-width: 768px)").matches;
+}
+
+function _defaultMobileDay(weekDays) {
+  if (!weekDays.length) return null;
+  const today = new Date().toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+  });
+  return weekDays.find((day) => day.dateStr === today)?.abbr || weekDays[0].abbr;
+}
+
+function _visibleScheduleDays(weekDays) {
+  if (!_isMobileSchedule()) return weekDays;
+  if (!weekDays.some((day) => day.abbr === mobileScheduleDay)) {
+    mobileScheduleDay = _defaultMobileDay(weekDays);
+  }
+  return weekDays.filter((day) => day.abbr === mobileScheduleDay);
+}
+
+function changeMobileScheduleDay(delta) {
+  const allWeekDays = getWeekDays();
+  const weekDays = _visibleScheduleDays(allWeekDays);
+  if (!weekDays.length) return;
+  const currentIndex = Math.max(
+    0,
+    weekDays.findIndex((day) => day.abbr === mobileScheduleDay),
+  );
+  const nextIndex = (currentIndex + delta + weekDays.length) % weekDays.length;
+  mobileScheduleDay = weekDays[nextIndex].abbr;
+  renderScheduleGrid();
+}
+
+function _mobileDayControlsHTML(weekDays) {
+  if (!_isMobileSchedule() || weekDays.length < 2) return "";
+  const index = weekDays.findIndex((day) => day.abbr === mobileScheduleDay);
+  const selected = weekDays[index < 0 ? 0 : index];
+  return `<div class="mobile-day-nav" role="group" aria-label="Navigation par jour">
+    <button class="mobile-day-btn" onclick="changeMobileScheduleDay(-1)" aria-label="Jour précédent">←</button>
+    <div class="mobile-day-label"><strong>${selected.abbr}</strong><span>${selected.dateStr}</span></div>
+    <button class="mobile-day-btn" onclick="changeMobileScheduleDay(1)" aria-label="Jour suivant">→</button>
+  </div>`;
 }
 
 function renderScheduleLegend(subjects) {
@@ -345,7 +391,8 @@ async function renderSchedule() {
     throw err;
   }
 
-  const weekDays = getWeekDays();
+  const allWeekDays = getWeekDays();
+  const weekDays = _visibleScheduleDays(allWeekDays);
 
   // Pre-fetch free tasks for ALL displayed days in ONE request
   // (/api/free-tasks?weekOffset=…&days=Lun,Mar,…), then slice into
@@ -369,9 +416,10 @@ async function renderSchedule() {
 
   // Pre-fetch subtasks: one request per distinct day (not per pair).
   const _dayToSubjectIds = {};
+  const visibleDayNames = new Set(weekDays.map((day) => day.abbr));
   Object.entries(sched).forEach(([key, sid]) => {
     const dayAbbr = key.split("_")[1];
-    if (!dayAbbr) return;
+    if (!dayAbbr || !visibleDayNames.has(dayAbbr)) return;
     (_dayToSubjectIds[dayAbbr] = _dayToSubjectIds[dayAbbr] || new Set()).add(
       Number(sid),
     );
@@ -386,8 +434,8 @@ async function renderSchedule() {
     }),
   );
 
-  if (weekDays.length && DOM.weekLabel) {
-    DOM.weekLabel.textContent = `${weekDays[0].dateStr} – ${weekDays[weekDays.length - 1].dateStr}`;
+  if (allWeekDays.length && DOM.weekLabel) {
+    DOM.weekLabel.textContent = `${allWeekDays[0].dateStr} – ${allWeekDays[allWeekDays.length - 1].dateStr}`;
   }
 
   updateWeekFillBar(timeslots, sched);
@@ -463,7 +511,7 @@ async function renderSchedule() {
 
   // Single write for the whole structure — then never again until the
   // structure itself (week, timeslots, days) changes.
-  grid.innerHTML = `<div class="days-grid">${cards.join("")}</div>`;
+  grid.innerHTML = `${_mobileDayControlsHTML(allWeekDays)}<div class="days-grid">${cards.join("")}</div>`;
 
   // Every previously memoised day card / block node is now detached.
   DOM.invalidateDynamic();
