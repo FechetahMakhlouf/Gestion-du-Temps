@@ -306,6 +306,7 @@ function sendContactEmail() {
 ══════════════════════════════════════════════ */
 
 window.addEventListener("DOMContentLoaded", async () => {
+  window.appPerformance.mark("app-start");
   syncResponsiveShell();
   _mobileViewport.addEventListener("change", () => {
     syncResponsiveShell();
@@ -346,15 +347,21 @@ window.addEventListener("DOMContentLoaded", async () => {
     hideLoader();
     if (user) {
       await startApp();
+      window.appPerformance.mark("app-ready");
+      window.appPerformance.measure("total-startup", "app-start", "app-ready");
     } else {
       document.getElementById("auth-page").style.display = "flex";
       requestAnimationFrame(() =>
         document.getElementById("login-email").focus(),
       );
+      window.appPerformance.mark("app-ready");
+      window.appPerformance.measure("total-startup", "app-start", "app-ready");
     }
   } catch (e) {
     hideLoader();
     document.getElementById("auth-page").style.display = "flex";
     requestAnimationFrame(() => document.getElementById("login-email").focus());
+    window.appPerformance.mark("app-ready");
+    window.appPerformance.measure("total-startup", "app-start", "app-ready");
   }
 });

@@ -1,5 +1,51 @@
 window.API_BASE = 'https://jadwal-backend-n52u.onrender.com';
 
+/* Performance timeline helpers.  These are intentionally no-ops when the
+   Performance API is unavailable so telemetry never affects app behavior. */
+window.appPerformance = (() => {
+    let sequence = 0;
+
+    const mark = (name) => {
+        if (typeof performance === 'undefined' || !performance.mark) return;
+        performance.mark(name);
+    };
+
+    const measure = (name, start, end) => {
+        if (typeof performance === 'undefined' || !performance.measure) return;
+        try {
+            performance.measure(name, start, end);
+        } catch (_) {
+            // A missing mark should never break application startup.
+        }
+    };
+
+    const measureAsync = async (name, operation) => {
+        const id = ++sequence;
+        const start = `${name}-start-${id}`;
+        const end = `${name}-end-${id}`;
+        mark(start);
+        try {
+            return await operation();
+        } finally {
+            mark(end);
+            measure(name, start, end);
+        }
+    };
+
+    const span = (name) => {
+        const id = ++sequence;
+        const start = `${name}-start-${id}`;
+        const end = `${name}-end-${id}`;
+        mark(start);
+        return () => {
+            mark(end);
+            measure(name, start, end);
+        };
+    };
+
+    return { mark, measure, measureAsync, span };
+})();
+
 /* ══════════════════════════════════════════════════════════════════════
    REQUEST CANCELLATION (AbortController)
    ----------------------------------------------------------------------
@@ -53,6 +99,14 @@ window.isAbortError = (err) =>
 
 window.apiCall = async (endpoint, options = {}) => {
     const url = window.API_BASE + endpoint;
+    const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const requestStart = `api-request-start-${requestId}`;
+    const requestEnd = `api-request-end-${requestId}`;
+    window.appPerformance.mark(requestStart);
+    const finishRequestMeasure = () => {
+        window.appPerformance.mark(requestEnd);
+        window.appPerformance.measure('api-latency', requestStart, requestEnd);
+    };
 
     let res;
     try {
@@ -69,8 +123,10 @@ window.apiCall = async (endpoint, options = {}) => {
             const abortErr = new Error('Requête annulée');
             abortErr.name = 'AbortError';
             abortErr.aborted = true;
+            finishRequestMeasure();
             throw abortErr;
         }
+        finishRequestMeasure();
         throw e;
     }
 
@@ -78,12 +134,15 @@ window.apiCall = async (endpoint, options = {}) => {
     try {
         data = await res.json();
     } catch (e) {
+        finishRequestMeasure();
         throw new Error('Réponse invalide du serveur');
     }
 
     if (!res.ok) {
+        finishRequestMeasure();
         throw new Error(data.message || 'Erreur ' + res.status);
     }
 
+    finishRequestMeasure();
     return data.data !== undefined ? data.data : data;
 };

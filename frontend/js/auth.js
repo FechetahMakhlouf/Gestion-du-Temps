@@ -209,7 +209,14 @@ async function startApp() {
     });
   }
 
-  renderAll();
+  window.appPerformance.mark("first-render-start");
+  await renderAll();
+  window.appPerformance.mark("first-render-ready");
+  window.appPerformance.measure(
+    "first-render",
+    "first-render-start",
+    "first-render-ready",
+  );
 
   // ── Focus Mode integration ──────────────────────────────────────────
   // Inject the ⏱ Focus button into the schedule panel header, then

@@ -120,7 +120,10 @@
    */
   function bootstrapOnce() {
     return once("bootstrap", async () => {
-      const data = await api("/api/bootstrap");
+      const data = await window.appPerformance.measureAsync(
+        "bootstrap-request",
+        () => api("/api/bootstrap"),
+      );
 
       // user
       if (data.user) {

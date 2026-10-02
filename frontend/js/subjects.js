@@ -614,6 +614,7 @@ async function onSubtaskDrop(e, targetId) {
 }
 
 async function renderSubjectsPanel() {
+  const finishSubjectsMeasure = window.appPerformance.span("subjects-rendering");
   // appState.subjects is always populated after bootstrap; only the schedule
   // needs a network hop (it varies per week offset).
   const subjects = appState.subjects;
@@ -656,6 +657,7 @@ async function renderSubjectsPanel() {
             <div class="empty-title">Aucune tâche</div>
             <div class="empty-sub">Cliquez sur "Ajouter une tâche" pour commencer</div>
         </div>`;
+    finishSubjectsMeasure();
     return;
   }
   const countMap = {};
@@ -703,6 +705,7 @@ async function renderSubjectsPanel() {
     `;
     })
     .join("");
+  finishSubjectsMeasure();
 }
 
 /* ══════════════════════════════════════════════

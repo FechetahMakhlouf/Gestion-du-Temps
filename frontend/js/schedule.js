@@ -376,6 +376,7 @@ function refreshProductivitySoon() {
 ══════════════════════════════════════════════ */
 
 async function renderSchedule() {
+  const finishScheduleMeasure = window.appPerformance.span("schedule-rendering");
   // appState.subjects is always populated after bootstrap — read it directly.
   // Timeslots and schedule still need cache-or-fetch via Store.
   const subjects = appState.subjects;
@@ -387,7 +388,10 @@ async function renderSchedule() {
     ]);
   } catch (err) {
     // Obsolete week request — a newer render is already on its way.
-    if (Store.isAbortError(err)) return;
+    if (Store.isAbortError(err)) {
+      finishScheduleMeasure();
+      return;
+    }
     throw err;
   }
 
@@ -405,7 +409,10 @@ async function renderSchedule() {
     );
   } catch (err) {
     // The week changed mid-flight: this render is obsolete, a newer one runs.
-    if (Store.isAbortError(err)) return;
+    if (Store.isAbortError(err)) {
+      finishScheduleMeasure();
+      return;
+    }
     throw err;
   }
   const freeTasksByDay = {};
@@ -442,7 +449,10 @@ async function renderSchedule() {
   renderScheduleLegend(subjects);
 
   const grid = DOM.scheduleGrid;
-  if (!grid) return;
+  if (!grid) {
+    finishScheduleMeasure();
+    return;
+  }
 
   if (!timeslots.length) {
     grid.innerHTML = `<div class="empty-state">
@@ -452,6 +462,7 @@ async function renderSchedule() {
         </div>`;
     DOM.invalidateDynamic();
     checkConflicts();
+    finishScheduleMeasure();
     return;
   }
 
@@ -512,6 +523,7 @@ async function renderSchedule() {
   // Single write for the whole structure — then never again until the
   // structure itself (week, timeslots, days) changes.
   grid.innerHTML = `${_mobileDayControlsHTML(allWeekDays)}<div class="days-grid">${cards.join("")}</div>`;
+  finishScheduleMeasure();
 
   // Every previously memoised day card / block node is now detached.
   DOM.invalidateDynamic();
