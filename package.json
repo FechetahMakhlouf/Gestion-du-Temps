@@ -1,0 +1,6 @@
+{
+  "name": "jadwal-frontend",
+  "private": true,
+  "scripts": { "build": "node build.mjs" },
+  "devDependencies": { "esbuild": "^0.25.0", "purgecss": "^7.0.2" }
+}

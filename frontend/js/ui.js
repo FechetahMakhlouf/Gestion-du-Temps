@@ -7,7 +7,7 @@
    Secondary features live in js/lazy/*.js and are fetched on first use.
 ══════════════════════════════════════════════ */
 
-const _LAZY_BASE = document.currentScript.src.replace(/ui\.js(\?.*)?$/, "lazy/");
+const _LAZY_BASE = document.currentScript.src.replace(/[^/]*(\?.*)?$/, "lazy/");
 const _lazyModules = Object.create(null);
 
 function loadModule(name) {

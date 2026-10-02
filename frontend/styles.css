@@ -730,7 +730,7 @@ body {
 .sidebar-date {
   font-size: 0.63rem;
   color: var(--text-muted);
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 .sidebar-nav {
@@ -840,7 +840,7 @@ body {
 
 /* ── Section Labels ─────────────────────────────── */
 .section-label {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -921,7 +921,7 @@ select.form-input option {
 }
 
 .week-label {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.75rem;
   color: var(--text-muted);
   min-width: 140px;
@@ -958,7 +958,7 @@ select.form-input option {
 }
 
 .fill-label {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.63rem;
   color: var(--text-muted);
   white-space: nowrap;
@@ -1033,7 +1033,7 @@ select.form-input option {
 }
 
 .day-date-badge {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.8rem;
   background: var(--surface2);
   color: var(--text-muted);
@@ -1059,7 +1059,7 @@ select.form-input option {
   font-size: 0.6rem;
   padding: 0.12rem 0.45rem;
   border-radius: 0.3rem;
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   letter-spacing: 0.04em;
   font-weight: 600;
 }
@@ -1108,7 +1108,7 @@ select.form-input option {
 }
 
 .block-time {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.62rem;
   color: var(--text-muted);
   padding-top: 0.5rem;
@@ -1185,7 +1185,7 @@ select.form-input option {
 .empty-slot-hint {
   font-size: 0.65rem;
   color: var(--text-dim);
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   letter-spacing: 0.05em;
 }
 
@@ -1263,7 +1263,7 @@ select.form-input option {
 
 /* Day fill chips */
 .day-fill-chip {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.6rem;
   padding: 0.1rem 0.38rem;
   border-radius: 0.3rem;
@@ -1273,7 +1273,7 @@ select.form-input option {
 }
 
 .day-done-chip {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.6rem;
   padding: 0.1rem 0.38rem;
   border-radius: 0.3rem;
@@ -1329,7 +1329,7 @@ select.form-input option {
 }
 
 .stat-num {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 1.9rem;
   font-weight: 600;
   color: var(--gold-light);
@@ -1420,7 +1420,7 @@ select.form-input option {
   border-radius: 4px;
   background: var(--surface2);
   color: var(--text-muted);
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   border: 1px solid var(--border);
 }
 
@@ -1445,7 +1445,7 @@ select.form-input option {
 }
 
 .palette-label {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -1520,7 +1520,7 @@ select.form-input option {
 }
 
 .timeslot-time {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.85rem;
   color: var(--gold-light);
   flex: 1;
@@ -1547,7 +1547,7 @@ select.form-input option {
 }
 
 .ts-stat-num {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 1.15rem;
   font-weight: 600;
   color: var(--gold-light);
@@ -1560,7 +1560,7 @@ select.form-input option {
 }
 
 .timeslot-index {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.65rem;
   color: var(--text-dim);
   background: var(--surface2);
@@ -1881,7 +1881,7 @@ select.form-input option {
   border: 1px solid var(--border2);
   border-radius: 8px;
   color: var(--text);
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.78rem;
   padding: 0.4rem 0.55rem;
   text-transform: uppercase;
@@ -2136,7 +2136,7 @@ select.form-input option {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   margin-bottom: 0.2rem;
 }
 
@@ -2195,7 +2195,7 @@ select.form-input option {
   justify-content: center;
   flex-shrink: 0;
   margin-top: 0.1rem;
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 .guide-action-title {
@@ -2280,7 +2280,7 @@ select.form-input option {
   color: var(--text);
   padding: 0.1rem 0.4rem;
   border-radius: 4px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.7rem;
   font-weight: 600;
   border-bottom: 2px solid rgba(0, 0, 0, 0.3);
@@ -2338,7 +2338,7 @@ select.form-input option {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--text-muted);
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   margin-bottom: -0.5rem;
 }
 
@@ -3788,7 +3788,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 }
 
 .prod-gauge-score {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 1.65rem;
   font-weight: 600;
   color: var(--text);
@@ -3796,7 +3796,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 }
 
 .prod-gauge-label {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.62rem;
   color: var(--text-muted);
   margin-top: 0.1rem;
@@ -3854,7 +3854,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 }
 
 .prod-bar-value {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.68rem;
   color: var(--text-muted);
   text-align: right;
@@ -4120,7 +4120,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 
 .free-tasks-label {
   font-size: 0.62rem;
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   color: var(--text-dim);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -4243,7 +4243,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 .free-tasks-empty {
   font-size: 0.64rem;
   color: var(--text-dim);
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   text-align: center;
   padding: 0.25rem 0;
 }
@@ -4251,7 +4251,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 /* Modal styles */
 .free-task-modal-badge {
   font-size: 0.6rem;
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   background: rgba(201, 151, 42, 0.15);
   color: var(--gold-light);
   border: 1px solid rgba(201, 151, 42, 0.3);
@@ -4438,7 +4438,7 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 
 /* day-card free-task counter chip */
 .day-free-chip {
-  font-family: "JetBrains Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.58rem;
   padding: 0.1rem 0.38rem;
   border-radius: 4px;

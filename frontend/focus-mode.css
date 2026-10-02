@@ -101,7 +101,7 @@ body.focus-mode-active .top-bar {
 ══════════════════════════════════════════════════════════════════════ */
 
 .fm-clock {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     font-size: 3.8rem;
     font-weight: 600;
     color: var(--text);
@@ -148,7 +148,7 @@ body.focus-mode-active .top-bar {
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     font-size: 1rem;
     color: var(--text-muted);
     margin-top: 0.2rem;
@@ -176,7 +176,7 @@ body.focus-mode-active .top-bar {
 }
 
 .fm-countdown {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     font-size: 2.8rem;
     font-weight: 600;
     color: var(--text);
@@ -225,7 +225,7 @@ body.focus-mode-active .top-bar {
 }
 
 .fm-progress-label {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     font-size: 0.72rem;
     color: var(--text-muted);
 }
@@ -384,7 +384,7 @@ body.focus-mode-active .top-bar {
 }
 
 .fm-next-time {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     font-size: 0.82rem;
     color: var(--text-muted);
 }

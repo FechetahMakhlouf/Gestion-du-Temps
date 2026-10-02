@@ -8,11 +8,8 @@
       content="Jadwal — Gérez votre emploi du temps hebdomadaire"
     />
     <title>Jadwal</title>
-    <link
-      rel="shortcut icon"
-      href="frontend/img/favicon.png"
-      type="image/x-icon"
-    />
+    <link rel="icon" href="frontend/img/favicon.webp" type="image/webp" />
+    <link rel="alternate icon" href="frontend/img/favicon.png" type="image/png" />
 
     <!-- PWA -->
     <link rel="manifest" href="/Gestion-du-Temps/manifest.json" />
@@ -27,13 +24,14 @@
     <link rel="apple-touch-icon" href="frontend/img/apple-touch-icon.png" />
     <meta name="msapplication-TileColor" content="#060a10" />
     <meta name="msapplication-TileImage" content="frontend/img/icon-192.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Amiri&family=DM+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="frontend/styles.css" />
+    <link rel="stylesheet" href="frontend/dist/app.min.css" />
     <!-- Focus Mode styles -->
-    <link rel="stylesheet" href="frontend/focus-mode.css" />
   </head>
 
   <body>
@@ -1943,15 +1941,7 @@
     ></div>
 
     <!-- Core (deferred, in order). Secondary features are lazy-loaded from frontend/js/lazy/ -->
-    <script defer src="frontend/js/api.js"></script>
-    <script defer src="frontend/js/dom.js"></script>
-    <script defer src="frontend/js/state.js"></script>
-    <script defer src="frontend/js/ui.js"></script>
-    <script defer src="frontend/js/modals.js"></script>
-    <script defer src="frontend/js/auth.js"></script>
-    <script defer src="frontend/js/subjects.js"></script>
-    <script defer src="frontend/js/schedule.js"></script>
-    <script defer src="frontend/js/tasks.js"></script>
+    <script defer src="frontend/dist/app.min.js"></script>
 
     <!-- Service Worker (PWA) -->
     <script>
