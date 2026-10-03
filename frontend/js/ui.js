@@ -91,7 +91,6 @@ function lazyStub(mod, names) {
 
 lazyStub("autogen", ["renderAutogenGrid", "updateAutogenTotal", "autoGenerate"]);
 lazyStub("export", ["exportSchedule"]);
-lazyStub("guide", ["openGuide", "goToGuideStep", "guideNext", "guidePrev"]);
 lazyStub("productivity", ["renderProductivityCard"]);
 lazyStub("focus-mode", ["toggleFocusMode", "enterFocusMode", "exitFocusMode",
   "toggleFocusSettings", "applyFocusPref", "restoreFocusState"]);
@@ -154,7 +153,6 @@ function showPanel(name) {
   if (name === "tasks") Promise.all([renderSubjectsPanel(), renderPalette()]);
   if (name === "timeslots") Promise.all([renderTimeslots(), renderDaysCheckboxes()]);
   if (name === "autogen") renderAutogenGrid();
-  if (name === "guide") openGuide();
   if (name === "contact") {
     // Pre-fill name if logged in and field is empty
     const usernameEl = getResponsiveElement("sidebar-username");

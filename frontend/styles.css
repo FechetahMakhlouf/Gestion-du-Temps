@@ -501,6 +501,10 @@ button,
   gap: 1.1rem;
 }
 
+.auth-form[hidden] {
+  display: none;
+}
+
 .form-group {
   position: relative;
   margin-top: 0.3rem;
@@ -868,25 +872,6 @@ button,
 
 .nav-icon {
   font-size: 1rem;
-  flex-shrink: 0;
-}
-
-/* Guide badge */
-.nav-item-guide {
-  margin-top: 0.5rem;
-  border-top: 1px solid var(--border);
-  padding-top: 0.8rem !important;
-}
-
-.guide-badge {
-  margin-left: auto;
-  background: var(--primary);
-  color: var(--bg);
-  font-size: 0.62rem;
-  font-weight: 800;
-  padding: 0.15rem 0.45rem;
-  border-radius: 999px;
-  letter-spacing: 0.03em;
   flex-shrink: 0;
 }
 
