@@ -91,10 +91,10 @@ function _mobileDayControlsHTML(weekDays) {
 
 function renderScheduleLegend(subjects) {
   const el = DOM.scheduleLegend;
-  if (!subjects.length) {
-    el.innerHTML = "";
-    return;
-  }
+  if (!el) return;
+  el.innerHTML = `<span class="legend-item"><i class="legend-status-dot status-dot-planned"></i> Prévue</span>
+    <span class="legend-item"><i class="legend-status-dot status-dot-progress"></i> En cours</span>
+    <span class="legend-item"><i class="legend-status-dot status-dot-completed"></i> Terminée</span>`;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -130,6 +130,23 @@ function _isCellDone(day, tsId) {
   return localStorage.getItem(_doneKey(day, tsId)) === "1";
 }
 
+function _getBlockStatus(day, ts, isDone) {
+  if (isDone) return { key: "completed", label: "Terminée" };
+  if (currentWeekOffset !== 0) return { key: "planned", label: "Prévue" };
+
+  const today = new Date();
+  const todayAbbr = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"][today.getDay()];
+  const toMinutes = (value) => {
+    const [hours, minutes] = value.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
+  const now = today.getHours() * 60 + today.getMinutes();
+  if (day === todayAbbr && now >= toMinutes(ts.start) && now < toMinutes(ts.end)) {
+    return { key: "in-progress", label: "En cours" };
+  }
+  return { key: "planned", label: "Prévue" };
+}
+
 /** Timeslots that are active on a given day. */
 function _timeslotsForDay(timeslots, dayAbbr) {
   return timeslots.filter(
@@ -156,11 +173,12 @@ function _buildCellContentHTML(dayAbbr, ts, subj, blockSubtasks, isDone) {
                     tabindex="0"
                     aria-label="Ajouter une tâche ${dayAbbr} ${ts.start}"
                     onkeydown="if(event.key==='Enter')handleCellClick('${dayAbbr}','${ts.id}')">
-                    <span class="empty-slot-hint">+ Assigner</span>
+                    <span class="empty-slot-hint">+ Ajouter</span>
                 </div>`;
   }
 
   const subtasks = blockSubtasks || [];
+  const status = _getBlockStatus(dayAbbr, ts, isDone);
   const subtasksHtml = subtasks.length
     ? `<div class="block-subtasks">${subtasks
         .map(
@@ -177,7 +195,10 @@ function _buildCellContentHTML(dayAbbr, ts, subj, blockSubtasks, isDone) {
                     ondrop="onDrop(event,'${dayAbbr}','${ts.id}')"
                     onclick="handleCellClick('${dayAbbr}','${ts.id}')">
                     <div class="block-content-inner">
-                        <span>${subj.name}</span>
+                        <div class="block-title-row">
+                            <span>${subj.name}</span>
+                            <span class="block-status status-${status.key}">${status.label}</span>
+                        </div>
                         ${subtasksHtml}
                     </div>
                     <div class="block-actions">
@@ -198,7 +219,9 @@ function _buildCellContentHTML(dayAbbr, ts, subj, blockSubtasks, isDone) {
  * Pure function.
  */
 function renderScheduleCell(dayAbbr, ts, subj, blockSubtasks, isDone) {
-  return `<div class="block ${isDone ? "completed" : ""}" id="${_cellId(dayAbbr, ts.id)}">
+  const status = _getBlockStatus(dayAbbr, ts, isDone);
+  const isCurrent = status.key === "in-progress";
+  return `<div class="block ${isDone ? "completed" : ""} ${isCurrent ? "current-time-slot" : ""}" id="${_cellId(dayAbbr, ts.id)}">
                 <div class="block-time">${ts.start}<br>→ ${ts.end}</div>
                 ${_buildCellContentHTML(dayAbbr, ts, subj, blockSubtasks, isDone)}
             </div>`;
@@ -235,7 +258,9 @@ async function updateScheduleCell(day, tsId) {
   }
 
   const isDone = _isCellDone(day, tsId);
+  const status = _getBlockStatus(day, ts, isDone);
   block.classList.toggle("completed", isDone);
+  block.classList.toggle("current-time-slot", status.key === "in-progress");
 
   const content = block.querySelector(".block-content");
   const html = _buildCellContentHTML(day, ts, subj, subtasks, isDone);
@@ -457,8 +482,22 @@ async function renderSchedule() {
   if (!timeslots.length) {
     grid.innerHTML = `<div class="empty-state">
             <div class="empty-icon">🕐</div>
-            <div class="empty-title">Aucun créneau horaire</div>
-            <div class="empty-sub">Allez dans "Créneaux Horaires" pour en ajouter</div>
+            <div class="empty-title">Votre semaine commence ici</div>
+            <div class="empty-sub">Ajoutez vos horaires habituels pour voir votre planning prendre forme.</div>
+            <button class="btn-primary empty-state-action" onclick="openTimeslotModal()">+ Ajouter un créneau</button>
+        </div>`;
+    DOM.invalidateDynamic();
+    checkConflicts();
+    finishScheduleMeasure();
+    return;
+  }
+
+  if (!subjects.length) {
+    grid.innerHTML = `<div class="empty-state">
+            <div class="empty-icon">📚</div>
+            <div class="empty-title">Ajoutez votre première matière</div>
+            <div class="empty-sub">Votre planning est prêt. Créez une matière, puis ajoutez-la à un créneau.</div>
+            <button class="btn-primary empty-state-action" onclick="showPanel('tasks')">+ Ajouter une matière</button>
         </div>`;
     DOM.invalidateDynamic();
     checkConflicts();
@@ -925,7 +964,12 @@ async function renderTimeslots() {
   const summaryEl = document.getElementById("timeslots-summary");
 
   if (!ts.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-title">Aucun créneau</div></div>`;
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🕐</div>
+      <div class="empty-title">Aucun créneau défini</div>
+      <div class="empty-sub">Définissez vos horaires habituels pour construire une semaine lisible.</div>
+      <button class="btn-primary empty-state-action" onclick="openTimeslotModal()">+ Ajouter un créneau</button>
+    </div>`;
     if (summaryEl) summaryEl.innerHTML = "";
     return;
   }
