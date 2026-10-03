@@ -94,7 +94,7 @@
                 class="auth-tab active"
                 role="tab"
                 aria-selected="true"
-                onclick="switchAuthTab('login')"
+                data-action="switch-auth-tab:login"
               >
                 Connexion
               </button>
@@ -102,7 +102,7 @@
                 class="auth-tab"
                 role="tab"
                 aria-selected="false"
-                onclick="switchAuthTab('register')"
+                data-action="switch-auth-tab:register"
               >
                 Inscription
               </button>
@@ -140,7 +140,7 @@
                   type="button"
                   class="pwd-toggle"
                   aria-label="Afficher/masquer le mot de passe"
-                  onclick="togglePwd('login-password', this)"
+                  data-action="toggle-password:login-password"
                 >
                   <svg
                     class="eye-icon"
@@ -158,11 +158,11 @@
                 </button>
               </div>
               <div id="login-msg" role="alert" aria-live="polite"></div>
-              <button class="btn-primary" id="login-submit" onclick="doLogin()">
+              <button class="btn-primary" id="login-submit" data-action="login">
                 Se connecter →
               </button>
-              <div style="text-align: center; margin-top: 0.8rem">
-                <a href="#" class="forgot-link" onclick="showForgotForm(event)"
+              <div class="auth-link-row">
+                <a href="#" class="forgot-link" data-action="forgot"
                   >Mot de passe oublié ?</a
                 >
               </div>
@@ -172,7 +172,7 @@
             <div
               id="register-form"
               class="auth-form"
-              style="display: none"
+              hidden
               role="tabpanel"
             >
               <div class="form-group">
@@ -222,7 +222,7 @@
                   type="button"
                   class="pwd-toggle"
                   aria-label="Afficher/masquer le mot de passe"
-                  onclick="togglePwd('reg-password', this)"
+                  data-action="toggle-password:reg-password"
                 >
                   <svg
                     class="eye-icon"
@@ -255,7 +255,7 @@
                   type="button"
                   class="pwd-toggle"
                   aria-label="Afficher/masquer le mot de passe"
-                  onclick="togglePwd('reg-confirm-password', this)"
+                  data-action="toggle-password:reg-confirm-password"
                 >
                   <svg
                     class="eye-icon"
@@ -276,7 +276,7 @@
               <button
                 class="btn-primary"
                 id="reg-submit"
-                onclick="doRegister()"
+                data-action="register"
               >
                 Créer mon compte →
               </button>
@@ -286,15 +286,11 @@
             <div
               id="forgot-form"
               class="auth-form"
-              style="display: none"
+              hidden
               role="tabpanel"
             >
               <p
-                style="
-                  font-size: 0.88rem;
-                  color: var(--text-muted);
-                  margin-bottom: 0.5rem;
-                "
+                class="field-hint"
               >
                 Entrez votre email. Nous vous enverrons un lien pour
                 réinitialiser votre mot de passe.
@@ -314,12 +310,12 @@
               <button
                 class="btn-primary"
                 id="forgot-submit"
-                onclick="doForgotPassword()"
+                data-action="forgot-submit"
               >
                 Envoyer le lien →
               </button>
-              <div style="text-align: center; margin-top: 0.8rem">
-                <a href="#" class="forgot-link" onclick="showLoginForm(event)"
+              <div class="auth-link-row">
+                <a href="#" class="forgot-link" data-action="login-tab"
                   >← Retour à la connexion</a
                 >
               </div>
@@ -329,7 +325,7 @@
             <div
               id="reset-form"
               class="auth-form"
-              style="display: none"
+              hidden
               role="tabpanel"
             >
               <p
@@ -361,7 +357,7 @@
                   type="button"
                   class="pwd-toggle"
                   aria-label="Afficher/masquer le mot de passe"
-                  onclick="togglePwd('reset-password', this)"
+                  data-action="toggle-password:reset-password"
                 >
                   <svg
                     class="eye-icon"
@@ -394,7 +390,7 @@
                   type="button"
                   class="pwd-toggle"
                   aria-label="Afficher/masquer le mot de passe"
-                  onclick="togglePwd('reset-confirm', this)"
+                  data-action="toggle-password:reset-confirm"
                 >
                   <svg
                     class="eye-icon"
@@ -415,7 +411,7 @@
               <button
                 class="btn-primary"
                 id="reset-submit"
-                onclick="doResetPassword()"
+                data-action="reset-password"
               >
                 Enregistrer le mot de passe →
               </button>

@@ -108,8 +108,9 @@ function showPanel(name) {
     .forEach((n) => n.classList.remove("active"));
   panel.classList.add("active");
   document.querySelectorAll(".nav-item").forEach((n) => {
-    if (n.getAttribute("onclick") && n.getAttribute("onclick").includes(name))
+    if (n.dataset.panel === name || n.dataset.action === `show-panel:${name}`) {
       n.classList.add("active");
+    }
   });
   if (name === "schedule") renderScheduleGrid();
   if (name === "tasks") Promise.all([renderSubjectsPanel(), renderPalette()]);
@@ -148,6 +149,54 @@ function updateMobileNav(panel) {
     btn.classList.toggle("active", btn.dataset.panel === panel);
   });
 }
+
+const delegatedActions = {
+  "show-panel": (_button, value) => {
+    showPanel(value);
+    updateMobileNav(value);
+  },
+  "switch-auth-tab": (_button, value) => switchAuthTab(value),
+  "toggle-password": (button, value) => togglePwd(value, button),
+  login: () => doLogin(),
+  register: () => doRegister(),
+  forgot: (_button, value) => showForgotForm(value),
+  "forgot-submit": () => doForgotPassword(),
+  "login-tab": (_button, value) => showLoginForm(value),
+  "reset-password": () => doResetPassword(),
+  "logout-confirm": () => confirmLogout(),
+  logout: () => doLogout(),
+  "close-modal": (_button, value) => closeModal(value),
+  "open-modal": (button, value) => openModal(value, button),
+  "save-subject": () => saveSubject(),
+  "save-timeslot": () => saveTimeslot(),
+  "delete-account": () => doDeleteAccount(),
+  settings: () => showPanel("settings"),
+  "toggle-sidebar": () => toggleSidebar(),
+  contact: () => sendContactEmail(),
+  "add-free-task": () => addFreeTaskFromModal(),
+  "add-subtask": () => addSubtaskFromModal(),
+  "emoji-picker": (button, value) =>
+    toggleEmojiPicker({ stopPropagation() {}, currentTarget: button }, value),
+};
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-action]");
+  if (!button) return;
+  const [action, ...parts] = button.dataset.action.split(":");
+  const handler = delegatedActions[action];
+  if (!handler) return;
+  event.preventDefault();
+  handler(button, parts.join(":"));
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" || !(event.target instanceof HTMLInputElement)) return;
+  const action = event.target.dataset.enterAction;
+  if (!action) return;
+  event.preventDefault();
+  const [name, ...parts] = action.split(":");
+  delegatedActions[name]?.(event.target, parts.join(":"));
+});
 
 /* Keep only one responsive navigation interface in the live DOM. CSS-only
    hiding still makes the browser retain and maintain both complete trees. */

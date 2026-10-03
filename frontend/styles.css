@@ -26,6 +26,7 @@
   /* Mobile safe areas */
   --nav-height: 64px;
   --top-bar-height: 52px;
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--primary) 32%, transparent);
 }
 
 /* ── Reset ────────────────────────────────────────── */
@@ -51,6 +52,105 @@ body {
   min-height: 100dvh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Shared interaction primitives */
+button,
+[role="button"],
+a,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--primary) 72%, white);
+  outline-offset: 2px;
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-icon:hover {
+  background: var(--surface3);
+  color: var(--primary);
+}
+
+.btn-icon.danger {
+  color: var(--danger);
+}
+
+.field-hint,
+.field-error {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+}
+
+.field-hint {
+  color: var(--text-muted);
+}
+
+.field-error {
+  color: var(--danger);
+}
+
+.form-input[aria-invalid="true"] {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 16%, transparent);
+}
+
+.auth-link-row {
+  margin-top: 0.8rem;
+  text-align: center;
+}
+
+.modal-narrow {
+  max-width: 360px;
+  text-align: center;
+}
+
+.modal-medium {
+  max-width: 380px;
+  text-align: center;
+}
+
+.modal-wide {
+  max-width: 520px;
+}
+
+.modal-extra-wide {
+  max-width: 640px;
+}
+
+.modal-copy {
+  margin-bottom: 1.5rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.modal-footer-centered {
+  justify-content: center;
+  gap: 0.8rem;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1886,6 +1986,10 @@ select.form-input option {
   padding: 1rem;
 }
 
+.modal-overlay[hidden] {
+  display: none;
+}
+
 .modal-overlay.open {
   display: flex;
 }
@@ -1900,6 +2004,12 @@ select.form-input option {
   position: relative;
 }
 
+.modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
 .modal-overlay.open .modal {
   animation: modalIn 0.22s cubic-bezier(0.34, 1.2, 0.64, 1) both;
 }
@@ -1908,6 +2018,17 @@ select.form-input option {
   from {
     opacity: 0;
     transform: scale(0.95) translateY(8px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   to {
