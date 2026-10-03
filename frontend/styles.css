@@ -990,6 +990,10 @@ select.form-input option {
   gap: 1.25rem;
 }
 
+#schedule-grid {
+  touch-action: pan-y;
+}
+
 .day-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -1293,6 +1297,67 @@ select.form-input option {
   align-items: center;
   flex-shrink: 0;
   margin-top: 1px;
+}
+
+.block-more {
+  position: relative;
+}
+
+.block-more summary {
+  list-style: none;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.block-more summary::-webkit-details-marker {
+  display: none;
+}
+
+.block-more[open] summary {
+  color: var(--primary-light);
+  border-color: var(--primary);
+}
+
+.block-more-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  z-index: 5;
+  min-width: 150px;
+  padding: 0.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.block-more-menu button {
+  width: 100%;
+  min-height: 40px;
+  padding: 0.45rem 0.6rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.75rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.block-more-menu button:hover,
+.block-more-menu button:focus-visible {
+  background: var(--surface2);
+  color: var(--primary-light);
 }
 
 /* Day fill chips */
@@ -2940,8 +3005,13 @@ select.form-input option {
   }
 
   .modal-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
     gap: 0.6rem;
     margin-top: 1.25rem;
+    padding: 0.75rem 0 0.25rem;
+    background: linear-gradient(to bottom, color-mix(in srgb, var(--surface) 0%, transparent), var(--surface) 25%);
     flex-direction: row;
   }
 
@@ -2952,6 +3022,12 @@ select.form-input option {
     justify-content: center;
     display: flex;
     align-items: center;
+  }
+
+  .modal-footer .btn-primary,
+  .modal-footer .btn-secondary,
+  .modal-footer .btn-danger {
+    min-height: 48px;
   }
 
   /* ── Panel headers ── */
@@ -3069,8 +3145,8 @@ select.form-input option {
   }
 
   .icon-btn {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
   }
 
   /* ── Subjects ── */

@@ -6,6 +6,7 @@ let selectedSubjectId = null;
 let interactionMode = "click";
 let currentActiveDays = [];
 let mobileScheduleDay = null;
+let mobileScheduleSwipeBound = false;
 
 /* ══════════════════════════════════════════════
    SCHEDULE GRID — Day-Card Timeline Layout
@@ -76,6 +77,54 @@ function changeMobileScheduleDay(delta) {
   const nextIndex = (currentIndex + delta + weekDays.length) % weekDays.length;
   mobileScheduleDay = weekDays[nextIndex].abbr;
   renderScheduleGrid();
+}
+
+function _bindMobileScheduleSwipe() {
+  const grid = DOM.scheduleGrid;
+  if (!grid || mobileScheduleSwipeBound) return;
+  mobileScheduleSwipeBound = true;
+  let startX = 0;
+  let startY = 0;
+  let startedOnControl = false;
+
+  grid.addEventListener(
+    "touchstart",
+    (event) => {
+      if (!_isMobileSchedule() || event.touches.length !== 1) return;
+      const target = event.target;
+      startedOnControl = Boolean(
+        target.closest("button, a, input, select, textarea, summary, details"),
+      );
+      startX = event.touches[0].clientX;
+      startY = event.touches[0].clientY;
+    },
+    { passive: true },
+  );
+  grid.addEventListener(
+    "touchend",
+    (event) => {
+      if (
+        !_isMobileSchedule() ||
+        startedOnControl ||
+        !startX ||
+        !event.changedTouches.length
+      ) {
+        startX = 0;
+        startY = 0;
+        return;
+      }
+      const endX = event.changedTouches[0].clientX;
+      const endY = event.changedTouches[0].clientY;
+      const deltaX = endX - startX;
+      const deltaY = endY - startY;
+      startX = 0;
+      startY = 0;
+      if (Math.abs(deltaX) < 50 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.2)
+        return;
+      changeMobileScheduleDay(deltaX < 0 ? 1 : -1);
+    },
+    { passive: true },
+  );
 }
 
 function _mobileDayControlsHTML(weekDays) {
@@ -202,14 +251,19 @@ function _buildCellContentHTML(dayAbbr, ts, subj, blockSubtasks, isDone) {
                         ${subtasksHtml}
                     </div>
                     <div class="block-actions">
-                        <button class="subtask-mgr-btn"
-                            onclick="event.stopPropagation();openSubtaskModal('${subj.id}','${subj.name.replace(/'/g, "\\'")}','${subj.color}','${dayAbbr}')"
-                            aria-label="Gérer les sous-titres"
-                            title="Sous-titres (${subtasks.length})">≡</button>
                         <button class="done-btn ${isDone ? "done" : ""}"
                             onclick="event.stopPropagation();toggleDoneBlock('${currentWeekOffset}','${dayAbbr}','${ts.id}')"
                             aria-label="${isDone ? "Marquer comme non fait" : "Marquer comme fait"}"
                             title="Marquer comme fait">${isDone ? "✓" : "○"}</button>
+                        <details class="block-more">
+                            <summary onclick="event.stopPropagation()" aria-label="Autres actions" title="Autres actions">⋯</summary>
+                            <div class="block-more-menu">
+                                <button class="subtask-mgr-btn"
+                                    onclick="event.stopPropagation();openSubtaskModal('${subj.id}','${subj.name.replace(/'/g, "\\'")}','${subj.color}','${dayAbbr}')"
+                                    aria-label="Gérer les sous-titres"
+                                    title="Sous-titres (${subtasks.length})">Sous-tâches${subtasks.length ? ` (${subtasks.length})` : ""}</button>
+                            </div>
+                        </details>
                     </div>
                 </div>`;
 }
@@ -562,6 +616,7 @@ async function renderSchedule() {
   // Single write for the whole structure — then never again until the
   // structure itself (week, timeslots, days) changes.
   grid.innerHTML = `${_mobileDayControlsHTML(allWeekDays)}<div class="days-grid">${cards.join("")}</div>`;
+  _bindMobileScheduleSwipe();
   finishScheduleMeasure();
 
   // Every previously memoised day card / block node is now detached.
