@@ -27,6 +27,43 @@ function isModuleLoaded(name) {
   return !!_lazyModules[name];
 }
 
+const THEME_STORAGE_KEY = "jadwal_theme";
+
+function getThemePreference() {
+  const preference = localStorage.getItem(THEME_STORAGE_KEY);
+  return preference === "light" || preference === "dark" ? preference : "system";
+}
+
+function getResolvedTheme(preference = getThemePreference()) {
+  return preference === "system"
+    ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+    : preference;
+}
+
+function applyTheme(preference = getThemePreference()) {
+  const resolvedTheme = getResolvedTheme(preference);
+  document.documentElement.dataset.theme = resolvedTheme;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute(
+    "content",
+    resolvedTheme === "dark" ? "#0F172A" : "#FFFFFF",
+  );
+  const select = document.getElementById("theme-select");
+  if (select) select.value = preference;
+}
+
+function setTheme(preference) {
+  const validPreference = ["system", "light", "dark"].includes(preference)
+    ? preference
+    : "system";
+  localStorage.setItem(THEME_STORAGE_KEY, validPreference);
+  applyTheme(validPreference);
+}
+
+applyTheme();
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  if (getThemePreference() === "system") applyTheme("system");
+});
+
 function ensurePanel(name) {
   const id = "panel-" + name;
   let panel = document.getElementById(id);
@@ -113,6 +150,7 @@ function showPanel(name) {
     }
   });
   if (name === "schedule") renderScheduleGrid();
+  if (name === "settings") applyTheme();
   if (name === "tasks") Promise.all([renderSubjectsPanel(), renderPalette()]);
   if (name === "timeslots") Promise.all([renderTimeslots(), renderDaysCheckboxes()]);
   if (name === "autogen") renderAutogenGrid();

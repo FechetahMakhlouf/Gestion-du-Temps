@@ -24,6 +24,16 @@
     <link rel="apple-touch-icon" href="frontend/img/apple-touch-icon.png" />
     <meta name="msapplication-TileColor" content="#FFFFFF" />
     <meta name="msapplication-TileImage" content="frontend/img/icon-192.png" />
+    <script>
+      (() => {
+        const preference = localStorage.getItem("jadwal_theme") || "system";
+        const systemTheme = matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+        document.documentElement.dataset.theme =
+          preference === "system" ? systemTheme : preference;
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -1169,6 +1179,31 @@
             </div>
             <div class="contact-panel-wrap">
               <div class="contact-panel-card">
+                <h3 class="settings-section-title">Apparence</h3>
+                <div class="settings-theme-row">
+                  <div>
+                    <label class="settings-theme-label" for="theme-select"
+                      >Thème de l'application</label
+                    >
+                    <p class="settings-theme-help">
+                      Le mode système suit automatiquement les préférences de
+                      votre appareil.
+                    </p>
+                  </div>
+                  <select
+                    class="form-input settings-theme-select"
+                    id="theme-select"
+                    aria-label="Thème de l'application"
+                    onchange="setTheme(this.value)"
+                  >
+                    <option value="system">Système</option>
+                    <option value="light">Clair</option>
+                    <option value="dark">Sombre</option>
+                  </select>
+                </div>
+
+                <hr class="settings-divider" />
+
                 <h3 class="settings-section-title">Changer le mot de passe</h3>
                 <div class="auth-form" style="gap: 1rem">
                   <div class="form-group input-icon-wrap">
