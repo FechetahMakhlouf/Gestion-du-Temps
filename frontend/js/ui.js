@@ -30,39 +30,30 @@ function isModuleLoaded(name) {
 const THEME_STORAGE_KEY = "jadwal_theme";
 
 function getThemePreference() {
-  const preference = localStorage.getItem(THEME_STORAGE_KEY);
-  return preference === "light" || preference === "dark" ? preference : "system";
-}
-
-function getResolvedTheme(preference = getThemePreference()) {
-  return preference === "system"
-    ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-    : preference;
+  return localStorage.getItem(THEME_STORAGE_KEY) === "dark" ? "dark" : "light";
 }
 
 function applyTheme(preference = getThemePreference()) {
-  const resolvedTheme = getResolvedTheme(preference);
-  document.documentElement.dataset.theme = resolvedTheme;
+  document.documentElement.dataset.theme = preference;
   document.querySelector('meta[name="theme-color"]')?.setAttribute(
     "content",
-    resolvedTheme === "dark" ? "#0F172A" : "#FFFFFF",
+    preference === "dark" ? "#0F172A" : "#FFFFFF",
   );
-  const select = document.getElementById("theme-select");
-  if (select) select.value = preference;
+  document.querySelectorAll(".theme-toggle-btn").forEach((button) => {
+    const nextTheme = preference === "dark" ? "clair" : "sombre";
+    button.setAttribute("aria-label", `Activer le mode ${nextTheme}`);
+    button.setAttribute("title", `Activer le mode ${nextTheme}`);
+    button.setAttribute("aria-pressed", preference === "dark" ? "true" : "false");
+  });
 }
 
-function setTheme(preference) {
-  const validPreference = ["system", "light", "dark"].includes(preference)
-    ? preference
-    : "system";
-  localStorage.setItem(THEME_STORAGE_KEY, validPreference);
-  applyTheme(validPreference);
+function toggleTheme() {
+  const nextTheme = getThemePreference() === "dark" ? "light" : "dark";
+  localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  applyTheme(nextTheme);
 }
 
 applyTheme();
-window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-  if (getThemePreference() === "system") applyTheme("system");
-});
 
 function ensurePanel(name) {
   const id = "panel-" + name;

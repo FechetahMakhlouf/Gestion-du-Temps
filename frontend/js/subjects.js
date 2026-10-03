@@ -400,25 +400,41 @@ let _subtaskSubjectId = null;
 let _subtaskDay = null;
 
 async function openSubtaskModal(subjectId, subjectName, subjectColor, day) {
-  ensureModal("subtask-modal");
+  const modal = ensureModal("subtask-modal");
+  if (!modal) {
+    console.error("Subtask modal template is unavailable.");
+    toast("Impossible d’ouvrir la gestion des sous-titres.", "error");
+    return;
+  }
   _subtaskSubjectId = subjectId;
   _subtaskDay = day || null;
-  document.getElementById("subtask-subject-id").value = subjectId;
-  document.getElementById("subtask-day").value = day || "";
-  const nameEl = document.getElementById("subtask-modal-subject-name");
+  const subjectIdEl = modal.querySelector("#subtask-subject-id");
+  const dayEl = modal.querySelector("#subtask-day");
+  const nameEl = modal.querySelector("#subtask-modal-subject-name");
+  const titleInput = modal.querySelector("#subtask-new-title");
+  const msgEl = modal.querySelector("#subtask-msg");
+  if (!subjectIdEl || !dayEl || !nameEl || !titleInput || !msgEl) {
+    console.error("Subtask modal is missing required controls.");
+    toast("La fenêtre des sous-titres est incomplète.", "error");
+    return;
+  }
+  subjectIdEl.value = subjectId;
+  dayEl.value = day || "";
   nameEl.textContent = subjectName;
   nameEl.style.color = subjectColor;
-  document.getElementById("subtask-new-title").value = "";
-  document.getElementById("subtask-msg").innerHTML = "";
+  titleInput.value = "";
+  msgEl.innerHTML = "";
   await renderSubtaskList(subjectId, subjectColor, day);
-  document.getElementById("subtask-modal").classList.add("open");
-  requestAnimationFrame(() =>
-    document.getElementById("subtask-new-title").focus(),
-  );
+  modal.classList.add("open");
+  requestAnimationFrame(() => titleInput.focus());
 }
 
 async function renderSubtaskList(subjectId, color, day) {
   const listEl = document.getElementById("subtask-list");
+  if (!listEl) {
+    console.error("Subtask list element is unavailable.");
+    return;
+  }
   let subtasks = [];
   try {
     subtasks = await Store.getSubtasks(subjectId, day);
@@ -614,6 +630,7 @@ async function onSubtaskDrop(e, targetId) {
 }
 
 async function renderSubjectsPanel() {
+  if (!DOM.subjStats || !DOM.subjectsGrid) return;
   const finishSubjectsMeasure = window.appPerformance.span("subjects-rendering");
   // appState.subjects is always populated after bootstrap; only the schedule
   // needs a network hop (it varies per week offset).
