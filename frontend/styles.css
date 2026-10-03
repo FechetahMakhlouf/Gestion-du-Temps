@@ -565,7 +565,7 @@ button,
   font-family: "DM Sans", sans-serif;
   cursor: pointer;
   min-height: 48px;
-  width: 100%;
+  width: auto;
   transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   letter-spacing: 0.02em;
   position: relative;
@@ -1492,6 +1492,11 @@ select.form-input option {
   margin-top: 1rem;
   padding: 0.7rem 1.1rem;
   font-size: 0.82rem;
+}
+
+.auth-form .btn-primary,
+.contact-panel-card .btn-primary {
+  width: 100%;
 }
 
 .day-card .reset-day-btn {
@@ -2817,7 +2822,7 @@ select.form-input option {
   /* ── Mobile Top Bar ── */
   .mobile-top-bar {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: 1fr auto;
     align-items: center;
     position: fixed;
     top: 0;
@@ -2858,7 +2863,9 @@ select.form-input option {
     align-items: center;
     justify-content: center;
     font-family: "DM Sans", sans-serif;
-    cursor: default;
+    cursor: pointer;
+    padding: 0;
+    appearance: none;
     user-select: none;
   }
 
@@ -3176,6 +3183,27 @@ select.form-input option {
 
   .panel-title {
     font-size: 1.4rem;
+  }
+
+  .mobile-profile-sheet {
+    position: fixed;
+    inset: var(--top-bar-height) 0 0;
+    z-index: 250;
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.75rem;
+  }
+
+  .mobile-profile-sheet-backdrop {
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--bg) 45%, transparent);
+  }
+
+  .mobile-profile-sheet-card {
+    position: relative;
+    width: min(100%, 320px);
+    height: max-content;
   }
 
   .panel-sub {
@@ -3980,6 +4008,60 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 .mobile-theme-toggle:hover {
   border-color: transparent;
   background: var(--surface3);
+}
+
+.mobile-profile-sheet[hidden] {
+  display: none;
+}
+
+.mobile-profile-sheet {
+  display: none;
+}
+
+.mobile-profile-sheet-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  padding: 1rem;
+}
+
+.mobile-profile-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.mobile-profile-sheet-header h2 {
+  font-size: 1rem;
+}
+
+.mobile-profile-action {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 0.7rem 0.75rem;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mobile-profile-action:hover {
+  background: var(--surface2);
+}
+
+.mobile-profile-logout {
+  color: var(--danger);
+}
+
+@media (max-width: 768px) {
+  .mobile-profile-sheet:not([hidden]) {
+    display: flex;
+  }
 }
 
 .settings-section-title {

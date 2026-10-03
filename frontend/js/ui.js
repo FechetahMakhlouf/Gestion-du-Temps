@@ -171,6 +171,24 @@ function toggleSidebar() {
   document.getElementById("sidebar")?.classList.toggle("open");
 }
 
+function toggleProfileSheet() {
+  const sheet = document.getElementById("mobile-profile-sheet");
+  const avatar = document.getElementById("mobile-avatar");
+  if (!sheet) return;
+  const open = sheet.hidden;
+  sheet.hidden = !open;
+  avatar?.setAttribute("aria-expanded", String(open));
+  if (open) sheet.querySelector(".mobile-profile-action")?.focus();
+}
+
+function closeProfileSheet() {
+  const sheet = document.getElementById("mobile-profile-sheet");
+  const avatar = document.getElementById("mobile-avatar");
+  if (!sheet) return;
+  sheet.hidden = true;
+  avatar?.setAttribute("aria-expanded", "false");
+}
+
 function updateMobileNav(panel) {
   document.querySelectorAll(".mobile-bottom-nav .nav-item").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.panel === panel);
@@ -214,6 +232,10 @@ document.addEventListener("click", (event) => {
   if (!handler) return;
   event.preventDefault();
   handler(button, parts.join(":"));
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeProfileSheet();
 });
 
 document.addEventListener("keydown", (event) => {

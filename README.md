@@ -47,7 +47,7 @@
 | 📧 **Réinitialisation de MDP** | Envoi d'un lien sécurisé par email (valide 1h) via Gmail SMTP |
 | 📚 **Gestion des taches** | Créer, modifier, supprimer des taches avec couleur et type personnalisés |
 | 🕐 **Créneaux horaires** | Définir des plages horaires avec jours actifs, détection de chevauchements |
-| 📅 **Emploi du temps interactif** | Vue semaine avec navigation par offset, assignation drag-and-drop |
+| 📅 **Emploi du temps interactif** | Vue semaine avec navigation par offset et assignation par sélection |
 | ⚡ **Génération automatique** | Répartition intelligente des matières selon un volume horaire cible |
 | 🗓️ **Multi-semaine** | Planning différent par semaine grâce au système `weekOffset` |
 | 📤 **Export & partage** | Export facile de l'emploi du temps |

@@ -746,11 +746,9 @@ async function renderPalette() {
         (s) => `
         <div class="subject-chip ${!forModal && s.id === selectedSubjectId ? "selected" : ""}"
              style="background:${hexAlpha(s.color, 0.18)};color:${s.color};border-left-color:${s.color}"
-             draggable="true"
              role="button"
              tabindex="0"
              aria-label="${s.name}"
-             ondragstart="onChipDragStart(event,'${s.id}')"
              onkeydown="if(event.key==='Enter'||event.key===' ')${forModal ? `assignFromModal('${s.id}')` : `selectSubject('${s.id}', this)`}"
              onclick="${forModal ? `assignFromModal('${s.id}')` : `selectSubject('${s.id}', this)`}">
             <span class="chip-name">${s.name}</span>
@@ -775,14 +773,4 @@ function selectSubject(id, el) {
       .forEach((c) => c.classList.remove("selected"));
     el && el.classList.add("selected");
   }
-}
-
-function setMode(mode) {
-  interactionMode = mode;
-  document
-    .getElementById("mode-click")
-    .classList.toggle("active", mode === "click");
-  document
-    .getElementById("mode-drag")
-    .classList.toggle("active", mode === "drag");
 }
