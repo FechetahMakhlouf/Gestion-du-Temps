@@ -50,6 +50,14 @@ function hideLoader() {
    AUTH
 ══════════════════════════════════════════════ */
 
+function setActiveAuthForm(formId) {
+  document
+    .querySelectorAll(".auth-card > .auth-form")
+    .forEach((form) => {
+      form.hidden = form.id !== formId;
+    });
+}
+
 function switchAuthTab(tab) {
   document.querySelectorAll(".auth-tab").forEach((t, i) => {
     const isActive =
@@ -57,8 +65,7 @@ function switchAuthTab(tab) {
     t.classList.toggle("active", isActive);
     t.setAttribute("aria-selected", isActive);
   });
-  document.getElementById("login-form").hidden = tab !== "login";
-  document.getElementById("register-form").hidden = tab !== "register";
+  setActiveAuthForm(tab === "login" ? "login-form" : "register-form");
   // Auto-focus first field
   requestAnimationFrame(() => {
     const first = document.querySelector(
@@ -230,10 +237,7 @@ async function startApp() {
 
 function showForgotForm(e) {
   if (e) e.preventDefault();
-  document.getElementById("login-form").hidden = true;
-  document.getElementById("register-form").hidden = true;
-  document.getElementById("reset-form").hidden = true;
-  document.getElementById("forgot-form").hidden = false;
+  setActiveAuthForm("forgot-form");
   document.querySelector(".auth-tabs").style.display = "none";
   document.querySelector(".auth-card-heading h2").textContent =
     "Mot de passe oublié";
@@ -246,10 +250,7 @@ function showForgotForm(e) {
 
 function showLoginForm(e) {
   if (e) e.preventDefault();
-  document.getElementById("forgot-form").hidden = true;
-  document.getElementById("reset-form").hidden = true;
-  document.getElementById("register-form").hidden = true;
-  document.getElementById("login-form").hidden = false;
+  setActiveAuthForm("login-form");
   document.querySelector(".auth-tabs").style.display = "flex";
   document.querySelector(".auth-card-heading h2").textContent = "Bienvenue";
   document.querySelector(".auth-card-heading p").textContent =
@@ -264,10 +265,7 @@ function showLoginForm(e) {
 function showResetForm(token) {
   document.getElementById("auth-page").style.display = "flex";
   document.getElementById("app-page").style.display = "none";
-  document.getElementById("login-form").hidden = true;
-  document.getElementById("register-form").hidden = true;
-  document.getElementById("forgot-form").hidden = true;
-  document.getElementById("reset-form").hidden = false;
+  setActiveAuthForm("reset-form");
   document.querySelector(".auth-tabs").style.display = "none";
   document.querySelector(".auth-card-heading h2").textContent =
     "Nouveau mot de passe";
