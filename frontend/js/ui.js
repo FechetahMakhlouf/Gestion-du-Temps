@@ -39,11 +39,18 @@ function applyTheme(preference = getThemePreference()) {
     "content",
     preference === "dark" ? "#0F172A" : "#FFFFFF",
   );
+  const nextTheme = preference === "dark" ? "clair" : "sombre";
   document.querySelectorAll(".theme-toggle-btn").forEach((button) => {
-    const nextTheme = preference === "dark" ? "clair" : "sombre";
     button.setAttribute("aria-label", `Activer le mode ${nextTheme}`);
     button.setAttribute("title", `Activer le mode ${nextTheme}`);
     button.setAttribute("aria-pressed", preference === "dark" ? "true" : "false");
+  });
+  document.querySelectorAll(".settings-theme-toggle").forEach((button) => {
+    const label = button.querySelector(".settings-theme-state");
+    if (label) {
+      label.textContent = preference === "dark" ? "Mode clair" : "Mode sombre";
+    }
+    button.setAttribute("aria-label", `Basculer vers le mode ${nextTheme}`);
   });
 }
 
@@ -164,6 +171,7 @@ function showPanel(name) {
   // Fermer sidebar sur mobile après navigation
   if (window.innerWidth <= 768) {
     document.getElementById("sidebar")?.classList.remove("open");
+    closeProfileSheet();
   }
 }
 

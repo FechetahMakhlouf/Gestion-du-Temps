@@ -458,6 +458,8 @@
             <button class="btn-icon" type="button" onclick="closeProfileSheet()" aria-label="Fermer le compte">×</button>
           </div>
           <button class="mobile-profile-action" type="button" onclick="closeProfileSheet();showPanel('settings');updateMobileNav('settings')">⚙ Paramètres</button>
+          <button class="mobile-profile-action" type="button" onclick="closeProfileSheet();showPanel('autogen');updateMobileNav('autogen')">⚡ Génération Auto</button>
+          <button class="mobile-profile-action" type="button" onclick="closeProfileSheet();exportSchedule();">⬇ Exporter</button>
           <button class="mobile-profile-action" type="button" onclick="toggleTheme()">◐ <span class="profile-theme-label">Thème</span></button>
           <button class="mobile-profile-action" type="button" onclick="closeProfileSheet();showPanel('contact');updateMobileNav('contact')">✉ Nous contacter</button>
           <button class="mobile-profile-action mobile-profile-logout" type="button" onclick="closeProfileSheet();confirmLogout()">↪ Déconnexion</button>
@@ -492,65 +494,12 @@
                 <div class="sidebar-date" id="sidebar-date"></div>
               </div>
               <button
-                class="sidebar-settings-btn"
+                class="sidebar-profile-btn"
                 onclick="showPanel('settings')"
-                aria-label="Paramètres du compte"
-                title="Paramètres du compte"
+                aria-label="Ouvrir le compte et les paramètres"
+                title="Compte et paramètres"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <circle cx="12" cy="12" r="3" />
-                  <path
-                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-                  />
-                </svg>
-              </button>
-              <button
-                class="theme-toggle-btn"
-                onclick="toggleTheme()"
-                aria-label="Activer le mode sombre"
-                title="Activer le mode sombre"
-              >
-                <svg
-                  class="theme-toggle-icon theme-icon-sun"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="12" cy="12" r="4" />
-                  <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" />
-                </svg>
-                <svg
-                  class="theme-toggle-icon theme-icon-moon"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                </svg>
+                Compte
               </button>
             </div>
           </div>
@@ -628,8 +577,11 @@
               </span>
               Créneaux Horaires
             </button>
+          </div>
+          <div class="sidebar-secondary-nav" aria-label="Actions secondaires">
+            <div class="sidebar-section-label">Actions</div>
             <button
-              class="nav-item"
+              class="nav-item nav-item-secondary"
               onclick="showPanel('autogen')"
               aria-label="Génération Auto"
             >
@@ -651,7 +603,7 @@
               Génération Auto
             </button>
             <button
-              class="nav-item nav-item-contact"
+              class="nav-item nav-item-secondary nav-item-contact"
               onclick="showPanel('contact')"
               data-panel="contact"
               aria-label="Nous contacter"
@@ -1132,6 +1084,17 @@
                 </div>
               </div>
             </div>
+            <div class="settings-account-actions">
+              <button
+                class="btn-secondary settings-theme-toggle"
+                type="button"
+                onclick="toggleTheme()"
+                aria-label="Basculer vers le mode sombre"
+              >
+                <span aria-hidden="true">◐</span>
+                <span class="settings-theme-state">Mode sombre</span>
+              </button>
+            </div>
             <div class="contact-panel-wrap">
               <div class="contact-panel-card">
                 <h3 class="settings-section-title">Changer le mot de passe</h3>
@@ -1384,12 +1347,9 @@
         </button>
         <button
           class="nav-item"
-          onclick="
-            showPanel('autogen');
-            updateMobileNav('autogen');
-          "
-          data-panel="autogen"
-          aria-label="Auto"
+          onclick="toggleProfileSheet(); updateMobileNav('more');"
+          data-panel="more"
+          aria-label="Plus d'actions"
         >
           <span class="nav-icon" aria-hidden="true">
             <svg
@@ -1403,10 +1363,12 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              <circle cx="5" cy="12" r="1.5" />
+              <circle cx="12" cy="12" r="1.5" />
+              <circle cx="19" cy="12" r="1.5" />
             </svg>
           </span>
-          <span class="nav-label">Auto</span>
+          <span class="nav-label">Plus</span>
         </button>
       </nav>
     </div>

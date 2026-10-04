@@ -794,6 +794,7 @@ button,
   flex-direction: column;
   gap: 0.1rem;
   min-width: 0;
+  flex: 1;
 }
 
 .sidebar-username {
@@ -811,12 +812,48 @@ button,
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 }
 
+.sidebar-profile-btn {
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.52rem 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  min-height: 40px;
+}
+
+.sidebar-profile-btn:hover {
+  border-color: color-mix(in srgb, var(--primary) 34%, transparent);
+  background: var(--primary-dim);
+  color: var(--primary-light);
+}
+
 .sidebar-nav {
   flex: 1;
   padding: 1rem 0.6rem;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+}
+
+.sidebar-secondary-nav {
+  padding: 0.25rem 0.6rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.sidebar-section-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0.45rem 0.5rem 0.2rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 .sidebar-footer {
@@ -854,9 +891,35 @@ button,
   border-color: color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
+.nav-item-secondary {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.nav-item-secondary:hover {
+  color: var(--text);
+}
+
 .nav-icon {
   font-size: 1rem;
   flex-shrink: 0;
+}
+
+.settings-account-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.settings-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 42px;
+}
+
+.settings-theme-state {
+  font-weight: 600;
 }
 
 /* ── Main Content ───────────────────────────────── */
@@ -2829,10 +2892,12 @@ select.form-input option {
     left: 0;
     right: 0;
     z-index: 200;
-    background: color-mix(in srgb, var(--bg) 98%, transparent);
-    border-bottom: 1px solid color-mix(in srgb, var(--primary) 12%, transparent);
+    background: color-mix(in srgb, var(--bg) 96%, transparent);
+    border-bottom: 1px solid var(--border);
     padding: 0.65rem 1rem;
     height: var(--top-bar-height);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   .mobile-top-bar-logo {
@@ -2917,12 +2982,12 @@ select.form-input option {
     left: 0;
     right: 0;
     z-index: 300;
-    background: rgba(8, 12, 20, 0.99);
-    border-top: 1px solid color-mix(in srgb, var(--primary) 14%, transparent);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
     padding: 0.4rem 0.25rem;
     padding-bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px));
     gap: 0;
-    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 -12px 26px color-mix(in srgb, var(--text) 12%, transparent);
     height: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
   }
 
@@ -2934,7 +2999,7 @@ select.form-input option {
     gap: 0.2rem;
     padding: 0.4rem 0.25rem;
     border-radius: 14px;
-    font-size: 0.57rem;
+    font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.02em;
     color: var(--text-muted);
@@ -2948,7 +3013,7 @@ select.form-input option {
 
   .mobile-bottom-nav .nav-item.active {
     color: var(--primary-light);
-    background: color-mix(in srgb, var(--primary) 10%, transparent);
+    background: var(--primary-dim);
     border-color: color-mix(in srgb, var(--primary) 20%, transparent);
   }
 
@@ -2979,7 +3044,8 @@ select.form-input option {
 
   .mobile-bottom-nav .nav-label {
     display: block;
-    line-height: 1;
+    line-height: 1.2;
+    font-size: 0.72rem;
   }
 
   /* ── Sidebar on mobile ── */
