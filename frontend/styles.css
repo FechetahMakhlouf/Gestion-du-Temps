@@ -584,8 +584,21 @@ button,
   pointer-events: none;
 }
 
-.btn-primary:active {
+.btn-primary:active,
+.btn-secondary:active,
+.btn-danger:active,
+.btn-compact:active,
+.btn-icon:active {
   transform: scale(0.97);
+}
+
+.btn-secondary,
+.btn-danger,
+.btn-compact,
+.btn-ghost {
+  font-family: "DM Sans", sans-serif;
+  cursor: pointer;
+  transition: var(--transition);
 }
 
 .btn-secondary {
@@ -596,14 +609,20 @@ button,
   padding: 0.75rem 1.15rem;
   font-size: 0.9rem;
   font-weight: 500;
-  font-family: "DM Sans", sans-serif;
-  cursor: pointer;
   min-height: 46px;
-  transition: var(--transition);
 }
 
-.btn-secondary:active {
-  transform: scale(0.97);
+.btn-compact {
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border);
 }
 
 .btn-danger {
@@ -614,23 +633,22 @@ button,
   padding: 0.75rem 1rem;
   font-size: 0.88rem;
   min-height: 44px;
-  font-family: "DM Sans", sans-serif;
-  cursor: pointer;
-  transition: var(--transition);
 }
 
 .btn-destructive-secondary {
   border-color: color-mix(in srgb, var(--danger) 24%, var(--border));
   color: var(--danger);
-  margin-left: 0.75rem;
+  margin-left: 0;
+  background: transparent;
 }
 
 .btn-destructive-secondary:hover {
   background: color-mix(in srgb, var(--danger) 9%, transparent);
 }
 
-.btn-danger:active {
-  transform: scale(0.97);
+.btn-danger:hover,
+.btn-destructive-secondary:hover {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--danger) 20%, transparent);
 }
 
 /* Loading spinner in button */
@@ -1010,14 +1028,31 @@ select.form-input option {
 .schedule-controls {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  justify-content: space-between;
+  gap: 0.75rem;
   margin-bottom: 1.1rem;
   flex-wrap: wrap;
+  padding-top: 0.1rem;
 }
 
-.schedule-controls .btn-secondary {
-  min-height: 38px;
-  padding: 0.45rem 0.85rem;
+.schedule-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.schedule-control-cluster {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.schedule-controls .btn-secondary,
+.schedule-controls .btn-compact {
+  min-height: 44px;
+  padding: 0.6rem 0.9rem;
   font-size: 0.78rem;
 }
 
@@ -1032,10 +1067,15 @@ select.form-input option {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  padding: 0.3rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
 }
 
 .week-btn {
-  background: var(--surface);
+  background: var(--surface2);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: var(--radius-sm);
@@ -1043,8 +1083,8 @@ select.form-input option {
   cursor: pointer;
   font-size: 0.9rem;
   transition: var(--transition);
-  min-width: 38px;
-  min-height: 38px;
+  min-width: 44px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1053,6 +1093,7 @@ select.form-input option {
 .week-btn:hover {
   border-color: var(--primary);
   color: var(--primary-light);
+  background: var(--primary-dim);
 }
 
 .week-label {
@@ -1061,6 +1102,34 @@ select.form-input option {
   color: var(--text-muted);
   min-width: 140px;
   text-align: center;
+  padding: 0.2rem 0.4rem;
+}
+
+.schedule-panel-header {
+  align-items: flex-start;
+}
+
+.panel-heading {
+  min-width: 0;
+}
+
+.schedule-header-actions .btn-primary,
+.schedule-header-actions .btn-secondary,
+.schedule-header-actions .btn-ghost {
+  min-height: 44px;
+}
+
+.schedule-header-actions .btn-primary {
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+.schedule-header-actions .btn-secondary {
+  background: var(--surface);
+}
+
+.schedule-header-actions .btn-ghost {
+  background: transparent;
+  border-color: var(--border);
 }
 
 /* Week fill bar */
@@ -1393,14 +1462,14 @@ select.form-input option {
 
 /* Done button */
 .done-btn {
-  width: 26px;
-  height: 26px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 1.5px solid var(--border2);
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1408,7 +1477,7 @@ select.form-input option {
   transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
   padding: 0;
   line-height: 1;
-  min-width: 26px;
+  min-width: 40px;
 }
 
 .done-btn:hover {
@@ -1469,8 +1538,8 @@ select.form-input option {
 
 .block-more summary {
   list-style: none;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   border: 1px solid var(--border2);
   border-radius: 8px;
   color: var(--text-muted);
@@ -1584,6 +1653,10 @@ select.form-input option {
   padding: 0.3rem 0.8rem;
   font-size: 0.78rem;
   display: none;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1673,16 +1746,16 @@ select.form-input option {
 
 .subject-card-actions {
   display: flex;
-  gap: 0.3rem;
+  gap: 0.35rem;
 }
 
 .icon-btn {
   background: var(--surface2);
   border: 1px solid var(--border);
   color: var(--text-muted);
-  border-radius: 5px;
-  width: 32px;
-  height: 32px;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1810,6 +1883,11 @@ select.form-input option {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 0.85rem 1rem;
+}
+
+.timeslot-row .btn-secondary,
+.timeslot-row .icon-btn {
+  min-height: 36px;
 }
 
 .timeslot-time {

@@ -781,52 +781,67 @@ async function copyPreviousWeek() {
       toast("La semaine précédente est vide.", "info");
       return;
     }
-    if (!confirm("Copier la semaine précédente dans cette semaine ?")) return;
-    const copiedSched = {};
-    await Promise.all(Object.keys(prevSched).map(async (key) => {
-      const parts = key.split("_");
-      if (parts.length < 3) return;
-      const day = parts[1];
-      const tsId = parts.slice(2).join("_");
-      const subjectId = prevSched[key];
-      await apiCall("/api/schedule/assign", {
-        method: "POST",
-        body: JSON.stringify({ weekOffset: targetOffset, day, timeslotId: tsId, subjectId }),
-      });
-      copiedSched[`${targetOffset}_${day}_${tsId}`] = subjectId;
-    }));
-    Store.setScheduleWeek(targetOffset, copiedSched);
-    await renderScheduleGrid();
-    toast("Planning copié depuis la semaine précédente ✓", "success");
+
+    openConfirmModal({
+      title: "Copier la semaine",
+      message: "Copier la semaine précédente dans cette semaine ?",
+      confirmText: "Copier",
+      confirmClass: "btn-primary",
+      onConfirm: async () => {
+        const copiedSched = {};
+        await Promise.all(Object.keys(prevSched).map(async (key) => {
+          const parts = key.split("_");
+          if (parts.length < 3) return;
+          const day = parts[1];
+          const tsId = parts.slice(2).join("_");
+          const subjectId = prevSched[key];
+          await apiCall("/api/schedule/assign", {
+            method: "POST",
+            body: JSON.stringify({ weekOffset: targetOffset, day, timeslotId: tsId, subjectId }),
+          });
+          copiedSched[`${targetOffset}_${day}_${tsId}`] = subjectId;
+        }));
+        Store.setScheduleWeek(targetOffset, copiedSched);
+        await renderScheduleGrid();
+        toast("Planning copié depuis la semaine précédente ✓", "success");
+      },
+    });
   } catch (error) {
     if (!Store.isAbortError(error)) toast(error.message, "error");
   }
 }
 
 async function clearAllSchedule() {
-  if (!confirm("Vider tout l'emploi du temps de cette semaine ?")) return;
-  const sched = await Store.getSchedule(currentWeekOffset);
-  // Run all removals in parallel for speed
-  const removals = Object.keys(sched).map((key) => {
-    const parts = key.split("_");
-    if (parts.length === 3) {
-      return apiCall("/api/schedule/remove", {
-        method: "POST",
-        body: JSON.stringify({
-          weekOffset: currentWeekOffset,
-          day: parts[1],
-          timeslotId: parts[2],
-        }),
+  openConfirmModal({
+    title: "Vider l'emploi du temps",
+    message: "Vider tout l'emploi du temps de cette semaine ?",
+    confirmText: "Vider",
+    confirmClass: "btn-danger",
+    onConfirm: async () => {
+      const sched = await Store.getSchedule(currentWeekOffset);
+      const removals = Object.keys(sched).map((key) => {
+        const parts = key.split("_");
+        if (parts.length === 3) {
+          const day = parts[1];
+          const tsId = parts[2];
+          localStorage.removeItem(`done_${currentWeekOffset}_${day}_${tsId}`);
+          return apiCall("/api/schedule/remove", {
+            method: "POST",
+            body: JSON.stringify({
+              weekOffset: currentWeekOffset,
+              day,
+              timeslotId: tsId,
+            }),
+          });
+        }
+        return Promise.resolve();
       });
-      localStorage.removeItem(`done_${currentWeekOffset}_${parts[1]}_${parts[2]}`);
-    }
-    return Promise.resolve();
+      await Promise.all(removals);
+      Store.setScheduleWeek(currentWeekOffset, {});
+      await renderScheduleGrid();
+      toast("Emploi du temps vidé", "info");
+    },
   });
-  await Promise.all(removals);
-  // Replace the entire week in the cache with an empty map — no refetch.
-  Store.setScheduleWeek(currentWeekOffset, {});
-  await renderScheduleGrid();
-  toast("Emploi du temps vidé", "info");
 }
 
 function checkConflicts() {

@@ -659,31 +659,34 @@
         <main class="main-content">
           <!-- SCHEDULE PANEL -->
           <div class="panel active" id="panel-schedule">
-            <div class="panel-header">
-              <div>
+            <div class="panel-header schedule-panel-header">
+              <div class="panel-heading">
                 <div class="panel-title">Emploi du Temps</div>
                 <div class="panel-sub">
                   Visualisez et suivez votre planning hebdomadaire
                 </div>
               </div>
-              <div
-                style="
-                  display: flex;
-                  gap: 0.8rem;
-                  align-items: center;
-                  flex-wrap: wrap;
-                "
-              >
-                <div id="conflict-badge" class="conflict-badge" role="alert">
-                  ⚠ Conflits détectés
-                </div>
+              <div class="schedule-header-actions">
                 <button
                   class="btn-primary"
-                  onclick="exportSchedule()"
-                  aria-label="Exporter l'emploi du temps"
-                  style="font-size: 0.8rem; padding: 0.5rem 1rem"
+                  onclick="openSubjectModal()"
+                  aria-label="Ajouter une tâche"
                 >
-                  ⬇ Exporter
+                  + Ajouter une tâche
+                </button>
+                <button
+                  class="btn-secondary btn-compact"
+                  onclick="openTimeslotModal()"
+                  aria-label="Ajouter un créneau"
+                >
+                  + Ajouter un créneau
+                </button>
+                <button
+                  class="btn-secondary btn-compact btn-ghost"
+                  onclick="exportSchedule()"
+                  aria-label="Ouvrir les actions de l'emploi du temps"
+                >
+                  Actions ▾
                 </button>
               </div>
             </div>
@@ -712,20 +715,25 @@
                   →
                 </button>
               </div>
-              <button
-                class="btn-secondary today-btn"
-                onclick="goToday()"
-                aria-label="Revenir à la semaine actuelle"
-              >
-                Aujourd'hui
-              </button>
-              <button
-                class="btn-secondary"
-                onclick="copyPreviousWeek()"
-                aria-label="Copier la semaine précédente"
-              >
-                Copier la semaine précédente
-              </button>
+              <div class="schedule-control-cluster">
+                <button
+                  class="btn-secondary btn-compact today-btn"
+                  onclick="goToday()"
+                  aria-label="Revenir à la semaine actuelle"
+                >
+                  Aujourd'hui
+                </button>
+                <button
+                  class="btn-secondary btn-compact btn-ghost"
+                  onclick="copyPreviousWeek()"
+                  aria-label="Copier la semaine précédente"
+                >
+                  Copier la semaine
+                </button>
+              </div>
+              <div id="conflict-badge" class="conflict-badge" role="alert">
+                ⚠ Conflits détectés
+              </div>
             </div>
             <!-- Week fill progress -->
             <div
@@ -1375,6 +1383,34 @@
 
     <template id="secondary-modals-template">
     <!-- MODALS -->
+    <!-- Shared confirmation modal -->
+    <div
+      class="modal-overlay"
+      id="confirm-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-modal-title"
+    >
+      <div class="modal modal-narrow">
+        <div class="modal-title" id="confirm-modal-title">Confirmation</div>
+        <p class="modal-copy" id="confirm-modal-message">
+          Confirmez cette action.
+        </p>
+        <div class="modal-footer modal-footer-centered">
+          <button
+            class="btn-secondary"
+            id="confirm-modal-cancel"
+            type="button"
+          >
+            Annuler
+          </button>
+          <button class="btn-danger" id="confirm-modal-confirm" type="button">
+            Confirmer
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Subject Modal -->
     <div
       class="modal-overlay"

@@ -371,24 +371,26 @@ async function saveSubject() {
 }
 
 async function deleteSubject(id) {
-  if (
-    !confirm(
-      "Supprimer cette tâche ? Les créneaux assignés seront aussi effacés.",
-    )
-  )
-    return;
-  try {
-    await apiCall(`/api/subjects/${id}`, { method: "DELETE" });
-    // Subjects changed: invalidate then immediately refresh the cache so
-    // renderAll() reads appState.subjects without any additional network call.
-    Store.invalidateSubjects();
-    Store.invalidateSchedule();
-    await Store.refreshSubjects();
-    await renderAll();
-    toast("Tâche supprimée", "info");
-  } catch (e) {
-    toast(e.message, "error");
-  }
+  const subject = appState.subjects.find((entry) => String(entry.id) === String(id));
+  const label = subject ? subject.name : "cette tâche";
+  openConfirmModal({
+    title: "Supprimer la tâche",
+    message: `Supprimer “${label}” ? Les créneaux assignés seront aussi effacés.`,
+    confirmText: "Supprimer",
+    confirmClass: "btn-danger",
+    onConfirm: async () => {
+      try {
+        await apiCall(`/api/subjects/${id}`, { method: "DELETE" });
+        Store.invalidateSubjects();
+        Store.invalidateSchedule();
+        await Store.refreshSubjects();
+        await renderAll();
+        toast("Tâche supprimée", "info");
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    },
+  });
 }
 
 /* ══════════════════════════════════════════════

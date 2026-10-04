@@ -41,6 +41,50 @@ function openModal(id, trigger = document.activeElement) {
   });
 }
 
+function openConfirmModal({
+  title,
+  message,
+  confirmText = "Confirmer",
+  cancelText = "Annuler",
+  confirmClass = "btn-danger",
+  onConfirm,
+  onCancel,
+}) {
+  const overlay = ensureModal("confirm-modal");
+  if (!overlay) return;
+
+  const titleEl = overlay.querySelector("#confirm-modal-title");
+  const msgEl = overlay.querySelector("#confirm-modal-message");
+  const confirmBtn = overlay.querySelector("#confirm-modal-confirm");
+  const cancelBtn = overlay.querySelector("#confirm-modal-cancel");
+
+  if (titleEl) titleEl.textContent = title || "Confirmation";
+  if (msgEl) msgEl.textContent = message || "Confirmez cette action.";
+  if (confirmBtn) {
+    confirmBtn.textContent = confirmText;
+    confirmBtn.className = `btn ${confirmClass}`;
+    confirmBtn.onclick = () => {
+      closeModal("confirm-modal");
+      if (typeof onConfirm === "function") onConfirm();
+    };
+  }
+  if (cancelBtn) {
+    cancelBtn.textContent = cancelText;
+    cancelBtn.onclick = () => {
+      closeModal("confirm-modal");
+      if (typeof onCancel === "function") onCancel();
+    };
+  }
+
+  _modalTriggers.set(overlay, document.activeElement);
+  overlay.classList.add("open");
+  overlay.removeAttribute("aria-hidden");
+  requestAnimationFrame(() => {
+    const focusTarget = overlay.querySelector("#confirm-modal-cancel, #confirm-modal-confirm");
+    if (focusTarget) focusTarget.focus();
+  });
+}
+
 function trapModalFocus(event, overlay) {
   if (event.key !== "Tab") return;
   const focusable = [...overlay.querySelectorAll(_modalFocusable)];
