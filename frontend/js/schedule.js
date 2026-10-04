@@ -818,6 +818,7 @@ async function clearAllSchedule() {
           timeslotId: parts[2],
         }),
       });
+      localStorage.removeItem(`done_${currentWeekOffset}_${parts[1]}_${parts[2]}`);
     }
     return Promise.resolve();
   });

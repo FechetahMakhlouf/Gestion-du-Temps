@@ -1,6 +1,5 @@
 let currentWeekOffset = 0;
 let selectedSubjectId = null;
-let interactionMode = "click";
 let currentActiveDays = [];
 
 /* ══════════════════════════════════════════════
@@ -980,11 +979,9 @@ async function renderPalette() {
         (s) => `
         <div class="subject-chip ${!forModal && s.id === selectedSubjectId ? "selected" : ""}"
              style="background:${hexAlpha(s.color, 0.18)};color:${s.color};border-left-color:${s.color}"
-             draggable="true"
              role="button"
              tabindex="0"
              aria-label="${s.name}"
-             ondragstart="onChipDragStart(event,'${s.id}')"
              onkeydown="if(event.key==='Enter'||event.key===' ')${forModal ? `assignFromModal('${s.id}')` : `selectSubject('${s.id}', this)`}"
              onclick="${forModal ? `assignFromModal('${s.id}')` : `selectSubject('${s.id}', this)`}">
             <span class="chip-name">${s.name}</span>
@@ -1009,16 +1006,6 @@ function selectSubject(id, el) {
       .forEach((c) => c.classList.remove("selected"));
     el && el.classList.add("selected");
   }
-}
-
-function setMode(mode) {
-  interactionMode = mode;
-  document
-    .getElementById("mode-click")
-    .classList.toggle("active", mode === "click");
-  document
-    .getElementById("mode-drag")
-    .classList.toggle("active", mode === "drag");
 }
 
 /* ══════════════════════════════════════════════
@@ -1117,9 +1104,6 @@ function _timeslotsForDay(timeslots, dayAbbr) {
 function _buildCellContentHTML(dayAbbr, ts, subj, blockSubtasks, isDone) {
   if (!subj) {
     return `<div class="block-content block-empty"
-                    ondragover="event.preventDefault();this.classList.add('drag-over')"
-                    ondragleave="this.classList.remove('drag-over')"
-                    ondrop="this.classList.remove('drag-over');onDrop(event,'${dayAbbr}','${ts.id}')"
                     onclick="handleCellClick('${dayAbbr}','${ts.id}')"
                     role="button"
                     tabindex="0"
@@ -1141,9 +1125,6 @@ function _buildCellContentHTML(dayAbbr, ts, subj, blockSubtasks, isDone) {
 
   return `<div class="block-content"
                     style="background:${hexAlpha(subj.color, 0.18)};border-left:3px solid ${subj.color};color:${subj.color}"
-                    ondragover="onDragOver(event)"
-                    ondragleave="onDragLeave(event)"
-                    ondrop="onDrop(event,'${dayAbbr}','${ts.id}')"
                     onclick="handleCellClick('${dayAbbr}','${ts.id}')">
                     <div class="block-content-inner">
                         <span>${subj.name}</span>
@@ -1586,101 +1567,12 @@ async function removeEvent(day, tsId) {
   }
 }
 
-/* ══════════════════════════════════════════════
-   DRAG & DROP
-══════════════════════════════════════════════ */
-
-let dragSubjId = null;
-let dragFromDay = null,
-  dragFromTs = null;
-
-function onChipDragStart(e, subjId) {
-  dragSubjId = subjId;
-  dragFromDay = null;
-  e.dataTransfer.effectAllowed = "copy";
-}
-
-function onEventDragStart(e, day, tsId, subjId) {
-  dragSubjId = subjId;
-  dragFromDay = day;
-  dragFromTs = tsId;
-  e.dataTransfer.effectAllowed = "move";
-  e.stopPropagation();
-}
-
-function onDragOver(e) {
-  e.preventDefault();
-  e.currentTarget.classList.add("drag-over");
-  e.dataTransfer.dropEffect = "copy";
-}
-
-function onDragLeave(e) {
-  e.currentTarget.classList.remove("drag-over");
-}
-
-async function onDrop(e, day, tsId) {
-  // Drag & drop assignment is disabled
-  e.preventDefault();
-  e.currentTarget.classList.remove("drag-over");
-}
-
 async function changeWeek(delta) {
-  const previousOffset = currentWeekOffset;
   currentWeekOffset += delta;
 
   // Rapid clicking on ‹ / › cancels the requests of the week we just left,
   // so an outdated response can never overwrite the grid.
   Store.newWeekGeneration();
-  const requestedOffset = currentWeekOffset;
-
-  try {
-    // Check if new week is empty — if so, copy from previous week
-    const newSched = await Store.getSchedule(currentWeekOffset);
-    const isEmpty = !newSched || Object.keys(newSched).length === 0;
-
-    if (isEmpty) {
-      const prevSched = await Store.getSchedule(previousOffset);
-      if (prevSched && Object.keys(prevSched).length > 0) {
-        // Copy all assignments from previous week to new week
-        const assigns = [];
-        // Build the copied schedule map to write directly into cache
-        const copiedSched = {};
-        for (const key of Object.keys(prevSched)) {
-          const parts = key.split("_");
-          if (parts.length >= 3) {
-            const day = parts[1];
-            const tsId = parts.slice(2).join("_");
-            const subjId = prevSched[key];
-            const newKey = `${currentWeekOffset}_${day}_${tsId}`;
-            copiedSched[newKey] = subjId;
-            assigns.push(
-              apiCall("/api/schedule/assign", {
-                method: "POST",
-                body: JSON.stringify({
-                  weekOffset: currentWeekOffset,
-                  day,
-                  timeslotId: tsId,
-                  subjectId: subjId,
-                }),
-              }).catch(() => {}),
-            );
-          }
-        }
-        await Promise.all(assigns);
-        // Seed the new week in the cache directly — no refetch needed.
-        Store.setScheduleWeek(currentWeekOffset, copiedSched);
-        toast("Planning copié depuis la semaine précédente ✓", "success");
-      }
-    }
-  } catch (err) {
-    // Aborted because the user moved on to another week — nothing to do.
-    if (Store.isAbortError(err)) return;
-    throw err;
-  }
-
-  // The user navigated again while we were loading — let the newest call win.
-  if (requestedOffset !== currentWeekOffset) return;
-
   renderScheduleGrid();
 }
 
