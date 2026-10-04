@@ -571,8 +571,14 @@ async function renderSchedule() {
     const dayFreeTasks = freeTasksByDay[dayAbbr] || [];
     const dayFreeCount = dayFreeTasks.length;
 
-    const blocks = dayTimeslots
+    const blocks = timeslots
       .map((ts) => {
+        if (!dayTimeslots.includes(ts)) {
+          return `<div class="block block-unavailable" aria-hidden="true">
+                    <div class="block-time">${ts.start}<br>→ ${ts.end}</div>
+                    <div class="block-unavailable-content"></div>
+                  </div>`;
+        }
         const subjId = sched[`${currentWeekOffset}_${dayAbbr}_${ts.id}`];
         const subj = subjId ? subjects.find((s) => s.id === subjId) : null;
         const blockSubtasks = subj
@@ -596,7 +602,12 @@ async function renderSchedule() {
                     <span class="day-fill-chip" id="fill-chip-${dayAbbr}">${dayFilled}/${dayTimeslots.length}</span>
                     <span class="day-done-chip" id="done-chip-${dayAbbr}" ${dayDone === 0 ? 'style="display:none"' : ""}>✓ ${dayDone}</span>
                     <span class="day-free-chip" id="free-chip-${dayAbbr}" ${dayFreeCount === 0 ? 'style="display:none"' : ""}>✎ ${dayFreeCount}</span>
-                    <button class="reset-day-btn" title="Réinitialiser la journée" aria-label="Réinitialiser ${dayAbbr}" onclick="resetDayDone('${dayAbbr}')">↺</button>
+                    <details class="day-more">
+                      <summary aria-label="Autres actions pour ${dayAbbr}" title="Autres actions">⋯</summary>
+                      <div class="day-more-menu">
+                        <button type="button" onclick="resetDayDone('${dayAbbr}')">Réinitialiser la journée</button>
+                      </div>
+                    </details>
                 </div>
             </div>
             <div class="timeline">${blocks}</div>
@@ -608,7 +619,7 @@ async function renderSchedule() {
 
   // Single write for the whole structure — then never again until the
   // structure itself (week, timeslots, days) changes.
-  grid.innerHTML = `${_mobileDayControlsHTML(allWeekDays)}<div class="days-grid">${cards.join("")}</div>`;
+  grid.innerHTML = `${_mobileDayControlsHTML(allWeekDays)}<div class="schedule-grid-viewport"><div class="days-grid" style="--schedule-day-count: ${weekDays.length}">${cards.join("")}</div></div>`;
   _bindMobileScheduleSwipe();
   finishScheduleMeasure();
 

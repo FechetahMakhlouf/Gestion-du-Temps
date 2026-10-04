@@ -681,13 +681,19 @@
                 >
                   + Ajouter un créneau
                 </button>
-                <button
-                  class="btn-secondary btn-compact btn-ghost"
-                  onclick="exportSchedule()"
-                  aria-label="Ouvrir les actions de l'emploi du temps"
-                >
-                  Actions ▾
-                </button>
+                <details class="schedule-actions-menu">
+                  <summary class="btn-secondary btn-compact btn-ghost">
+                    Actions ▾
+                  </summary>
+                  <div class="schedule-actions-popover">
+                    <button type="button" onclick="exportSchedule()">
+                      Exporter le planning
+                    </button>
+                    <button type="button" onclick="enterFocusMode()">
+                      Mode focus
+                    </button>
+                  </div>
+                </details>
               </div>
             </div>
 
@@ -749,13 +755,15 @@
                 >0 / 0 créneaux assignés</span
               >
             </div>
-            <!-- ── Productivity Score Card ── -->
-            <div
-              class="productivity-card"
-              id="productivity-card"
-              aria-label="Score de productivité"
-              style="display: none"
-            >
+            <!-- ── Productivity and legend ── -->
+            <details class="schedule-insights">
+              <summary>Détails de la semaine</summary>
+              <div
+                class="productivity-card"
+                id="productivity-card"
+                aria-label="Score de productivité"
+                style="display: none"
+              >
               <div class="prod-card-header">
                 <span class="prod-card-title">📈 Score de Productivité</span>
                 <span class="prod-card-level" id="prod-level"></span>
@@ -800,14 +808,14 @@
                 <div class="prod-tips-title">💡 Suggestions</div>
                 <ul class="prod-tips-list" id="prod-tips-list"></ul>
               </div>
-            </div>
+              </div>
 
-            <!-- Dynamic legend -->
-            <div
-              id="schedule-legend"
-              class="schedule-legend"
-              aria-label="Légende"
-            ></div>
+              <div
+                id="schedule-legend"
+                class="schedule-legend"
+                aria-label="Légende"
+              ></div>
+            </details>
             <!-- Day-card timeline grid -->
             <div id="schedule-grid"></div>
           </div>

@@ -1132,6 +1132,82 @@ select.form-input option {
   border-color: var(--border);
 }
 
+.schedule-actions-menu,
+.day-more {
+  position: relative;
+}
+
+.schedule-actions-menu summary,
+.day-more summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.schedule-actions-menu summary::-webkit-details-marker,
+.day-more summary::-webkit-details-marker {
+  display: none;
+}
+
+.schedule-actions-popover,
+.day-more-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.4rem);
+  z-index: 10;
+  min-width: 190px;
+  padding: 0.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--text) 18%, transparent);
+}
+
+.schedule-actions-popover button,
+.day-more-menu button {
+  width: 100%;
+  min-height: 42px;
+  padding: 0.55rem 0.7rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.schedule-actions-popover button:hover,
+.schedule-actions-popover button:focus-visible,
+.day-more-menu button:hover,
+.day-more-menu button:focus-visible {
+  background: var(--surface2);
+  color: var(--primary-light);
+}
+
+.schedule-insights {
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.schedule-insights > summary {
+  padding: 0.65rem 0.8rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.schedule-insights[open] > summary {
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.schedule-insights .productivity-card,
+.schedule-insights .schedule-legend {
+  margin: 0.8rem;
+}
+
 /* Week fill bar */
 .week-fill-bar {
   display: flex;
@@ -1216,11 +1292,20 @@ select.form-input option {
   background: var(--success);
 }
 
-/* Day cards grid */
+/* Weekly timeline */
+.schedule-grid-viewport {
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-bottom: 0.35rem;
+}
+
 .days-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(var(--schedule-day-count, 7), minmax(190px, 1fr));
+  min-width: max(100%, calc(var(--schedule-day-count, 7) * 190px));
+  gap: 0.6rem;
+  align-items: start;
 }
 
 #schedule-grid {
@@ -1231,7 +1316,7 @@ select.form-input option {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
-  overflow: hidden;
+  overflow: visible;
   /* Keep schedule containers stable; animate only their small controls. */
 }
 
@@ -1243,12 +1328,16 @@ select.form-input option {
 }
 
 .day-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   padding: 0.75rem 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--border);
   gap: 0.5rem;
+  background: var(--surface);
 }
 
 .day-name {
@@ -1298,15 +1387,14 @@ select.form-input option {
   border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
-.reset-day-btn {
+.day-more summary {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-muted);
   border-radius: 0.35rem;
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   font-size: 0.85rem;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1315,9 +1403,14 @@ select.form-input option {
   padding: 0;
 }
 
-.reset-day-btn:hover {
+.day-more summary:hover,
+.day-more[open] summary {
   border-color: var(--primary);
   color: var(--primary-light);
+}
+
+.day-more-menu {
+  min-width: 180px;
 }
 
 /* Timeline */
@@ -1333,6 +1426,17 @@ select.form-input option {
   grid-template-columns: 76px 1fr;
   gap: 0.45rem;
   align-items: start;
+  min-height: 68px;
+}
+
+.block-unavailable {
+  pointer-events: none;
+  opacity: 0.22;
+}
+
+.block-unavailable-content {
+  min-height: 48px;
+  border-left: 1px dashed var(--border);
 }
 
 .block-time {
@@ -1631,12 +1735,13 @@ select.form-input option {
   width: 100%;
 }
 
-.day-card .reset-day-btn {
+.day-card .day-more summary {
   color: var(--text-dim);
   opacity: 0.55;
 }
 
-.day-card .reset-day-btn:hover {
+.day-card .day-more summary:hover,
+.day-card .day-more[open] summary {
   opacity: 1;
 }
 
@@ -3404,6 +3509,14 @@ select.form-input option {
   .days-grid {
     grid-template-columns: 1fr;
     gap: 0.75rem;
+  }
+
+  .schedule-grid-viewport {
+    overflow-x: hidden;
+  }
+
+  .block-unavailable {
+    display: none;
   }
 
   .day-card {
