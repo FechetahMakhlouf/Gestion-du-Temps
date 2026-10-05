@@ -45,6 +45,13 @@ function applyTheme(preference = getThemePreference()) {
     button.setAttribute("title", `Activer le mode ${nextTheme}`);
     button.setAttribute("aria-pressed", preference === "dark" ? "true" : "false");
   });
+  document.querySelectorAll(".theme-nav-item").forEach((button) => {
+    button.setAttribute("aria-label", `Activer le mode ${nextTheme}`);
+    button.setAttribute("title", `Activer le mode ${nextTheme}`);
+    button.setAttribute("aria-pressed", preference === "dark" ? "true" : "false");
+    const label = button.querySelector(".theme-nav-label");
+    if (label) label.textContent = preference === "dark" ? "Mode clair" : "Mode sombre";
+  });
   document.querySelectorAll(".settings-theme-toggle").forEach((button) => {
     const label = button.querySelector(".settings-theme-state");
     if (label) {

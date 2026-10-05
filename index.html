@@ -430,18 +430,31 @@
       <!-- MOBILE TOP BAR (hidden on desktop) -->
       <div class="mobile-top-bar" id="mobile-top-bar">
         <div class="mobile-top-bar-logo">جدول</div>
-        <button
-          class="mobile-top-bar-avatar"
-          id="mobile-avatar"
-          type="button"
-          onclick="toggleProfileSheet()"
-          aria-label="Ouvrir le compte"
-          aria-controls="mobile-profile-sheet"
-          aria-expanded="false"
-          title="Compte"
-        >
-          ?
-        </button>
+        <div class="mobile-top-bar-right">
+          <button
+            class="theme-toggle-btn mobile-theme-toggle"
+            type="button"
+            onclick="toggleTheme()"
+            aria-label="Activer le mode sombre"
+            title="Activer le mode sombre"
+            aria-pressed="false"
+          >
+            <span class="theme-icon-sun" aria-hidden="true">☀</span>
+            <span class="theme-icon-moon" aria-hidden="true">☾</span>
+          </button>
+          <button
+            class="mobile-top-bar-avatar"
+            id="mobile-avatar"
+            type="button"
+            onclick="toggleProfileSheet()"
+            aria-label="Ouvrir le compte"
+            aria-controls="mobile-profile-sheet"
+            aria-expanded="false"
+            title="Compte"
+          >
+            ?
+          </button>
+        </div>
       </div>
       <div
         class="mobile-profile-sheet"
@@ -629,6 +642,20 @@
             </button>
           </div>
           <div class="sidebar-footer">
+            <button
+              class="nav-item theme-nav-item"
+              type="button"
+              onclick="toggleTheme()"
+              aria-label="Activer le mode sombre"
+              title="Activer le mode sombre"
+              aria-pressed="false"
+            >
+              <span class="nav-icon theme-nav-icon" aria-hidden="true">
+                <span class="theme-icon-sun">☀</span>
+                <span class="theme-icon-moon">☾</span>
+              </span>
+              <span class="theme-nav-label">Mode sombre</span>
+            </button>
             <button
               class="nav-item"
               onclick="confirmLogout()"

@@ -17,7 +17,7 @@ for (const f of fs.readdirSync("frontend/js/lazy")) {
 const purged = await new PurgeCSS().purge({
   content: ["index.html", "frontend/js/**/*.js"],
   css: ["frontend/styles.css", "frontend/focus-mode.css"],
-  safelist: { standard: [/^is-/, /^has-/, /active/, /open/, /show/, /hidden/, /visible/, /dragging/, /drag-/, /loading/, /error/, /success/, /selected/, /disabled/], greedy: [/toast/, /modal/, /focus/] },
+  safelist: { standard: [/^is-/, /^has-/, /active/, /open/, /show/, /hidden/, /visible/, /dragging/, /drag-/, /loading/, /error/, /success/, /selected/, /disabled/], greedy: [/data-theme/, /toast/, /modal/, /focus/] },
   keyframes: true, fontFace: true, variables: false,
 });
 const css = purged.map(p => p.css).join("\n");

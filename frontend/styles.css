@@ -879,6 +879,19 @@ button,
   border-top: 1px solid var(--border);
 }
 
+.theme-nav-item {
+  margin-bottom: 0.2rem;
+}
+
+.theme-nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 1rem;
+}
+
 /* ── Nav items (sidebar) ────────────────────────── */
 .nav-item {
   display: flex;
@@ -4257,13 +4270,14 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
 }
 
 .mobile-theme-toggle {
-  border-color: transparent;
-  background: transparent;
-  color: inherit;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: var(--text-muted);
 }
 
 .mobile-theme-toggle:hover {
-  border-color: transparent;
+  border-color: var(--primary);
   background: var(--surface3);
 }
 
