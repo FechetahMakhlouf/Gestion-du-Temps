@@ -2285,20 +2285,20 @@ select.form-input option {
     transform: scale(0.95) translateY(8px);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      scroll-behavior: auto !important;
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
-
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -3373,10 +3373,6 @@ select.form-input option {
     background: var(--border2);
     border-radius: 4px;
     margin: 0.9rem auto 1.1rem;
-  }
-
-  .modal-overlay.open .modal {
-
   }
 
   @keyframes sheetSlideUp {
@@ -5176,4 +5172,93 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
   .main-content {
     scroll-behavior: auto !important;
   }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DESKTOP LAYOUT LAYER (≥769px)
+   Mobile rules (≤768px) are untouched. This layer gives desktop:
+   a responsive sidebar, a centered max-width content area,
+   consistent spacing tokens and a self-contained timetable scroll.
+   ══════════════════════════════════════════════════════════════ */
+:root {
+  --sidebar-width: clamp(200px, 16vw, 248px);
+  --content-max-width: 1440px;
+  --content-max-width-narrow: 1100px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --page-gutter: var(--space-8);
+  --schedule-col-min: 150px;
+}
+
+@media (min-width: 769px) {
+  html, body { overflow-x: clip; }
+
+  .sidebar { width: var(--sidebar-width); }
+
+  .main-content {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    min-width: 0;
+    width: calc(100% - var(--sidebar-width));
+    padding: var(--page-gutter);
+    min-height: 100dvh;
+  }
+
+  /* Centered content wrapper: every panel is constrained & centered */
+  .panel.active {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: var(--content-max-width-narrow);
+    margin-inline: auto;
+  }
+
+  /* The weekly timetable gets more room than forms/settings */
+  #panel-schedule.panel.active { max-width: var(--content-max-width); }
+
+  .panel-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-6);
+    margin-bottom: var(--space-6);
+    text-align: left;
+  }
+
+  /* Timetable: scrolls inside its own viewport, never pushes the page */
+  .schedule-grid-viewport {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+  .days-grid {
+    grid-template-columns: repeat(var(--schedule-day-count, 7), minmax(var(--schedule-col-min), 1fr));
+    min-width: max(100%, calc(var(--schedule-day-count, 7) * var(--schedule-col-min) + (var(--schedule-day-count, 7) - 1) * 0.6rem));
+  }
+  .days-grid > * { scroll-snap-align: start; min-width: 0; }
+}
+
+/* Intermediate desktops / small laptops: compact sidebar & gutters */
+@media (min-width: 769px) and (max-width: 1100px) {
+  :root {
+    --sidebar-width: 200px;
+    --page-gutter: var(--space-6);
+    --schedule-col-min: 160px; /* readable cards; week scrolls in-place */
+  }
+}
+
+/* Standard laptops (1101–1439): full week fits without page overflow */
+@media (min-width: 1101px) and (max-width: 1439px) {
+  :root { --schedule-col-min: 128px; }
+}
+
+/* Large desktops: comfortable seven-day overview */
+@media (min-width: 1440px) {
+  :root { --schedule-col-min: 160px; --page-gutter: 40px; }
 }
