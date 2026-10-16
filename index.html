@@ -1913,6 +1913,15 @@
     <script defer src="frontend/js/schedule.js?v=9"></script>
     <script defer src="frontend/js/tasks.js?v=9"></script>
 
+    <!-- Close <details> dropdowns when clicking outside -->
+    <script>
+      document.addEventListener("pointerdown", function(e) {
+        document.querySelectorAll("details[open]").forEach(function(det) {
+          if (!det.contains(e.target)) det.open = false;
+        });
+      }, true);
+    </script>
+
     <!-- Service Worker (PWA) -->
     <script>
       if ("serviceWorker" in navigator) {

@@ -148,3 +148,16 @@
 
   window.DOM = DOM;
 })();
+
+/* ══════════════════════════════════════════════
+   DETAILS / SUMMARY — close on outside click
+   Native <details> elements stay open until the
+   user clicks the <summary> again.  This listener
+   closes any open <details> when the click lands
+   outside of it, matching typical dropdown UX.
+══════════════════════════════════════════════ */
+document.addEventListener("click", (e) => {
+  document.querySelectorAll("details[open]").forEach((det) => {
+    if (!det.contains(e.target)) det.removeAttribute("open");
+  });
+}, true); // capture phase so it runs before stopPropagation calls
