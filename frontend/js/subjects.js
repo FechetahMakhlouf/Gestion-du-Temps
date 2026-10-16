@@ -507,8 +507,9 @@ async function addSubtaskFromModal() {
     const color = document.getElementById("subtask-modal-subject-name").style
       .color;
     await renderSubtaskList(subjectId, color, day);
-    // Granular: only the blocks showing this subject need repainting.
-    await updateScheduleCellsForSubject(subjectId, day);
+    // Refresh the schedule grid so the new subtask appears immediately.
+    Store.invalidateSubtasks(subjectId, null);
+    await renderScheduleGrid();
     await renderSubjectsPanel();
   } catch (e) {
     showMsg(msgEl, e.message, "error");
@@ -526,7 +527,8 @@ async function deleteSubtask(subtaskId) {
     const color = document.getElementById("subtask-modal-subject-name").style
       .color;
     await renderSubtaskList(subjectId, color, day);
-    await updateScheduleCellsForSubject(subjectId, day);
+    Store.invalidateSubtasks(subjectId, null);
+    await renderScheduleGrid();
     await renderSubjectsPanel();
     toast("Sous-titre supprimé", "info");
   } catch (e) {
@@ -569,7 +571,8 @@ async function saveSubtaskInline(subtaskId) {
     const color = document.getElementById("subtask-modal-subject-name").style
       .color;
     await renderSubtaskList(subjectId, color, day);
-    await updateScheduleCellsForSubject(subjectId, day);
+    Store.invalidateSubtasks(subjectId, null);
+    await renderScheduleGrid();
     await renderSubjectsPanel();
   } catch (e) {
     toast(e.message, "error");

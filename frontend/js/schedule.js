@@ -355,12 +355,17 @@ async function updateScheduleCellsForSubject(subjectId, day) {
     Store.getSchedule(currentWeekOffset),
   ]);
 
+  // `day` may be a full slot scope like "Lun@2" (used by the subtask modal)
+  // or a plain day abbreviation like "Lun".  Schedule keys use only the day
+  // abbreviation, so extract it before filtering.
+  const dayAbbr = day ? day.split("@")[0] : null;
+
   const targets = [];
   Object.entries(sched).forEach(([key, sid]) => {
     if (String(sid) !== String(subjectId)) return;
     const parts = key.split("_"); // "<week>_<day>_<tsId>"
     if (parts.length !== 3) return;
-    if (day && parts[1] !== day) return;
+    if (dayAbbr && parts[1] !== dayAbbr) return;
     targets.push([parts[1], parts[2]]);
   });
 
