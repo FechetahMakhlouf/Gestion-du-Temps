@@ -5,10 +5,7 @@
    FREE TASKS — Tasks without a timeslot (no chrono)
 ══════════════════════════════════════════════ */
 
-const FREE_TASK_SWATCHES = [
-  'var(--primary)', 'var(--primary-light)', 'var(--success)', 'var(--info)',
-  'var(--danger)', '#A78BFA', '#FB923C', '#4ADE80',
-];
+const FREE_TASK_SWATCHES = ['#A78BFA', '#FB923C', '#4ADE80','#FACC15', '#60A5FA', '#F472B6', '#F87171', '#34D399', '#FCD34D', '#818CF8', '#FBBF24', '#22D3EE'];
 
 let _freeTaskDay = null;
 let _freeTaskWeekOffset = 0;
