@@ -1,4 +1,4 @@
-﻿/* schedule.js — week grid, timeslots, active days
+/* schedule.js — week grid, timeslots, active days
    Classic script: top-level functions stay global so index.html onclick="…" handlers keep working. */
 
 let currentWeekOffset = 0;
@@ -619,7 +619,7 @@ async function renderSchedule() {
 
   // Single write for the whole structure — then never again until the
   // structure itself (week, timeslots, days) changes.
-  grid.innerHTML = `${_mobileDayControlsHTML(allWeekDays)}<div class="schedule-grid-viewport"><div class="days-grid" style="--schedule-day-count: ${weekDays.length}">${cards.join("")}</div></div>`;
+  grid.innerHTML = `${_mobileDayControlsHTML(allWeekDays)}<div class="schedule-grid-viewport"><div class="days-grid" style="--schedule-day-count: ${weekDays.length}; --schedule-slot-count: ${timeslots.length}; --schedule-track-count: ${timeslots.length + 2}">${cards.join("")}</div></div>`;
   _bindMobileScheduleSwipe();
   finishScheduleMeasure();
 

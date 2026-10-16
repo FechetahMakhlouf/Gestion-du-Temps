@@ -10,7 +10,7 @@
  * Bump VERSION on every deploy: asset filenames are not hashed, so the
  * version change is what invalidates cache-first entries.
  */
-const VERSION = 'v8';
+const VERSION = 'v9';
 const BASE = '/Gestion-du-Temps';
 
 const SHELL_CACHE = `jadwal-shell-${VERSION}`;
@@ -25,8 +25,17 @@ const CURRENT_CACHES = [SHELL_CACHE, STATIC_CACHE, FONT_CACHE, API_CACHE];
 const PRECACHE = [
   BASE + '/',
   BASE + '/index.html',
-  BASE + '/frontend/dist/app.min.css',
-  BASE + '/frontend/dist/app.min.js',
+  BASE + '/frontend/styles.css?v=9',
+  BASE + '/frontend/focus-mode.css?v=9',
+  BASE + '/frontend/js/api.js?v=9',
+  BASE + '/frontend/js/dom.js?v=9',
+  BASE + '/frontend/js/state.js?v=9',
+  BASE + '/frontend/js/ui.js?v=9',
+  BASE + '/frontend/js/modals.js?v=9',
+  BASE + '/frontend/js/auth.js?v=9',
+  BASE + '/frontend/js/subjects.js?v=9',
+  BASE + '/frontend/js/schedule.js?v=9',
+  BASE + '/frontend/js/tasks.js?v=9',
   BASE + '/frontend/img/icon-192.png',
   BASE + '/frontend/img/favicon.webp',
   BASE + '/manifest.json',

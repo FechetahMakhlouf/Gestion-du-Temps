@@ -20,7 +20,7 @@
   --success: #22C55E;
   --danger: #EF4444;
   --info: #16A34A;
-  --radius: 12px;
+  --radius: 8px;
   --radius-sm: 8px;
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   /* Mobile safe areas */
@@ -1315,8 +1315,8 @@ select.form-input option {
 
 .days-grid {
   display: grid;
-  grid-template-columns: repeat(var(--schedule-day-count, 7), minmax(190px, 1fr));
-  min-width: max(100%, calc(var(--schedule-day-count, 7) * 190px));
+  grid-template-columns: repeat(var(--schedule-day-count, 7), minmax(208px, 1fr));
+  min-width: 0;
   gap: 0.6rem;
   align-items: start;
 }
@@ -1436,7 +1436,7 @@ select.form-input option {
 
 .block {
   display: grid;
-  grid-template-columns: 76px 1fr;
+  grid-template-columns: 76px minmax(0, 1fr);
   gap: 0.45rem;
   align-items: start;
   min-height: 68px;
@@ -1465,6 +1465,7 @@ select.form-input option {
 }
 
 .block-content {
+  min-width: 0;
   border-radius: 8px;
   padding: 0.45rem 0.65rem;
   font-size: 0.78rem;
@@ -3516,7 +3517,8 @@ select.form-input option {
   }
 
   .days-grid {
-    grid-template-columns: 1fr;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.75rem;
   }
 
@@ -3533,7 +3535,7 @@ select.form-input option {
   }
 
   .block {
-    grid-template-columns: 58px 1fr;
+    grid-template-columns: 58px minmax(0, 1fr);
     gap: 0.3rem;
   }
 
@@ -3720,7 +3722,7 @@ select.form-input option {
   }
 
   .block {
-    grid-template-columns: 52px 1fr;
+    grid-template-columns: 52px minmax(0, 1fr);
   }
 }
 
@@ -4749,9 +4751,8 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
   font-weight: 400;
   opacity: 0.82;
   line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 /* Subtask manage button in schedule block */
@@ -5174,15 +5175,12 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   DESKTOP LAYOUT LAYER (≥769px)
-   Mobile rules (≤768px) are untouched. This layer gives desktop:
-   a responsive sidebar, a centered max-width content area,
-   consistent spacing tokens and a self-contained timetable scroll.
-   ══════════════════════════════════════════════════════════════ */
+/* Desktop scheduling layout: one shell grid and shared schedule row tracks.
+   Columns never shrink below their readable width; smaller desktops scroll
+   the week locally. Subgrid lets every slot grow with its longest task. */
 :root {
-  --sidebar-width: clamp(200px, 16vw, 248px);
-  --content-max-width: 1440px;
+  --sidebar-width: 216px;
+  --content-max-width: 1760px;
   --content-max-width-narrow: 1100px;
   --space-1: 4px;
   --space-2: 8px;
@@ -5191,74 +5189,195 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
   --space-6: 24px;
   --space-8: 32px;
   --page-gutter: var(--space-8);
-  --schedule-col-min: 150px;
+  --schedule-col-min: 208px;
+  --schedule-row-min: 132px;
+  --schedule-gap: 12px;
+  --dashboard-shadow: 0 2px 8px color-mix(in srgb, var(--text) 5%, transparent);
 }
 
 @media (min-width: 769px) {
-  html, body { overflow-x: clip; }
-
-  .sidebar { width: var(--sidebar-width); }
-
-  .main-content {
-    margin-left: var(--sidebar-width);
-    flex: 1;
-    min-width: 0;
-    width: calc(100% - var(--sidebar-width));
-    padding: var(--page-gutter);
-    min-height: 100dvh;
+  .app-layout {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    align-items: start;
   }
-
-  /* Centered content wrapper: every panel is constrained & centered */
+  .sidebar {
+    position: sticky;
+    top: 0;
+    width: auto;
+    height: 100dvh;
+    min-width: 0;
+    overflow-y: auto;
+    background: var(--bg);
+  }
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    min-width: 0;
+    padding: var(--page-gutter);
+    background: var(--surface);
+  }
   .panel.active {
-    display: block;
     width: 100%;
     min-width: 0;
     max-width: var(--content-max-width-narrow);
     margin-inline: auto;
   }
-
-  /* The weekly timetable gets more room than forms/settings */
   #panel-schedule.panel.active { max-width: var(--content-max-width); }
-
+  .panel-title {
+    font-family: "DM Sans", sans-serif;
+    font-size: 28px;
+    line-height: 1.25;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: var(--text);
+  }
+  .panel-sub { font-size: 14px; line-height: 1.5; }
   .panel-header {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
     gap: var(--space-6);
     margin-bottom: var(--space-6);
-    text-align: left;
   }
-
-  /* Timetable: scrolls inside its own viewport, never pushes the page */
+  .schedule-header-actions { gap: var(--space-2); }
+  .schedule-header-actions .btn-primary { box-shadow: none; }
+  .schedule-controls {
+    justify-content: flex-start;
+    gap: var(--space-3);
+    padding: 0 0 var(--space-4);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: var(--space-4);
+  }
+  .schedule-control-cluster { flex-wrap: wrap; }
+  .week-nav { border-radius: var(--radius-sm); background: var(--bg); }
+  .week-label { font-size: 13px; }
+  .schedule-insights {
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    background: transparent;
+    margin-bottom: var(--space-4);
+  }
+  .schedule-insights > summary { padding: var(--space-3) 0; font-size: 13px; }
   .schedule-grid-viewport {
     max-width: 100%;
     min-width: 0;
     overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: 2px 2px var(--space-4);
     scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) var(--surface);
+    touch-action: pan-x pan-y;
   }
   .days-grid {
     grid-template-columns: repeat(var(--schedule-day-count, 7), minmax(var(--schedule-col-min), 1fr));
-    min-width: max(100%, calc(var(--schedule-day-count, 7) * var(--schedule-col-min) + (var(--schedule-day-count, 7) - 1) * 0.6rem));
+    grid-template-rows: auto repeat(var(--schedule-slot-count, 1), minmax(var(--schedule-row-min), auto)) auto;
+    gap: var(--schedule-gap);
+    align-items: stretch;
+    min-width: 0;
   }
-  .days-grid > * { scroll-snap-align: start; min-width: 0; }
+  .day-card {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: 1 / span var(--schedule-track-count, 3);
+    min-width: 0;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    box-shadow: var(--dashboard-shadow);
+    scroll-snap-align: start;
+  }
+  .day-card-today { box-shadow: 0 0 0 1px var(--primary); }
+  .day-header {
+    position: relative;
+    top: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    background: var(--bg);
+  }
+  .day-name { font-size: 15px; line-height: 1.4; }
+  .day-tags { min-width: 0; gap: var(--space-1); }
+  .day-tag { letter-spacing: 0; }
+  .day-more { margin-left: auto; }
+  .day-more summary { width: 28px; height: 28px; }
+  .day-header:has(.day-more[open]) { z-index: 20; }
+  .timeline {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: 2 / span var(--schedule-slot-count, 1);
+    min-width: 0;
+    padding: 0 var(--space-2);
+    gap: var(--schedule-gap);
+  }
+  .block {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    min-width: 0;
+    min-height: var(--schedule-row-min);
+    gap: var(--space-1);
+    align-items: stretch;
+  }
+  .block-time {
+    border: 0;
+    text-align: left;
+    padding: 0 var(--space-1);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .block-time br { display: none; }
+  .block-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 28px;
+    min-width: 0;
+    padding: var(--space-2);
+    gap: var(--space-2);
+    font-size: 13px;
+    line-height: 1.5;
+    border-radius: 6px;
+    align-items: start;
+  }
+  .block-content-inner, .block-title-row { min-width: 0; }
+  .block-title-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+  .block-title-row > span:first-child,
+  .block-subtask-item { overflow-wrap: anywhere; }
+  .block-status { font-size: 10px; line-height: 1.4; }
+  .block-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    width: 28px;
+    margin: 0;
+  }
+  .done-btn, .block-more summary {
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+  .block:has(.block-more[open]) { position: relative; z-index: 15; }
+  .block-empty { grid-template-columns: minmax(0, 1fr); }
+  .empty-slot-hint { font-size: 12px; }
+  .block-unavailable { opacity: 0.4; }
+  .block-unavailable-content { min-height: 0; }
+  .free-tasks-section { min-width: 0; padding: var(--space-3); }
+  .free-tasks-header { flex-wrap: wrap; gap: var(--space-2); }
+  .free-tasks-label { letter-spacing: 0; font-size: 11px; }
+  .free-task-title { white-space: normal; overflow-wrap: anywhere; font-size: 12px; }
+  .free-task-item { align-items: flex-start; }
 }
 
-/* Intermediate desktops / small laptops: compact sidebar & gutters */
 @media (min-width: 769px) and (max-width: 1100px) {
-  :root {
-    --sidebar-width: 200px;
-    --page-gutter: var(--space-6);
-    --schedule-col-min: 160px; /* readable cards; week scrolls in-place */
-  }
-}
-
-/* Standard laptops (1101–1439): full week fits without page overflow */
-@media (min-width: 1101px) and (max-width: 1439px) {
-  :root { --schedule-col-min: 128px; }
-}
-
-/* Large desktops: comfortable seven-day overview */
-@media (min-width: 1440px) {
-  :root { --schedule-col-min: 160px; --page-gutter: 40px; }
+  :root { --sidebar-width: 200px; --page-gutter: var(--space-6); }
+  .schedule-header-actions { margin-left: 0; }
 }

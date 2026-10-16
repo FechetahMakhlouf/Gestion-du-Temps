@@ -34,7 +34,8 @@
       href="https://fonts.googleapis.com/css2?family=Amiri&family=DM+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="frontend/dist/app.min.css?v=8" />
+    <link rel="stylesheet" href="frontend/styles.css?v=9" />
+    <link rel="stylesheet" href="frontend/focus-mode.css?v=9" />
     <!-- Focus Mode styles -->
   </head>
 
@@ -1902,7 +1903,15 @@
     ></div>
 
     <!-- Core (deferred, in order). Secondary features are lazy-loaded from frontend/js/lazy/ -->
-    <script defer src="frontend/dist/app.min.js?v=8"></script>
+    <script defer src="frontend/js/api.js?v=9"></script>
+    <script defer src="frontend/js/dom.js?v=9"></script>
+    <script defer src="frontend/js/state.js?v=9"></script>
+    <script defer src="frontend/js/ui.js?v=9"></script>
+    <script defer src="frontend/js/modals.js?v=9"></script>
+    <script defer src="frontend/js/auth.js?v=9"></script>
+    <script defer src="frontend/js/subjects.js?v=9"></script>
+    <script defer src="frontend/js/schedule.js?v=9"></script>
+    <script defer src="frontend/js/tasks.js?v=9"></script>
 
     <!-- Service Worker (PWA) -->
     <script>
