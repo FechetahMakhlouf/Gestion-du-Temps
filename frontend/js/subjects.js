@@ -361,7 +361,7 @@ async function saveSubject() {
     Store.invalidateSchedule();
     await Store.refreshSubjects();
     closeModal("subject-modal");
-    await renderAll();
+    await Promise.all([renderAll(), renderSubjectsPanel()]);
     toast(id ? "Tâche modifiée ✓" : "Tâche ajoutée ✓", "success");
   } catch (e) {
     showMsg(msgEl, e.message, "error");
@@ -384,7 +384,7 @@ async function deleteSubject(id) {
         Store.invalidateSubjects();
         Store.invalidateSchedule();
         await Store.refreshSubjects();
-        await renderAll();
+        await Promise.all([renderAll(), renderSubjectsPanel()]);
         toast("Tâche supprimée", "info");
       } catch (e) {
         toast(e.message, "error");

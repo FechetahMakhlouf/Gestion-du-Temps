@@ -37,7 +37,8 @@
     <link rel="stylesheet" href="frontend/styles.css?v=9" />
     <link rel="stylesheet" href="frontend/focus-mode.css?v=9" />
     <!-- Focus Mode styles -->
-  </head>
+  <base target="_blank">
+</head>
 
   <body>
     <!-- APP LOADING OVERLAY -->
@@ -521,6 +522,7 @@
             <button
               class="nav-item active"
               onclick="showPanel('schedule')"
+              data-panel="schedule"
               aria-label="Mon Emploi du Temps"
             >
               <span class="nav-icon" aria-hidden="true">
@@ -546,6 +548,7 @@
             <button
               class="nav-item"
               onclick="showPanel('tasks')"
+              data-panel="tasks"
               aria-label="Mes Tâches"
             >
               <span class="nav-icon" aria-hidden="true">
@@ -571,6 +574,7 @@
             <button
               class="nav-item"
               onclick="showPanel('timeslots')"
+              data-panel="timeslots"
               aria-label="Créneaux Horaires"
             >
               <span class="nav-icon" aria-hidden="true">
@@ -597,6 +601,7 @@
             <button
               class="nav-item nav-item-secondary"
               onclick="showPanel('autogen')"
+              data-panel="autogen"
               aria-label="Génération Auto"
             >
               <span class="nav-icon" aria-hidden="true">
@@ -644,20 +649,6 @@
           </div>
           <div class="sidebar-footer">
             <button
-              class="nav-item theme-nav-item"
-              type="button"
-              onclick="toggleTheme()"
-              aria-label="Activer le mode sombre"
-              title="Activer le mode sombre"
-              aria-pressed="false"
-            >
-              <span class="nav-icon theme-nav-icon" aria-hidden="true">
-                <span class="theme-icon-sun">☀</span>
-                <span class="theme-icon-moon">☾</span>
-              </span>
-              <span class="theme-nav-label">Mode sombre</span>
-            </button>
-            <button
               class="nav-item"
               onclick="confirmLogout()"
               aria-label="Se déconnecter"
@@ -695,30 +686,87 @@
                 </div>
               </div>
               <div class="schedule-header-actions">
-                <button
-                  class="btn-primary"
-                  onclick="openSubjectModal()"
-                  aria-label="Ajouter une tâche"
-                >
-                  + Ajouter une tâche
-                </button>
-                <button
-                  class="btn-secondary btn-compact"
-                  onclick="openTimeslotModal()"
-                  aria-label="Ajouter un créneau"
-                >
-                  + Ajouter un créneau
-                </button>
                 <details class="schedule-actions-menu">
-                  <summary class="btn-secondary btn-compact btn-ghost">
-                    Actions ▾
+                  <summary
+                    class="actions-menu-btn"
+                    aria-label="Plus d'actions"
+                    title="Plus d'actions"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <circle cx="5" cy="12" r="1.5" />
+                      <circle cx="12" cy="12" r="1.5" />
+                      <circle cx="19" cy="12" r="1.5" />
+                    </svg>
                   </summary>
-                  <div class="schedule-actions-popover">
-                    <button type="button" onclick="exportSchedule()">
-                      Exporter le planning
+                  <div class="schedule-actions-popover actions-icons-popover">
+                    <button
+                      class="action-icon-btn"
+                      onclick="openSubjectModal()"
+                      aria-label="Ajouter une tâche"
+                      title="Ajouter une tâche"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                      </svg>
                     </button>
-                    <button type="button" onclick="enterFocusMode()">
-                      Mode focus
+                    <button
+                      class="action-icon-btn"
+                      onclick="openTimeslotModal()"
+                      aria-label="Ajouter un créneau"
+                      title="Ajouter un créneau"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="16" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
+                      </svg>
+                    </button>
+                    <button
+                      class="action-icon-btn"
+                      type="button"
+                      onclick="exportSchedule()"
+                      aria-label="Exporter le planning"
+                      title="Exporter le planning"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                    </button>
+                    <button
+                      class="action-icon-btn"
+                      type="button"
+                      onclick="toggleTheme()"
+                      aria-label="Basculer le mode sombre"
+                      title="Mode sombre"
+                      aria-pressed="false"
+                    >
+                      <span class="theme-icon-sun" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="12" cy="12" r="4" />
+                          <path d="M12 2v2" /><path d="M12 20v2" />
+                          <path d="M4.93 4.93l1.41 1.41" /><path d="M17.66 17.66l1.41 1.41" />
+                          <path d="M2 12h2" /><path d="M20 12h2" />
+                          <path d="M6.34 17.66l-1.41 1.41" /><path d="M19.07 4.93l-1.41 1.41" />
+                        </svg>
+                      </span>
+                      <span class="theme-icon-moon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                        </svg>
+                      </span>
                     </button>
                   </div>
                 </details>

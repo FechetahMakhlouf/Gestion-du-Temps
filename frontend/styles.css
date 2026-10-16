@@ -5381,3 +5381,65 @@ textarea.form-input:not(:placeholder-shown) ~ .form-label {
   :root { --sidebar-width: 200px; --page-gutter: var(--space-6); }
   .schedule-header-actions { margin-left: 0; }
 }
+
+/* ── Actions menu : bouton icône moderne ──────────── */
+.actions-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.actions-menu-btn:hover {
+  color: var(--primary-light);
+  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+  background: var(--primary-dim);
+}
+
+.actions-menu-btn:active {
+  transform: scale(0.92);
+}
+
+.schedule-actions-menu[open] .actions-menu-btn {
+  color: var(--primary-light);
+  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+  background: var(--primary-dim);
+}
+
+.actions-icons-popover {
+  display: flex;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.4rem;
+}
+
+.action-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.action-icon-btn:hover {
+  color: var(--primary-light);
+  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+  background: var(--primary-dim);
+}
+
+.action-icon-btn:active {
+  transform: scale(0.9);
+}
