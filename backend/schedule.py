@@ -78,3 +78,21 @@ def remove():
         db.session.delete(entry)
         db.session.commit()
     return json_response(message='Removed')
+
+
+@schedule_bp.route('/clear', methods=['POST'])
+@login_required
+def clear_schedule():
+    """Atomically clear every assigned cell for one user's selected week."""
+    data = request.get_json(silent=True) or {}
+    week_offset = data.get('weekOffset', 0)
+    try:
+        week_offset = int(week_offset)
+    except (TypeError, ValueError):
+        return json_response(message='Invalid weekOffset', status=400)
+
+    deleted = ScheduleEntry.query.filter_by(
+        user_id=current_user.id, week_offset=week_offset
+    ).delete(synchronize_session=False)
+    db.session.commit()
+    return json_response(message='Schedule cleared', deleted=deleted)

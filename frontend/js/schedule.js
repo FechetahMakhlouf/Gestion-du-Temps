@@ -837,28 +837,68 @@ async function clearAllSchedule() {
     confirmText: "Vider",
     confirmClass: "btn-danger",
     onConfirm: async () => {
-      const sched = await Store.getSchedule(currentWeekOffset);
-      const removals = Object.keys(sched).map((key) => {
-        const parts = key.split("_");
-        if (parts.length === 3) {
-          const day = parts[1];
-          const tsId = parts[2];
-          localStorage.removeItem(`done_${currentWeekOffset}_${day}_${tsId}`);
-          return apiCall("/api/schedule/remove", {
+      try {
+        const weekOffset = Number(currentWeekOffset) || 0;
+        let clearedByBulkEndpoint = false;
+
+        // Newer backend deployments support an atomic clear endpoint. Older
+        // deployments may still return an HTML 404 page, which apiCall cannot
+        // parse as JSON. In that case, fall back to the existing /remove API.
+        try {
+          await apiCall("/api/schedule/clear", {
             method: "POST",
-            body: JSON.stringify({
-              weekOffset: currentWeekOffset,
-              day,
-              timeslotId: tsId,
-            }),
+            body: JSON.stringify({ weekOffset }),
           });
+          clearedByBulkEndpoint = true;
+        } catch (clearError) {
+          if (!/Réponse invalide du serveur|404|Not Found/i.test(clearError.message || "")) {
+            throw clearError;
+          }
+
+          const currentSchedule = await Store.getSchedule(weekOffset, true);
+          const entries = Object.keys(currentSchedule || {}).map((key) => {
+            const parts = key.split("_");
+            if (parts.length < 3) return null;
+            return {
+              day: parts[1],
+              timeslotId: parts.slice(2).join("_"),
+              key,
+            };
+          }).filter(Boolean);
+
+          // Use the already-deployed remove endpoint sequentially so the
+          // fallback also works on older servers without bulk-clear support.
+          for (const entry of entries) {
+            await apiCall("/api/schedule/remove", {
+              method: "POST",
+              body: JSON.stringify({
+                weekOffset,
+                day: entry.day,
+                timeslotId: entry.timeslotId,
+              }),
+            });
+          }
         }
-        return Promise.resolve();
-      });
-      await Promise.all(removals);
-      Store.setScheduleWeek(currentWeekOffset, {});
-      await renderScheduleGrid();
-      toast("Emploi du temps vidé", "info");
+
+        // Clear completion flags and update local state only after the server
+        // operation succeeds, so a refresh cannot restore stale assignments.
+        const sched = clearedByBulkEndpoint
+          ? await Store.getSchedule(weekOffset, true)
+          : await Store.getSchedule(weekOffset, true);
+        Object.keys(sched || {}).forEach((key) => {
+          const parts = key.split("_");
+          if (parts.length >= 3) {
+            const day = parts[1];
+            const tsId = parts.slice(2).join("_");
+            localStorage.removeItem(`done_${weekOffset}_${day}_${tsId}`);
+          }
+        });
+        Store.setScheduleWeek(weekOffset, {});
+        await renderScheduleGrid();
+        toast("Emploi du temps vidé", "info");
+      } catch (error) {
+        toast(error.message || "Impossible de vider l'emploi du temps", "error");
+      }
     },
   });
 }
