@@ -46,8 +46,9 @@ class Subtask(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     title = db.Column(db.String(200), nullable=False)
     position = db.Column(db.Integer, nullable=False, default=0)
-    # Day abbreviation (e.g. 'Lun', 'Mar', …). NULL means applies to all days (legacy).
-    day = db.Column(db.String(3), nullable=True, default=None)
+    # Scope: '<day>@<timeslot_id>' (e.g. 'Mar@ts1') = one specific time slot.
+    # Legacy values: plain day abbreviation ('Mar') or NULL.
+    day = db.Column(db.String(64), nullable=True, default=None)
 
     __table_args__ = (
         db.Index('ix_subtask_user_subject_pos', 'user_id', 'subject_id', 'position'),

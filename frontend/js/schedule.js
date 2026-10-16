@@ -210,6 +210,17 @@ function _timeslotsForDay(timeslots, dayAbbr) {
  * Inner markup of one block (everything after .block-time).
  * Pure function — no DOM access, no network.
  */
+/** Subtitle scope key for one specific time slot: "<day>@<timeslotId>". */
+function _slotScope(dayAbbr, tsId) {
+  return `${dayAbbr}@${tsId}`;
+}
+
+/** Subtitles shown in a slot: those scoped to this exact slot. */
+function _slotSubtasks(allList, dayAbbr, tsId) {
+  const scope = _slotScope(dayAbbr, tsId);
+  return (allList || []).filter((st) => st.day === scope);
+}
+
 function _buildCellContentHTML(dayAbbr, ts, subj, blockSubtasks, isDone) {
   if (!subj) {
     return `<div class="block-content block-empty"
@@ -252,7 +263,7 @@ function _buildCellContentHTML(dayAbbr, ts, subj, blockSubtasks, isDone) {
                             <summary onclick="event.stopPropagation()" aria-label="Autres actions" title="Autres actions">⋯</summary>
                             <div class="block-more-menu">
                                 <button class="subtask-mgr-btn"
-                                    onclick="event.stopPropagation();openSubtaskModal('${subj.id}','${subj.name.replace(/'/g, "\\'")}','${subj.color}','${dayAbbr}')"
+                                    onclick="event.stopPropagation();openSubtaskModal('${subj.id}','${subj.name.replace(/'/g, "\\'")}','${subj.color}','${_slotScope(dayAbbr, ts.id)}')"
                                     aria-label="Gérer les sous-titres"
                                     title="Sous-titres (${subtasks.length})">Sous-tâches${subtasks.length ? ` (${subtasks.length})` : ""}</button>
                             </div>
@@ -298,7 +309,7 @@ async function updateScheduleCell(day, tsId) {
   let subtasks = [];
   if (subj) {
     try {
-      subtasks = (await Store.getSubtasks(subj.id, day)) || [];
+      subtasks = _slotSubtasks(await Store.getSubtasks(subj.id, null), day, tsId);
     } catch (_) {
       subtasks = [];
     }
@@ -493,25 +504,17 @@ async function renderSchedule() {
       _bulkFT[`${currentWeekOffset}::${dayObj.abbr}`] || [];
   });
 
-  // Pre-fetch subtasks: one request per distinct day (not per pair).
-  const _dayToSubjectIds = {};
+  // Pre-fetch subtitles: one bulk request for every scheduled subject
+  // (cached "all" buckets), then filter per time slot when rendering.
   const visibleDayNames = new Set(weekDays.map((day) => day.abbr));
+  const _sidSet = new Set();
   Object.entries(sched).forEach(([key, sid]) => {
     const dayAbbr = key.split("_")[1];
-    if (!dayAbbr || !visibleDayNames.has(dayAbbr)) return;
-    (_dayToSubjectIds[dayAbbr] = _dayToSubjectIds[dayAbbr] || new Set()).add(
-      Number(sid),
-    );
+    if (dayAbbr && visibleDayNames.has(dayAbbr)) _sidSet.add(sid);
   });
-
-  const subtasksCache = {};
-  await Promise.all(
-    Object.entries(_dayToSubjectIds).map(async ([dayAbbr, sidSet]) => {
-      const daySubjects = [...sidSet].map((id) => ({ id }));
-      const bulk = await Store.getAllSubtasks(daySubjects, dayAbbr);
-      Object.assign(subtasksCache, bulk);
-    }),
-  );
+  const subtasksCache = _sidSet.size
+    ? await Store.getAllSubtasks([..._sidSet].map((id) => ({ id })), null)
+    : {};
 
   if (allWeekDays.length && DOM.weekLabel) {
     DOM.weekLabel.textContent = `${allWeekDays[0].dateStr} – ${allWeekDays[allWeekDays.length - 1].dateStr}`;
@@ -582,7 +585,7 @@ async function renderSchedule() {
         const subjId = sched[`${currentWeekOffset}_${dayAbbr}_${ts.id}`];
         const subj = subjId ? subjects.find((s) => s.id === subjId) : null;
         const blockSubtasks = subj
-          ? subtasksCache[`${subj.id}::${dayAbbr}`] || []
+          ? _slotSubtasks(subtasksCache[`${subj.id}::all`], dayAbbr, ts.id)
           : [];
         return renderScheduleCell(
           dayAbbr,
